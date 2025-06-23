@@ -4,6 +4,11 @@
   "author": "grabss Inc.",
   "private": true,
   "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "lint:ci": "biome ci ."
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.0.4"
   }

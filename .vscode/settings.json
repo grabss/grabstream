@@ -22,9 +22,6 @@
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "[scss]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
   "[jsonc]": {
     "editor.defaultFormatter": "biomejs.biome"
   }
