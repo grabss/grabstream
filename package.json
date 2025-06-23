@@ -1,0 +1,10 @@
+{
+  "name": "@grabstream/monorepo",
+  "license": "MIT",
+  "author": "grabss Inc.",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.4"
+  }
+}
