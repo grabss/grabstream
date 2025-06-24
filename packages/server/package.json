@@ -24,7 +24,11 @@
   ],
   "main": "dist/index.js",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
   "types": "dist/index.d.ts",
   "files": [

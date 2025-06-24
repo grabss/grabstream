@@ -1,8 +1,8 @@
 import { EventEmitter } from 'eventemitter3'
 import { v4 as uuidv4 } from 'uuid'
-import { type WebSocket, WebSocketServer } from 'ws'
-import type { Peer } from './peer'
-import type { Room } from './room'
+import { WebSocket, WebSocketServer } from 'ws'
+import { Peer } from './peer'
+import { Room } from './room'
 
 export type SignalingMessage = {
   type: 'join' | 'leave' | 'offer' | 'answer' | 'candidate' | 'update-name'
@@ -84,6 +84,12 @@ export class GrabstreamServer extends EventEmitter {
     const peerId = uuidv4()
     console.log(`New connection: ${peerId}`)
 
+    // Create peer but don't add to any room yet
+    const peer = new Peer(peerId, ws)
+
+    this.peers.set(peerId, peer)
+    this.emit('peer:connected', peer)
+
     ws.on('message', (data) => {
       this.handleMessage(peerId, ws, data)
     })
@@ -103,7 +109,37 @@ export class GrabstreamServer extends EventEmitter {
       const message: SignalingMessage = JSON.parse(data.toString())
       console.log(`Message from ${peerId}:`, message.type)
 
-      // メッセージ処理は次のステップで実装
+      const peer = this.peers.get(peerId)
+      if (!peer) {
+        console.error(`Peer ${peerId} not found`)
+        ws.close(1002, 'Peer not found')
+        return
+      }
+
+      switch (message.type) {
+        case 'join':
+          this.handleJoinMessage(peer, message)
+          break
+
+        case 'leave':
+          this.handleLeaveMessage(peer, message)
+          break
+
+        case 'update-name':
+          this.handleUpdateNameMessage(peer, message)
+          break
+
+        case 'offer':
+        case 'answer':
+        case 'candidate':
+          this.handleWebRTCMessage(peer, message)
+          break
+
+        default:
+          console.warn(`Unknown message type: ${message.type}`)
+          this.sendErrorToSocket(ws, 'Unknown message type')
+      }
+
       this.emit('message', peerId, message)
     } catch (error) {
       console.error(`Invalid message from ${peerId}:`, error)
@@ -113,7 +149,261 @@ export class GrabstreamServer extends EventEmitter {
 
   private handleDisconnection(peerId: string): void {
     console.log(`Peer disconnected: ${peerId}`)
+
+    const peer = this.peers.get(peerId)
+    if (peer?.isInRoom()) {
+      // Remove peer from room if they were in one
+      this.leavePeerFromRoom(peerId)
+    }
+
     this.peers.delete(peerId)
     this.emit('peer:disconnect', peerId)
+  }
+
+  // Room management methods
+  createRoom(roomId: string): Room {
+    if (this.rooms.has(roomId)) {
+      throw new Error(`Room ${roomId} already exists`)
+    }
+
+    const room = new Room(roomId)
+
+    this.rooms.set(roomId, room)
+    console.log(`Room created: ${roomId}`)
+    this.emit('room:created', room)
+
+    return room
+  }
+
+  getRoom(roomId: string): Room | undefined {
+    return this.rooms.get(roomId)
+  }
+
+  getRooms(): Room[] {
+    return Array.from(this.rooms.values())
+  }
+
+  deleteRoom(roomId: string): boolean {
+    const room = this.rooms.get(roomId)
+    if (!room) {
+      return false
+    }
+
+    // Remove all peers from the room
+    for (const peer of room.getPeers()) {
+      peer.leaveRoom()
+      this.emit('peer:left', peer, room)
+    }
+
+    this.rooms.delete(roomId)
+    console.log(`Room deleted: ${roomId}`)
+    this.emit('room:deleted', roomId)
+
+    return true
+  }
+
+  getRoomCount(): number {
+    return this.rooms.size
+  }
+
+  getPeerCount(): number {
+    return this.peers.size
+  }
+
+  getRoomPeerCount(roomId: string): number {
+    const room = this.getRoom(roomId)
+    return room ? room.getPeerCount() : 0
+  }
+
+  // Peer management methods
+  getPeer(peerId: string): Peer | undefined {
+    return this.peers.get(peerId)
+  }
+
+  joinPeerToRoom(peerId: string, roomId: string): boolean {
+    const peer = this.peers.get(peerId)
+    if (!peer) {
+      return false
+    }
+
+    // Leave current room if in one
+    if (peer.isInRoom()) {
+      this.leavePeerFromRoom(peerId)
+    }
+
+    // Create room if it doesn't exist
+    let room = this.getRoom(roomId)
+    if (!room) {
+      room = this.createRoom(roomId)
+    }
+
+    // Add peer to room using Room class method
+    const success = room.addPeer(peer)
+    if (success) {
+      console.log(`Peer ${peerId} joined room ${roomId}`)
+      this.emit('peer:joined', peer, room)
+    }
+
+    return success
+  }
+
+  leavePeerFromRoom(peerId: string): boolean {
+    const peer = this.peers.get(peerId)
+    if (!peer || !peer.isInRoom()) {
+      return false
+    }
+
+    const roomId = peer.roomId!
+    const room = this.getRoom(roomId)
+    if (room) {
+      const removedPeer = room.removePeer(peerId)
+      if (removedPeer) {
+        console.log(`Peer ${peerId} left room ${roomId}`)
+        this.emit('peer:left', peer, room)
+
+        // Delete room if empty
+        if (room.isEmpty()) {
+          this.deleteRoom(roomId)
+        }
+        return true
+      }
+    }
+
+    return false
+  }
+
+  updatePeerDisplayName(peerId: string, displayName: string): boolean {
+    const peer = this.peers.get(peerId)
+    if (!peer) {
+      return false
+    }
+
+    const oldDisplayName = peer.updateDisplayName(displayName)
+
+    console.log(
+      `Peer ${peerId} updated display name: ${oldDisplayName} -> ${displayName}`
+    )
+    this.emit('peer:displayName:updated', peer, oldDisplayName)
+
+    // Notify room members if peer is in a room
+    if (peer.isInRoom()) {
+      const room = this.getRoom(peer.roomId!)
+      if (room) {
+        room.updatePeerDisplayName(peerId, displayName)
+      }
+    }
+
+    return true
+  }
+
+  // Helper methods
+  private sendToSocket(socket: WebSocket, message: any): void {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message))
+    }
+  }
+
+  private sendErrorToSocket(socket: WebSocket, error: string): void {
+    this.sendToSocket(socket, {
+      type: 'error',
+      message: error
+    })
+  }
+
+  // Message handlers
+  private handleJoinMessage(peer: Peer, message: SignalingMessage): void {
+    if (!message.roomId) {
+      peer.sendError('Room ID is required for join')
+      return
+    }
+
+    // Update display name if provided
+    if (message.displayName) {
+      peer.updateDisplayName(message.displayName)
+    }
+
+    const success = this.joinPeerToRoom(peer.id, message.roomId)
+
+    if (success) {
+      peer.send({
+        type: 'join:success',
+        roomId: message.roomId,
+        peerId: peer.id,
+        displayName: peer.displayName
+      })
+    } else {
+      peer.sendError('Failed to join room')
+    }
+  }
+
+  private handleLeaveMessage(peer: Peer, _message: SignalingMessage): void {
+    if (!peer.isInRoom()) {
+      peer.sendError('Not in any room')
+      return
+    }
+
+    const roomId = peer.roomId
+    const success = this.leavePeerFromRoom(peer.id)
+
+    if (success) {
+      peer.send({
+        type: 'leave:success',
+        roomId: roomId
+      })
+    } else {
+      peer.sendError('Failed to leave room')
+    }
+  }
+
+  private handleUpdateNameMessage(peer: Peer, message: SignalingMessage): void {
+    if (!message.displayName) {
+      peer.sendError('Display name is required')
+      return
+    }
+
+    const success = this.updatePeerDisplayName(peer.id, message.displayName)
+
+    if (success) {
+      peer.send({
+        type: 'update-name:success',
+        displayName: message.displayName
+      })
+    } else {
+      peer.sendError('Failed to update display name')
+    }
+  }
+
+  private handleWebRTCMessage(peer: Peer, message: SignalingMessage): void {
+    if (!peer.isInRoom()) {
+      peer.sendError('Must be in a room to send WebRTC messages')
+      return
+    }
+
+    if (!message.target) {
+      peer.sendError('Target peer ID is required for WebRTC messages')
+      return
+    }
+
+    const targetPeer = this.peers.get(message.target)
+    if (!targetPeer) {
+      peer.sendError('Target peer not found')
+      return
+    }
+
+    if (!targetPeer.isInRoom(peer.roomId!)) {
+      peer.sendError('Target peer is not in the same room')
+      return
+    }
+
+    // Forward the WebRTC message to the target peer
+    targetPeer.send({
+      type: message.type,
+      from: peer.id,
+      payload: message.payload
+    })
+
+    console.log(
+      `WebRTC ${message.type} forwarded from ${peer.id} to ${message.target}`
+    )
   }
 }
