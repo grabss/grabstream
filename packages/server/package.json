@@ -32,7 +32,10 @@
   ],
   "scripts": {
     "build": "tsc -v",
-    "dev": "tsc -v --watch"
+    "dev": "tsc -v --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "lint:ci": "biome ci ."
   },
   "devDependencies": {
     "@types/node": "^24.0.3",
