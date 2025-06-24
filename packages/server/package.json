@@ -35,12 +35,17 @@
     "dev": "tsc -v --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "lint:ci": "biome ci ."
+    "lint:ci": "biome ci .",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.3",
+    "jest": "^30.0.2",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
-  "jest": {},
   "packageManager": "pnpm@10.12.1"
 }
