@@ -1,0 +1,38 @@
+{
+  "name": "@grabstream/server",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "grabss Inc.",
+  "homepage": "https://grabss.co.jp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grabss/grabstream.git",
+    "directory": "packages/server"
+  },
+  "bugs": {
+    "url": "https://github.com/grabss/grabstream/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "minimal",
+    "websocket",
+    "webrtc"
+  ],
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {},
+  "devDependencies": {},
+  "dependencies": {},
+  "jest": {},
+  "packageManager": "pnpm@10.12.1"
+}

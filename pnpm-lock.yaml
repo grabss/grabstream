@@ -12,6 +12,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
 
+  packages/server: {}
+
 packages:
 
   '@biomejs/biome@2.0.4':
