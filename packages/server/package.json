@@ -43,9 +43,16 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.3",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
     "jest": "^30.0.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
-  "packageManager": "pnpm@10.12.1"
+  "packageManager": "pnpm@10.12.1",
+  "dependencies": {
+    "eventemitter3": "^5.0.1",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.2"
+  }
 }
