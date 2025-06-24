@@ -27,3 +27,5 @@ lerna-debug.log*
 !.vscode/settings.json
 
 node_modules
+dist
+build

@@ -12,7 +12,14 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
 
-  packages/server: {}
+  packages/server:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.3
+        version: 24.0.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
 packages:
 
@@ -69,6 +76,17 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@types/node@24.0.3':
+    resolution: {integrity: sha512-R4I/kzCYAdRLzfiCabn9hxWfbuHS573x+r0dJMkkzThEa7pbrcDWK+9zu3e7aBOouf+rQAciqPFMnxwr0aWgKg==}
+
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  undici-types@7.8.0:
+    resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
+
 snapshots:
 
   '@biomejs/biome@2.0.4':
@@ -105,3 +123,11 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.0.4':
     optional: true
+
+  '@types/node@24.0.3':
+    dependencies:
+      undici-types: 7.8.0
+
+  typescript@5.8.3: {}
+
+  undici-types@7.8.0: {}

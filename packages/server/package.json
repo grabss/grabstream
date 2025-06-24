@@ -30,9 +30,14 @@
   "files": [
     "dist"
   ],
-  "scripts": {},
-  "devDependencies": {},
-  "dependencies": {},
+  "scripts": {
+    "build": "tsc -v",
+    "dev": "tsc -v --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "typescript": "^5.8.3"
+  },
   "jest": {},
   "packageManager": "pnpm@10.12.1"
 }
