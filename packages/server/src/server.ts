@@ -45,7 +45,10 @@ export class GrabstreamServer extends EventEmitter {
     this.wss.on('connection', this.handleConnection.bind(this))
 
     return new Promise((resolve) => {
-      this.wss!.on('listening', () => {
+      if (!this.wss) {
+        throw new Error('WebSocket server not initialized')
+      }
+      this.wss.on('listening', () => {
         console.log(
           `GrabstreamServer listening on ${this.config.host}:${this.config.port}`
         )
@@ -60,8 +63,9 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
+    const wss = this.wss
     return new Promise((resolve, reject) => {
-      this.wss!.close((err) => {
+      wss.close((err) => {
         if (err) {
           reject(err)
         } else {
