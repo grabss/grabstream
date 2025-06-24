@@ -1,4 +1,4 @@
-import type { WebSocket } from 'ws'
+import { WebSocket } from 'ws'
 
 export class Peer {
   public readonly id: string

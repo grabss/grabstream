@@ -5,7 +5,7 @@ import { Peer } from './peer'
 import { Room } from './room'
 
 export type SignalingMessage = {
-  type: 'join' | 'leave' | 'offer' | 'answer' | 'candidate' | 'update-name'
+  type: 'JOIN' | 'LEAVE' | 'OFFER' | 'ANSWER' | 'CANDIDATE' | 'UPDATE_NAME'
   roomId?: string
   displayName?: string
   target?: string
@@ -117,21 +117,21 @@ export class GrabstreamServer extends EventEmitter {
       }
 
       switch (message.type) {
-        case 'join':
+        case 'JOIN':
           this.handleJoinMessage(peer, message)
           break
 
-        case 'leave':
+        case 'LEAVE':
           this.handleLeaveMessage(peer, message)
           break
 
-        case 'update-name':
+        case 'UPDATE_NAME':
           this.handleUpdateNameMessage(peer, message)
           break
 
-        case 'offer':
-        case 'answer':
-        case 'candidate':
+        case 'OFFER':
+        case 'ANSWER':
+        case 'CANDIDATE':
           this.handleWebRTCMessage(peer, message)
           break
 
