@@ -3,7 +3,18 @@
 // Types
 export type { Peer } from './peer'
 export type { Room } from './room'
-export type { GrabstreamServerConfig, SignalingMessage } from './server'
+export type {
+  AnswerMessage,
+  CandidateMessage,
+  GrabstreamServerConfig,
+  IceCandidatePayload,
+  JoinMessage,
+  LeaveMessage,
+  OfferMessage,
+  SessionDescriptionPayload,
+  SignalingMessage,
+  UpdateNameMessage
+} from './server'
 export { GrabstreamServer, GrabstreamServer as default } from './server'
 
 // Usage example:

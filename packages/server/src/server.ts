@@ -4,13 +4,68 @@ import { WebSocket, WebSocketServer } from 'ws'
 import { Peer } from './peer'
 import { Room } from './room'
 
-export type SignalingMessage = {
-  type: 'JOIN' | 'LEAVE' | 'OFFER' | 'ANSWER' | 'CANDIDATE' | 'UPDATE_NAME'
+// WebRTC payload types for signaling
+export interface SessionDescriptionPayload {
+  type: 'offer' | 'answer'
+  sdp: string
+}
+
+export interface IceCandidatePayload {
+  candidate: string
+  sdpMLineIndex?: number | null
+  sdpMid?: string | null
+  usernameFragment?: string | null
+}
+
+// Base message interface
+interface BaseMessage {
   roomId?: string
   displayName?: string
   target?: string
-  payload?: any
 }
+
+// Specific message types
+export type JoinMessage = BaseMessage & {
+  type: 'JOIN'
+  roomId: string
+  displayName?: string
+}
+
+export type LeaveMessage = BaseMessage & {
+  type: 'LEAVE'
+}
+
+export type UpdateNameMessage = BaseMessage & {
+  type: 'UPDATE_NAME'
+  displayName: string
+}
+
+export type OfferMessage = BaseMessage & {
+  type: 'OFFER'
+  target: string
+  payload: SessionDescriptionPayload
+}
+
+export type AnswerMessage = BaseMessage & {
+  type: 'ANSWER'
+  target: string
+  payload: SessionDescriptionPayload
+}
+
+export type CandidateMessage = BaseMessage & {
+  type: 'CANDIDATE'
+  target: string
+  payload: IceCandidatePayload
+}
+
+// Union type for all signaling messages
+export type SignalingMessage =
+  | JoinMessage
+  | LeaveMessage
+  | UpdateNameMessage
+  | OfferMessage
+  | AnswerMessage
+  | CandidateMessage
 
 export type GrabstreamServerConfig = {
   port?: number
@@ -135,9 +190,15 @@ export class GrabstreamServer extends EventEmitter {
           this.handleWebRTCMessage(peer, message)
           break
 
-        default:
-          console.warn(`Unknown message type: ${message.type}`)
+        default: {
+          console.warn(
+            `Unknown message type: ${
+              // biome-ignore lint/suspicious/noExplicitAny: Unknown message type
+              (message as any).type
+            }`
+          )
           this.sendErrorToSocket(ws, 'Unknown message type')
+        }
       }
 
       this.emit('message', peerId, message)
@@ -311,12 +372,7 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   // Message handlers
-  private handleJoinMessage(peer: Peer, message: SignalingMessage): void {
-    if (!message.roomId) {
-      peer.sendError('Room ID is required for join')
-      return
-    }
-
+  private handleJoinMessage(peer: Peer, message: JoinMessage): void {
     // Update display name if provided
     if (message.displayName) {
       peer.updateDisplayName(message.displayName)
@@ -336,7 +392,7 @@ export class GrabstreamServer extends EventEmitter {
     }
   }
 
-  private handleLeaveMessage(peer: Peer, _message: SignalingMessage): void {
+  private handleLeaveMessage(peer: Peer, _message: LeaveMessage): void {
     if (!peer.isInRoom()) {
       peer.sendError('Not in any room')
       return
@@ -355,12 +411,10 @@ export class GrabstreamServer extends EventEmitter {
     }
   }
 
-  private handleUpdateNameMessage(peer: Peer, message: SignalingMessage): void {
-    if (!message.displayName) {
-      peer.sendError('Display name is required')
-      return
-    }
-
+  private handleUpdateNameMessage(
+    peer: Peer,
+    message: UpdateNameMessage
+  ): void {
     const success = this.updatePeerDisplayName(peer.id, message.displayName)
 
     if (success) {
@@ -373,14 +427,12 @@ export class GrabstreamServer extends EventEmitter {
     }
   }
 
-  private handleWebRTCMessage(peer: Peer, message: SignalingMessage): void {
+  private handleWebRTCMessage(
+    peer: Peer,
+    message: OfferMessage | AnswerMessage | CandidateMessage
+  ): void {
     if (!peer.isInRoom()) {
       peer.sendError('Must be in a room to send WebRTC messages')
-      return
-    }
-
-    if (!message.target) {
-      peer.sendError('Target peer ID is required for WebRTC messages')
       return
     }
 
