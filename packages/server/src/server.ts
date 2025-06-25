@@ -4,6 +4,9 @@ import type { Server as HTTPSServer } from 'node:https'
 import { EventEmitter } from 'eventemitter3'
 import { WebSocketServer } from 'ws'
 
+import type { Peer } from './peer'
+import type { Room } from './room'
+
 export type GrabstreamServerOptions = {
   host?: string
   port?: number
@@ -12,6 +15,8 @@ export type GrabstreamServerOptions = {
 
 export class GrabstreamServer extends EventEmitter {
   private wss?: WebSocketServer
+  private readonly rooms: Map<string, Room> = new Map()
+  private readonly peers: Map<string, Peer> = new Map()
   private readonly options: GrabstreamServerOptions
 
   constructor(options: GrabstreamServerOptions = {}) {
