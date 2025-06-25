@@ -46,6 +46,33 @@ export class GrabstreamServer extends EventEmitter {
       perMessageDeflate: false,
       maxPayload: 1024 * 1024
     })
+
+    const wss = this.wss
+    return new Promise((resolve, reject) => {
+      const onListening = () => {
+        wss.off('error', onError)
+
+        this.setupEventHandlers(wss)
+
+        console.log('GrabstreamServer started...')
+        this.emit('started')
+        resolve()
+      }
+
+      const onError = (error: Error) => {
+        wss.off('listening', onListening)
+        wss.removeAllListeners()
+        wss.close()
+
+        this.cleanup()
+
+        console.error('Error starting GrabstreamServer:', error)
+        reject(error)
+      }
+
+      wss.once('listening', onListening)
+      wss.once('error', onError)
+    })
   }
 
   async stop(): Promise<void> {
@@ -53,15 +80,36 @@ export class GrabstreamServer extends EventEmitter {
       throw new Error('GrabstreamServer is not running')
     }
 
+    const wss = this.wss
     return new Promise((resolve, reject) => {
-      this.wss?.close((err) => {
-        if (err) {
-          reject(err)
+      wss.close((error) => {
+        if (error) {
+          console.error('Error stopping GrabstreamServer:', error)
+          reject(error)
         } else {
-          this.wss = undefined
+          this.cleanup()
+
+          console.log('GrabstreamServer stopped')
+          this.emit('stopped')
           resolve()
         }
       })
     })
+  }
+
+  private setupEventHandlers(wss: WebSocketServer): void {
+    wss.on('error', (error) => {
+      this.emit('error', error)
+    })
+
+    wss.on('connection', (socket) => {
+      // TODO
+    })
+  }
+
+  private cleanup(): void {
+    this.wss = undefined
+    this.rooms.clear()
+    this.peers.clear()
   }
 }
