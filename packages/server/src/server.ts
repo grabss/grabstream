@@ -8,6 +8,10 @@ import { WebSocketServer } from 'ws'
 import { Peer } from './peer'
 import type { Room } from './room'
 
+export type GrabstreamPayload = {
+  type: string
+}
+
 export type GrabstreamServerOptions = {
   host?: string
   port?: number
@@ -145,7 +149,8 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   private handleMessage(peer: Peer, data: RawData): void {
-    console.log(`Received message from peer ${peer.id}:`, data)
+    const payload: GrabstreamPayload = JSON.parse(data.toString())
+    console.log(`Received message from peer ${peer.id}:`, payload.type)
   }
 
   private cleanup(): void {
