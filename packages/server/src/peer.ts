@@ -4,6 +4,7 @@ import type { WebSocket } from 'ws'
 export class Peer {
   private readonly _id: string
   private _displayName: string
+  private _roomId?: string
   private readonly _socket: WebSocket
   private readonly _joinedAt: Date
 
@@ -23,5 +24,30 @@ export class Peer {
 
   get displayName(): string {
     return this._displayName
+  }
+
+  get roomId(): string | undefined {
+    return this._roomId
+  }
+
+  joinRoom(roomId: string): void {
+    if (this._roomId) {
+      throw new Error(`Peer ${this._id} is already in room ${this._roomId}`)
+    }
+    this._roomId = roomId
+  }
+
+  leaveRoom(): void {
+    if (!this._roomId) {
+      throw new Error(`Peer ${this._id} is not in any room`)
+    }
+    this._roomId = undefined
+  }
+
+  isInRoom(roomId?: string): boolean {
+    if (roomId) {
+      return this.roomId === roomId
+    }
+    return this.roomId !== undefined
   }
 }

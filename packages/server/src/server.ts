@@ -118,13 +118,26 @@ export class GrabstreamServer extends EventEmitter {
     })
 
     socket.on('close', () => {
-      // TODO: handleDisconnection
+      this.handleDisconnection(peer)
     })
 
     socket.on('error', (error) => {
       console.error(`WebSocket error for peer ${peer.id}:`, error)
-      // TODO: handleDisconnection
+      this.emit('peerError', { peer, error })
     })
+  }
+
+  // private handleMessage
+
+  private handleDisconnection(peer: Peer): void {
+    console.log(`Peer disconnected: ${peer.id}`)
+
+    if (peer.isInRoom()) {
+      // TODO: Implement room removal logic
+    }
+
+    this.peers.delete(peer.id)
+    this.emit('peerDisconnected', peer)
   }
 
   private cleanup(): void {
