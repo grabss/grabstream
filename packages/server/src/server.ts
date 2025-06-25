@@ -10,6 +10,7 @@ import type { Room } from './room'
 export type GrabstreamServerOptions = {
   host?: string
   port?: number
+  path?: string
   server?: HTTPServer | HTTPSServer
 }
 
@@ -27,11 +28,15 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     if (options.server) {
-      this.options = { server: options.server }
+      this.options = {
+        path: options.path,
+        server: options.server
+      }
     } else {
       this.options = {
         host: options.host || '0.0.0.0',
-        port: options.port || 8080
+        port: options.port || 8080,
+        path: options.path
       }
     }
   }
