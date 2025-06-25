@@ -2,9 +2,9 @@ import type { Server as HTTPServer } from 'node:http'
 import type { Server as HTTPSServer } from 'node:https'
 
 import { EventEmitter } from 'eventemitter3'
-import { WebSocketServer } from 'ws'
+import { type WebSocket, WebSocketServer } from 'ws'
 
-import type { Peer } from './peer'
+import { Peer } from './peer'
 import type { Room } from './room'
 
 export type GrabstreamServerOptions = {
@@ -107,7 +107,24 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   private handleConnection(socket: WebSocket): void {
-    // TODO
+    const peer = new Peer({ socket })
+    console.log(`New peer connected: ${peer.id}`)
+
+    this.peers.set(peer.id, peer)
+    this.emit('peerConnected', peer)
+
+    socket.on('message', (data) => {
+      // TODO: handleMessage
+    })
+
+    socket.on('close', () => {
+      // TODO: handleDisconnection
+    })
+
+    socket.on('error', (error) => {
+      console.error(`WebSocket error for peer ${peer.id}:`, error)
+      // TODO: handleDisconnection
+    })
   }
 
   private cleanup(): void {
