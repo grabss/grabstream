@@ -5,9 +5,9 @@ import { EventEmitter } from 'eventemitter3'
 import { WebSocketServer } from 'ws'
 
 export type GrabstreamServerOptions = {
-  server?: HTTPServer | HTTPSServer
   host?: string
   port?: number
+  server?: HTTPServer | HTTPSServer
 }
 
 export class GrabstreamServer extends EventEmitter {
