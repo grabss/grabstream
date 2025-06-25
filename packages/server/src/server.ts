@@ -52,7 +52,7 @@ export class GrabstreamServer extends EventEmitter {
       const onListening = () => {
         wss.off('error', onError)
 
-        this.setupEventHandlers(wss)
+        this.setupWebSocketServerEventHandlers(wss)
 
         console.log('GrabstreamServer started...')
         this.emit('started')
@@ -97,14 +97,17 @@ export class GrabstreamServer extends EventEmitter {
     })
   }
 
-  private setupEventHandlers(wss: WebSocketServer): void {
+  private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
     wss.on('error', (error) => {
+      console.error('WebSocketServer error:', error)
       this.emit('error', error)
     })
 
-    wss.on('connection', (socket) => {
-      // TODO
-    })
+    wss.on('connection', this.handleConnection.bind(this))
+  }
+
+  private handleConnection(socket: WebSocket): void {
+    // TODO
   }
 
   private cleanup(): void {
