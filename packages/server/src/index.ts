@@ -1,3 +1,1 @@
-export const hello = () => {
-  console.log('Hello from @grabstream/server')
-}
+export { GrabstreamServer, type GrabstreamServerOptions } from './server'
