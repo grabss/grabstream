@@ -2,7 +2,8 @@ import type { Server as HTTPServer } from 'node:http'
 import type { Server as HTTPSServer } from 'node:https'
 
 import { EventEmitter } from 'eventemitter3'
-import { type WebSocket, WebSocketServer } from 'ws'
+import type { RawData, WebSocket } from 'ws'
+import { WebSocketServer } from 'ws'
 
 import { Peer } from './peer'
 import type { Room } from './room'
@@ -119,7 +120,7 @@ export class GrabstreamServer extends EventEmitter {
     this.emit('peerConnected', peer)
 
     socket.on('message', (data) => {
-      // TODO: handleMessage
+      this.handleMessage(peer, data)
     })
 
     socket.on('close', () => {
@@ -132,8 +133,6 @@ export class GrabstreamServer extends EventEmitter {
     })
   }
 
-  // private handleMessage
-
   private handleDisconnection(peer: Peer): void {
     console.log(`Peer disconnected: ${peer.id}`)
 
@@ -143,6 +142,10 @@ export class GrabstreamServer extends EventEmitter {
 
     this.peers.delete(peer.id)
     this.emit('peerDisconnected', peer)
+  }
+
+  private handleMessage(peer: Peer, data: RawData): void {
+    console.log(`Received message from peer ${peer.id}:`, data)
   }
 
   private cleanup(): void {
