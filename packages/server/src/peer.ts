@@ -97,4 +97,13 @@ export class Peer {
       payload
     })
   }
+
+  toJSON() {
+    return {
+      id: this._id,
+      displayName: this._displayName,
+      roomId: this._roomId,
+      joinedAt: this._joinedAt
+    }
+  }
 }
