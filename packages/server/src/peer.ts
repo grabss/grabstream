@@ -42,17 +42,20 @@ export class Peer {
   }
 
   joinRoom(roomId: string): void {
-    if (this.isInRoom()) {
+    if (this._roomId) {
       throw new Error(`Peer ${this._id} is already in room ${this._roomId}`)
     }
     this._roomId = roomId
   }
 
-  leaveRoom(): void {
-    if (!this.isInRoom()) {
+  leaveRoom(): string {
+    if (!this._roomId) {
       throw new Error(`Peer ${this._id} is not in any room`)
     }
+
+    const leftRoomId = this._roomId
     this._roomId = undefined
+    return leftRoomId
   }
 
   isInRoom(roomId?: string): boolean {
