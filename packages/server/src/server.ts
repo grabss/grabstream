@@ -75,7 +75,7 @@ export class GrabstreamServer extends EventEmitter {
         this.setupWebSocketServerEventHandlers(wss)
 
         console.log('GrabstreamServer started...')
-        this.emit('started')
+        this.emit('server:started')
         resolve()
       }
 
@@ -110,7 +110,7 @@ export class GrabstreamServer extends EventEmitter {
           this.cleanup()
 
           console.log('GrabstreamServer stopped')
-          this.emit('stopped')
+          this.emit('server:stopped')
           resolve()
         }
       })
@@ -120,7 +120,7 @@ export class GrabstreamServer extends EventEmitter {
   private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
     wss.on('error', (error) => {
       console.error('WebSocketServer error:', error)
-      this.emit('error', error)
+      this.emit('server:error', error)
     })
 
     wss.on('connection', this.handleConnection.bind(this))
@@ -131,7 +131,7 @@ export class GrabstreamServer extends EventEmitter {
     console.log(`New peer connected: ${peer.id}`)
 
     this.peers.set(peer.id, peer)
-    this.emit('peerConnected', peer)
+    this.emit('peer:connected', peer)
 
     socket.on('message', (data) => {
       this.handleMessage(peer, data)
@@ -143,7 +143,7 @@ export class GrabstreamServer extends EventEmitter {
 
     socket.on('error', (error) => {
       console.error(`WebSocket error for peer ${peer.id}:`, error)
-      this.emit('peerError', { peer, error })
+      this.emit('peer:error', { peer, error })
     })
   }
 
@@ -155,7 +155,7 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     this.peers.delete(peer.id)
-    this.emit('peerDisconnected', peer)
+    this.emit('peer:disconnected', peer)
   }
 
   private handleMessage(peer: Peer, data: RawData): void {
@@ -210,7 +210,7 @@ export class GrabstreamServer extends EventEmitter {
       room = new Room(roomId)
       this.rooms.set(roomId, room)
       console.log(`Created new room: ${roomId}`)
-      this.emit('roomCreated', room)
+      this.emit('room:created', room)
     }
   }
 
