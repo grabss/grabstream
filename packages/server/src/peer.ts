@@ -34,6 +34,13 @@ export class Peer {
     return this._socket.readyState === this._socket.OPEN
   }
 
+  updateDisplayName(displayName: string): void {
+    if (!displayName || displayName.trim() === '') {
+      throw new Error('Display name cannot be empty')
+    }
+    this._displayName = displayName.trim()
+  }
+
   joinRoom(roomId: string): void {
     if (this._roomId) {
       throw new Error(`Peer ${this._id} is already in room ${this._roomId}`)

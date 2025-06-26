@@ -183,7 +183,7 @@ export class GrabstreamServer extends EventEmitter {
 
     switch (message.type) {
       case 'JOIN':
-        // handleJoinMessage
+        this.handleJoinMessage(peer, message)
         break
       case 'LEAVE':
         // handleLeaveMessage
@@ -197,6 +197,15 @@ export class GrabstreamServer extends EventEmitter {
         )
         return
     }
+  }
+
+  private handleJoinMessage(peer: Peer, message: JoinMessage): void {
+    const { roomId, displayName } = message.payload
+
+    if (displayName) peer.updateDisplayName(displayName)
+    peer.joinRoom(roomId)
+
+    // TODO: Implement room joining logic
   }
 
   private cleanup(): void {
