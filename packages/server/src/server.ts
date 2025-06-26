@@ -6,7 +6,7 @@ import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 
 import { Peer } from './peer'
-import type { Room } from './room'
+import { Room } from './room'
 
 export type JoinMessage = {
   type: 'JOIN'
@@ -205,7 +205,13 @@ export class GrabstreamServer extends EventEmitter {
     if (displayName) peer.updateDisplayName(displayName)
     peer.joinRoom(roomId)
 
-    // TODO: Implement room joining logic
+    let room = this.rooms.get(roomId)
+    if (!room) {
+      room = new Room(roomId)
+      this.rooms.set(roomId, room)
+      console.log(`Created new room: ${roomId}`)
+      this.emit('roomCreated', room)
+    }
   }
 
   private cleanup(): void {

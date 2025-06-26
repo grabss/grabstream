@@ -42,14 +42,14 @@ export class Peer {
   }
 
   joinRoom(roomId: string): void {
-    if (this._roomId) {
+    if (this.isInRoom()) {
       throw new Error(`Peer ${this._id} is already in room ${this._roomId}`)
     }
     this._roomId = roomId
   }
 
   leaveRoom(): void {
-    if (!this._roomId) {
+    if (!this.isInRoom()) {
       throw new Error(`Peer ${this._id} is not in any room`)
     }
     this._roomId = undefined
