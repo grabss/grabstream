@@ -8,9 +8,19 @@ import { WebSocketServer } from 'ws'
 import { Peer } from './peer'
 import type { Room } from './room'
 
-export type GrabstreamPayload = {
-  type: string
+export type JoinMessage = {
+  type: 'JOIN'
+  payload: {
+    roomId: string
+    displayName?: string
+  }
 }
+
+export type LeaveMessage = {
+  type: 'LEAVE'
+}
+
+export type GrabstreamMessage = JoinMessage | LeaveMessage
 
 export type GrabstreamServerOptions = {
   host?: string
@@ -149,8 +159,44 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   private handleMessage(peer: Peer, data: RawData): void {
-    const payload: GrabstreamPayload = JSON.parse(data.toString())
-    console.log(`Received message from peer ${peer.id}:`, payload.type)
+    if (!peer.isConnected) {
+      console.warn(`Received message from disconnected peer ${peer.id}`)
+      return
+    }
+
+    if (!this.peers.has(peer.id)) {
+      console.warn(`Received message from removed peer ${peer.id}`)
+      return
+    }
+
+    let message: GrabstreamMessage
+    try {
+      message = JSON.parse(data.toString())
+    } catch (error) {
+      console.error(`Failed to parse message from peer ${peer.id}:`, error)
+      return
+    }
+
+    console.log(
+      `Received message from peer ${peer.id}:${JSON.stringify(message)}`
+    )
+
+    switch (message.type) {
+      case 'JOIN':
+        // handleJoinMessage
+        break
+      case 'LEAVE':
+        // handleLeaveMessage
+        break
+      default:
+        console.warn(
+          `Unknown message type: ${
+            // biome-ignore lint/suspicious/noExplicitAny: Unknown message type
+            (message as any).type
+          }`
+        )
+        return
+    }
   }
 
   private cleanup(): void {

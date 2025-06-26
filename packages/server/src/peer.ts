@@ -30,6 +30,10 @@ export class Peer {
     return this._roomId
   }
 
+  get isConnected(): boolean {
+    return this._socket.readyState === this._socket.OPEN
+  }
+
   joinRoom(roomId: string): void {
     if (this._roomId) {
       throw new Error(`Peer ${this._id} is already in room ${this._roomId}`)
