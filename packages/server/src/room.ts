@@ -18,4 +18,13 @@ export class Room extends EventEmitter {
   get id(): string {
     return this._id
   }
+
+  // biome-ignore lint/suspicious/noExplicitAny: message
+  broadcast(message: any, excludePeerIds: string[] = []): void {
+    this._peers.forEach((peer) => {
+      if (!excludePeerIds.includes(peer.id)) {
+        peer.send(message)
+      }
+    })
+  }
 }
