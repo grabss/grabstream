@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { WebSocket } from 'ws'
 
-// TODO
 export type PeerMessage = {
-  type: 'ERROR'
+  type: string
   // biome-ignore lint/suspicious/noExplicitAny: payload
   payload: any
 }
