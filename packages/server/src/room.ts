@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3'
 
-import type { Peer } from './peer'
+import type { Peer, PeerMessage } from './peer'
 
 export class Room extends EventEmitter {
   private readonly _id: string
@@ -19,8 +19,7 @@ export class Room extends EventEmitter {
     return this._id
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: message
-  broadcast(message: any, excludePeerIds: string[] = []): void {
+  broadcast(message: PeerMessage, excludePeerIds: string[] = []): void {
     this._peers.forEach((peer) => {
       if (!excludePeerIds.includes(peer.id)) {
         peer.send(message)
