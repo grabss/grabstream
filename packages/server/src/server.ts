@@ -4,7 +4,12 @@ import type { Server as HTTPSServer } from 'node:https'
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
-import type { JoinRoomMessage, OfferMessage } from './messages'
+import type {
+  AnswerMessage,
+  IceCandidateMessage,
+  JoinRoomMessage,
+  OfferMessage
+} from './messages'
 import { isClientToServerMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
@@ -186,13 +191,13 @@ export class GrabstreamServer extends EventEmitter {
         this.handleLeaveMessage(peer)
         break
       case 'OFFER':
-        this.handleOfferMessage({ peer, message })
+        this.handleSignalingMessage({ peer, message })
         break
       case 'ANSWER':
-        // handleAnswerMessage
+        this.handleSignalingMessage({ peer, message })
         break
       case 'ICE_CANDIDATE':
-        // handleIceCandidateMessage
+        this.handleSignalingMessage({ peer, message })
         break
       default: {
         const _exhaustive: never = message
@@ -293,44 +298,73 @@ export class GrabstreamServer extends EventEmitter {
     }
   }
 
-  private handleOfferMessage({
+  private handleSignalingMessage({
     peer,
     message
   }: {
     peer: Peer
-    message: OfferMessage
+    message: OfferMessage | AnswerMessage | IceCandidateMessage
   }): void {
     if (!peer.isInRoom()) {
-      peer.sendError('Cannot send offer: not in a room')
+      peer.sendError(`Cannot send ${message.type.toLowerCase()}: not in a room`)
       return
     }
 
-    const { toPeerId, offer } = message.payload
+    const { toPeerId } = message.payload
     if (toPeerId === peer.id) {
-      peer.sendError('Cannot send offer to self')
+      peer.sendError(`Cannot send ${message.type.toLowerCase()} to self`)
       return
     }
 
     const room = this.rooms.get(peer.roomId)
     if (!room) {
-      peer.sendError('Cannot send offer: room not found')
+      peer.sendError(
+        `Cannot send ${message.type.toLowerCase()}: room not found`
+      )
       return
     }
 
     const targetPeer = room.getPeer(toPeerId)
     if (!targetPeer) {
-      peer.sendError('Cannot send offer: target peer not found')
+      peer.sendError(
+        `Cannot send ${message.type.toLowerCase()}: target peer not found`
+      )
       return
     }
 
-    targetPeer.send({
-      type: 'OFFER',
-      payload: {
-        fromPeerId: peer.id,
-        toPeerId,
-        offer
-      }
-    })
+    const peerInfo = {
+      fromPeerId: peer.id,
+      toPeerId
+    }
+    switch (message.type) {
+      case 'OFFER':
+        targetPeer.send({
+          type: 'OFFER',
+          payload: {
+            ...peerInfo,
+            offer: message.payload.offer
+          }
+        })
+        break
+      case 'ANSWER':
+        targetPeer.send({
+          type: 'ANSWER',
+          payload: {
+            ...peerInfo,
+            answer: message.payload.answer
+          }
+        })
+        break
+      case 'ICE_CANDIDATE':
+        targetPeer.send({
+          type: 'ICE_CANDIDATE',
+          payload: {
+            ...peerInfo,
+            candidate: message.payload.candidate
+          }
+        })
+        break
+    }
   }
 
   private removePeerFromRoom(peer: Peer): boolean {
