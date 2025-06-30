@@ -60,11 +60,8 @@ export class Peer {
     return leftRoomId
   }
 
-  isInRoom(roomId?: string): boolean {
-    if (roomId) {
-      return this.roomId === roomId
-    }
-    return this.roomId !== undefined
+  isInRoom(): this is Peer & { readonly roomId: string } {
+    return this._roomId !== undefined
   }
 
   send(message: ServerToClientMessage): boolean {

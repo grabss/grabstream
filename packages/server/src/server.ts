@@ -145,21 +145,36 @@ export class GrabstreamServer extends EventEmitter {
     console.log(`Peer disconnected: ${peer.id}`)
 
     if (peer.isInRoom()) {
+      const roomId = peer.roomId
+      const room = this.rooms.get(roomId)
+
       try {
         peer.leaveRoom()
-      } catch {
-        console.error(`Failed to leave room for peer ${peer.id}`)
+      } catch (error) {
+        console.error(`Failed to leave room for peer ${peer.id}:`, error)
       }
 
-      const roomId = peer.roomId as string
-      const room = this.rooms.get(roomId)
       if (room) {
         try {
           room.removePeer(peer.id)
 
+          room.broadcast({
+            message: {
+              type: 'PEER_LEFT',
+              payload: { peerId: peer.id }
+            }
+          })
+
+          console.log(
+            `Peer ${peer.id} left room ${roomId}. ` +
+              `Room now has ${room.peers.length} peer(s).`
+          )
+          this.emit('peer:left', { peer, roomId })
+
           if (room.isEmpty) {
             this.rooms.delete(roomId)
             console.log(`Deleted empty room: ${roomId}`)
+            this.emit('room:removed', { roomId })
           }
         } catch (error) {
           console.error(
@@ -167,6 +182,10 @@ export class GrabstreamServer extends EventEmitter {
             error
           )
         }
+      } else {
+        console.error(
+          `Peer ${peer.id} disconnected from unknown room ${roomId}`
+        )
       }
     }
 
@@ -256,7 +275,7 @@ export class GrabstreamServer extends EventEmitter {
         console.log(`Deleted empty room ${roomId} due to join failure`)
       }
 
-      if (peer.isInRoom(roomId)) {
+      if (peer.isInRoom()) {
         peer.leaveRoom()
       }
 
