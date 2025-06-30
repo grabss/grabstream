@@ -1,0 +1,62 @@
+{
+  "name": "@grabstream/server",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "grabss Inc.",
+  "homepage": "https://grabss.co.jp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grabss/grabstream.git",
+    "directory": "packages/server"
+  },
+  "bugs": {
+    "url": "https://github.com/grabss/grabstream/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "minimal",
+    "websocket",
+    "webrtc"
+  ],
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -v",
+    "dev": "tsc -v --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "lint:ci": "biome ci .",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.3",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
+    "jest": "^30.0.2",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "dependencies": {
+    "eventemitter3": "^5.0.1",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.2"
+  }
+}
