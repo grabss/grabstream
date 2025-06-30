@@ -28,6 +28,13 @@ export type LeaveRoomMessage = {
   payload?: Record<string, never>
 }
 
+export type UpdateDisplayNameMessage = {
+  type: 'UPDATE_DISPLAY_NAME'
+  payload: {
+    displayName: string
+  }
+}
+
 // WebRTC Signaling
 export type OfferMessage = {
   type: 'OFFER'
@@ -97,6 +104,21 @@ export type PeerLeftMessage = {
   }
 }
 
+export type PeerUpdatedMessage = {
+  type: 'PEER_UPDATED'
+  payload: {
+    peerId: string
+    displayName: string
+  }
+}
+
+export type DisplayNameUpdatedMessage = {
+  type: 'DISPLAY_NAME_UPDATED'
+  payload: {
+    displayName: string
+  }
+}
+
 // WebRTC Signaling
 export type OfferRelayMessage = {
   type: 'OFFER'
@@ -138,6 +160,7 @@ export type ErrorMessage = {
 export type ClientToServerMessage =
   | JoinRoomMessage
   | LeaveRoomMessage
+  | UpdateDisplayNameMessage
   | OfferMessage
   | AnswerMessage
   | IceCandidateMessage
@@ -148,6 +171,8 @@ export type ServerToClientMessage =
   | RoomLeftMessage
   | PeerJoinedMessage
   | PeerLeftMessage
+  | PeerUpdatedMessage
+  | DisplayNameUpdatedMessage
   | ErrorMessage
   | OfferRelayMessage
   | AnswerRelayMessage
@@ -165,6 +190,7 @@ export function isClientToServerMessage(
   return [
     'JOIN_ROOM',
     'LEAVE_ROOM',
+    'UPDATE_DISPLAY_NAME',
     'OFFER',
     'ANSWER',
     'ICE_CANDIDATE'
