@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3'
-
-import type { Peer, PeerMessage } from './peer'
+import type { ServerToClientMessage } from './messages'
+import type { Peer } from './peer'
 
 export class Room extends EventEmitter {
   private readonly _id: string
@@ -44,7 +44,7 @@ export class Room extends EventEmitter {
     message,
     excludePeerIds = []
   }: {
-    message: PeerMessage
+    message: ServerToClientMessage
     excludePeerIds?: string[]
   }): void {
     this._peers.forEach((peer) => {

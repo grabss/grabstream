@@ -216,15 +216,41 @@ export class GrabstreamServer extends EventEmitter {
     if (displayName) peer.updateDisplayName(displayName)
 
     let room = this.rooms.get(roomId)
+    let isNewRoom = false
     if (!room) {
       room = new Room(roomId)
       this.rooms.set(roomId, room)
+      isNewRoom = true
+    }
+
+    try {
+      peer.joinRoom(roomId)
+      room.addPeer(peer)
+    } catch (error) {
+      console.error(`Failed to add peer ${peer.id} to room ${roomId}:`, error)
+
+      if (isNewRoom) {
+        this.rooms.delete(roomId)
+        console.log(`Deleted empty room ${roomId} due to join failure`)
+      }
+
+      if (peer.isInRoom(roomId)) {
+        peer.leaveRoom()
+      }
+
+      peer.sendError(`Failed to join room: ${error}`)
+    }
+
+    if (isNewRoom) {
       console.log(`Created new room: ${roomId}`)
       this.emit('room:created', room)
     }
 
-    peer.joinRoom(roomId)
-    room.addPeer(peer)
+    console.log(
+      `Peer ${peer.id} (${peer.displayName}) joined room ${roomId}. ` +
+        `Room now has ${room.peers.length} peer(s).`
+    )
+    this.emit('peer:joined', { peer, room })
 
     // Notify existing peers about the new member
     room.broadcast({
@@ -251,6 +277,8 @@ export class GrabstreamServer extends EventEmitter {
           }))
       }
     })
+
+    // TODO
   }
 
   private cleanup(): void {
