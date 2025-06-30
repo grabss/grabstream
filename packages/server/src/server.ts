@@ -139,7 +139,12 @@ export class GrabstreamServer extends EventEmitter {
       this.handleMessage({ peer, data })
     })
 
-    socket.on('close', () => {
+    socket.on('close', (code, reason) => {
+      logger.info('websocket:closed', {
+        peerId: peer.id,
+        code,
+        reason: reason?.toString() || 'No reason provided'
+      })
       this.handleDisconnection(peer)
     })
 
@@ -178,7 +183,14 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     if (!isClientToServerMessage(message)) {
-      logger.error('message:invalidFormat', { peerId: peer.id, message })
+      // biome-ignore lint/suspicious/noExplicitAny: Need to access type property of unknown message structure
+      const messageType = (message as any)?.type || 'unknown'
+      logger.error('message:invalidFormat', {
+        peerId: peer.id,
+        messageType,
+        messageKeys:
+          message && typeof message === 'object' ? Object.keys(message) : []
+      })
       return
     }
 
@@ -235,6 +247,11 @@ export class GrabstreamServer extends EventEmitter {
 
     try {
       peer.joinRoom(roomId)
+      logger.info('peer:stateChanged', {
+        peerId: peer.id,
+        state: 'joinedRoom',
+        roomId
+      })
       room.addPeer(peer)
     } catch (error) {
       logger.error('room:joinFailed', { peerId: peer.id, roomId, error })
@@ -544,6 +561,11 @@ export class GrabstreamServer extends EventEmitter {
 
     try {
       peer.leaveRoom()
+      logger.info('peer:stateChanged', {
+        peerId: peer.id,
+        state: 'leftRoom',
+        roomId
+      })
     } catch (error) {
       logger.error('room:leaveFailed', { peerId: peer.id, error })
     }
