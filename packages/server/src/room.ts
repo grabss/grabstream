@@ -45,6 +45,10 @@ export class Room extends EventEmitter {
     this._peers.delete(peerId)
   }
 
+  getPeer(peerId: string): Peer | undefined {
+    return this._peers.get(peerId)
+  }
+
   hasPeer(peerId: string): boolean {
     return this._peers.has(peerId)
   }
