@@ -144,50 +144,7 @@ export class GrabstreamServer extends EventEmitter {
   private handleDisconnection(peer: Peer): void {
     console.log(`Peer disconnected: ${peer.id}`)
 
-    if (peer.isInRoom()) {
-      const roomId = peer.roomId
-      const room = this.rooms.get(roomId)
-
-      try {
-        peer.leaveRoom()
-      } catch (error) {
-        console.error(`Failed to leave room for peer ${peer.id}:`, error)
-      }
-
-      if (room) {
-        try {
-          room.removePeer(peer.id)
-
-          room.broadcast({
-            message: {
-              type: 'PEER_LEFT',
-              payload: { peerId: peer.id }
-            }
-          })
-
-          console.log(
-            `Peer ${peer.id} left room ${roomId}. ` +
-              `Room now has ${room.peers.length} peer(s).`
-          )
-          this.emit('peer:left', { peer, roomId })
-
-          if (room.isEmpty) {
-            this.rooms.delete(roomId)
-            console.log(`Deleted empty room: ${roomId}`)
-            this.emit('room:removed', { roomId })
-          }
-        } catch (error) {
-          console.error(
-            `Failed to remove peer ${peer.id} from room ${roomId}:`,
-            error
-          )
-        }
-      } else {
-        console.error(
-          `Peer ${peer.id} disconnected from unknown room ${roomId}`
-        )
-      }
-    }
+    this.removePeerFromRoom(peer)
 
     this.peers.delete(peer.id)
     this.emit('peer:disconnected', peer)
@@ -318,6 +275,55 @@ export class GrabstreamServer extends EventEmitter {
           }))
       }
     })
+  }
+
+  private removePeerFromRoom(peer: Peer): boolean {
+    if (!peer.isInRoom()) return false
+
+    const roomId = peer.roomId
+    const room = this.rooms.get(roomId)
+
+    try {
+      peer.leaveRoom()
+    } catch (error) {
+      console.error(`Failed to leave room for peer ${peer.id}:`, error)
+    }
+
+    if (room) {
+      try {
+        room.removePeer(peer.id)
+      } catch (error) {
+        console.error(
+          `Failed to remove peer ${peer.id} from room ${roomId}:`,
+          error
+        )
+        return false
+      }
+
+      room.broadcast({
+        message: {
+          type: 'PEER_LEFT',
+          payload: { peerId: peer.id }
+        }
+      })
+
+      console.log(
+        `Peer ${peer.id} left room ${roomId}. ` +
+          `Room now has ${room.peers.length} peer(s).`
+      )
+      this.emit('peer:left', { peer, roomId })
+
+      if (room.isEmpty) {
+        this.rooms.delete(roomId)
+        console.log(`Deleted empty room: ${roomId}`)
+        this.emit('room:removed', { roomId })
+      }
+    } else {
+      console.error(`Peer ${peer.id} disconnected from unknown room ${roomId}`)
+      return false
+    }
+
+    return true
   }
 
   private cleanup(): void {
