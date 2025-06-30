@@ -145,7 +145,29 @@ export class GrabstreamServer extends EventEmitter {
     console.log(`Peer disconnected: ${peer.id}`)
 
     if (peer.isInRoom()) {
-      // TODO: Implement room removal logic
+      try {
+        peer.leaveRoom()
+      } catch {
+        console.error(`Failed to leave room for peer ${peer.id}`)
+      }
+
+      const roomId = peer.roomId as string
+      const room = this.rooms.get(roomId)
+      if (room) {
+        try {
+          room.removePeer(peer.id)
+
+          if (room.isEmpty) {
+            this.rooms.delete(roomId)
+            console.log(`Deleted empty room: ${roomId}`)
+          }
+        } catch (error) {
+          console.error(
+            `Failed to remove peer ${peer.id} from room ${roomId}:`,
+            error
+          )
+        }
+      }
     }
 
     this.peers.delete(peer.id)

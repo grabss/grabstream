@@ -36,6 +36,15 @@ export class Room extends EventEmitter {
     this._peers.set(peer.id, peer)
   }
 
+  removePeer(peerId: string): void {
+    if (!this.hasPeer(peerId)) {
+      throw new Error(
+        `Peer with id ${peerId} does not exist in room ${this._id}`
+      )
+    }
+    this._peers.delete(peerId)
+  }
+
   hasPeer(peerId: string): boolean {
     return this._peers.has(peerId)
   }
