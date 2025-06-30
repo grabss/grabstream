@@ -1,13 +1,13 @@
 export type LogLevel = 'info' | 'warn' | 'error'
 
 export interface LogDetails {
+  // biome-ignore lint/suspicious/noExplicitAny: Log details can contain any type of data for flexible logging
   [key: string]: any
 }
 
 class Logger {
   private formatMessage(level: LogLevel, action: string): string {
-    const timestamp = new Date().toISOString()
-    return `[${timestamp}] [${level.toUpperCase()}] ${action}`
+    return `[grabstream] [${level.toUpperCase()}] ${action}`
   }
 
   log(level: LogLevel, action: string, details?: LogDetails): void {

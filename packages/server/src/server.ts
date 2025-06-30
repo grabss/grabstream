@@ -4,6 +4,7 @@ import type { Server as HTTPSServer } from 'node:https'
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
+import { logger } from './logger'
 import type {
   AnswerMessage,
   CustomMessage,
@@ -13,7 +14,6 @@ import type {
   UpdateDisplayNameMessage
 } from './messages'
 import { isClientToServerMessage } from './messages'
-import { logger } from './logger'
 import { Peer } from './peer'
 import { Room } from './room'
 

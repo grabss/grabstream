@@ -70,7 +70,7 @@ export class Room extends EventEmitter {
   toJSON() {
     return {
       id: this._id,
-      peers: this.peers.map(peer => peer.toJSON()),
+      peers: this.peers.map((peer) => peer.toJSON()),
       createdAt: this._createdAt
     }
   }
