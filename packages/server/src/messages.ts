@@ -1,5 +1,20 @@
+// ==================== WebRTC Types ====================
+
+export type RTCSessionDescription = {
+  type: 'offer' | 'answer'
+  sdp: string
+}
+
+export type RTCIceCandidate = {
+  candidate: string
+  sdpMLineIndex?: number
+  sdpMid?: string
+  usernameFragment?: string
+}
+
 // ==================== Client to Server Messages ====================
 
+// Room management
 export type JoinRoomMessage = {
   type: 'JOIN_ROOM'
   payload: {
@@ -11,6 +26,31 @@ export type JoinRoomMessage = {
 export type LeaveRoomMessage = {
   type: 'LEAVE_ROOM'
   payload?: Record<string, never>
+}
+
+// WebRTC Signaling
+export type OfferMessage = {
+  type: 'OFFER'
+  payload: {
+    toPeerId: string
+    offer: RTCSessionDescription
+  }
+}
+
+export type AnswerMessage = {
+  type: 'ANSWER'
+  payload: {
+    toPeerId: string
+    answer: RTCSessionDescription
+  }
+}
+
+export type IceCandidateMessage = {
+  type: 'ICE_CANDIDATE'
+  payload: {
+    toPeerId: string
+    candidate: RTCIceCandidate
+  }
 }
 
 // ==================== Server to Client Messages ====================
@@ -57,39 +97,39 @@ export type PeerLeftMessage = {
   }
 }
 
+// WebRTC Signaling
+export type OfferRelayMessage = {
+  type: 'OFFER'
+  payload: {
+    fromPeerId: string
+    toPeerId: string
+    offer: RTCSessionDescription
+  }
+}
+
+export type AnswerRelayMessage = {
+  type: 'ANSWER'
+  payload: {
+    fromPeerId: string
+    toPeerId: string
+    answer: RTCSessionDescription
+  }
+}
+
+export type IceCandidateRelayMessage = {
+  type: 'ICE_CANDIDATE'
+  payload: {
+    fromPeerId: string
+    toPeerId: string
+    candidate: RTCIceCandidate
+  }
+}
+
 // Error
 export type ErrorMessage = {
   type: 'ERROR'
   payload: {
     message: string
-  }
-}
-
-// WebRTC Signaling (for future use)
-export type OfferMessage = {
-  type: 'OFFER'
-  payload: {
-    fromPeerId: string
-    toPeerId: string
-    offer: string
-  }
-}
-
-export type AnswerMessage = {
-  type: 'ANSWER'
-  payload: {
-    fromPeerId: string
-    toPeerId: string
-    answer: string
-  }
-}
-
-export type IceCandidateMessage = {
-  type: 'ICE_CANDIDATE'
-  payload: {
-    fromPeerId: string
-    toPeerId: string
-    candidate: string
   }
 }
 
@@ -109,9 +149,9 @@ export type ServerToClientMessage =
   | PeerJoinedMessage
   | PeerLeftMessage
   | ErrorMessage
-  | OfferMessage
-  | AnswerMessage
-  | IceCandidateMessage
+  | OfferRelayMessage
+  | AnswerRelayMessage
+  | IceCandidateRelayMessage
 
 // ==================== Type Guards ====================
 
