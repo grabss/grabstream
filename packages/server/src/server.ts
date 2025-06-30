@@ -277,8 +277,6 @@ export class GrabstreamServer extends EventEmitter {
           }))
       }
     })
-
-    // TODO
   }
 
   private cleanup(): void {
