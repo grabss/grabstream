@@ -1,4 +1,5 @@
 import { EventEmitter } from 'eventemitter3'
+import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 import type { Peer } from './peer'
 
@@ -60,10 +61,27 @@ export class Room extends EventEmitter {
     message: ServerToClientMessage
     excludePeerIds?: string[]
   }): void {
+    let recipientCount = 0
+
     this._peers.forEach((peer) => {
       if (!excludePeerIds.includes(peer.id)) {
-        peer.send(message)
+        if (peer.send(message)) recipientCount++
       }
     })
+
+    logger.debug('room:broadcast', {
+      roomId: this._id,
+      messageType: message.type,
+      recipientCount,
+      excludedCount: excludePeerIds.length
+    })
+  }
+
+  toJSON() {
+    return {
+      id: this._id,
+      peers: this.peers.map((peer) => peer.toJSON()),
+      createdAt: this._createdAt
+    }
   }
 }

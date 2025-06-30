@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { WebSocket } from 'ws'
 
+import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 
 export class Peer {
@@ -66,9 +67,9 @@ export class Peer {
 
   send(message: ServerToClientMessage): boolean {
     if (!this.isConnected) {
-      console.warn(
-        `Cannot send message to peer ${this._id}: socket is not connected`
-      )
+      logger.warn('peer:sendFailedDisconnected', {
+        peerId: this._id
+      })
       return false
     }
 
@@ -76,7 +77,10 @@ export class Peer {
       this._socket.send(JSON.stringify(message))
       return true
     } catch (error) {
-      console.error(`Failed to send message to peer ${this._id}:`, error)
+      logger.error('peer:sendFailed', {
+        peerId: this._id,
+        error
+      })
       return false
     }
   }

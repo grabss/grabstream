@@ -4,6 +4,7 @@ import type { Server as HTTPSServer } from 'node:https'
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
+import { logger } from './logger'
 import type {
   AnswerMessage,
   CustomMessage,
@@ -68,7 +69,7 @@ export class GrabstreamServer extends EventEmitter {
 
         this.setupWebSocketServerEventHandlers(wss)
 
-        console.log('GrabstreamServer started...')
+        logger.info('server:started')
         this.emit('server:started')
         resolve()
       }
@@ -80,7 +81,7 @@ export class GrabstreamServer extends EventEmitter {
 
         this.cleanup()
 
-        console.error('Error starting GrabstreamServer:', error)
+        logger.error('server:startFailed', { error })
         reject(error)
       }
 
@@ -98,12 +99,12 @@ export class GrabstreamServer extends EventEmitter {
     return new Promise((resolve, reject) => {
       wss.close((error) => {
         if (error) {
-          console.error('Error stopping GrabstreamServer:', error)
+          logger.error('server:stopFailed', { error })
           reject(error)
         } else {
           this.cleanup()
 
-          console.log('GrabstreamServer stopped')
+          logger.info('server:stopped')
           this.emit('server:stopped')
           resolve()
         }
@@ -113,7 +114,7 @@ export class GrabstreamServer extends EventEmitter {
 
   private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
     wss.on('error', (error) => {
-      console.error('WebSocketServer error:', error)
+      logger.error('websocket:error', { error })
       this.emit('server:error', error)
     })
 
@@ -122,7 +123,7 @@ export class GrabstreamServer extends EventEmitter {
 
   private handleConnection(socket: WebSocket): void {
     const peer = new Peer({ socket })
-    console.log(`New peer connected: ${peer.id}`)
+    logger.info('peer:connected', { peerId: peer.id })
 
     peer.send({
       type: 'CONNECTION_ESTABLISHED',
@@ -138,18 +139,23 @@ export class GrabstreamServer extends EventEmitter {
       this.handleMessage({ peer, data })
     })
 
-    socket.on('close', () => {
+    socket.on('close', (code, reason) => {
+      logger.debug('websocket:closed', {
+        peerId: peer.id,
+        code,
+        reason: reason?.toString() || 'No reason provided'
+      })
       this.handleDisconnection(peer)
     })
 
     socket.on('error', (error) => {
-      console.error(`WebSocket error for peer ${peer.id}:`, error)
+      logger.error('peer:socketError', { peerId: peer.id, error })
       this.emit('peer:error', { peer, error })
     })
   }
 
   private handleDisconnection(peer: Peer): void {
-    console.log(`Peer disconnected: ${peer.id}`)
+    logger.info('peer:disconnected', { peerId: peer.id })
 
     this.removePeerFromRoom(peer)
 
@@ -159,12 +165,12 @@ export class GrabstreamServer extends EventEmitter {
 
   private handleMessage({ peer, data }: { peer: Peer; data: RawData }): void {
     if (!peer.isConnected) {
-      console.warn(`Received message from disconnected peer ${peer.id}`)
+      logger.warn('message:fromDisconnectedPeer', { peerId: peer.id })
       return
     }
 
     if (!this.peers.has(peer.id)) {
-      console.warn(`Received message from removed peer ${peer.id}`)
+      logger.warn('message:fromRemovedPeer', { peerId: peer.id })
       return
     }
 
@@ -172,18 +178,23 @@ export class GrabstreamServer extends EventEmitter {
     try {
       message = JSON.parse(data.toString())
     } catch (error) {
-      console.error(`Failed to parse message from peer ${peer.id}:`, error)
+      logger.error('message:parseFailed', { peerId: peer.id, error })
       return
     }
 
     if (!isClientToServerMessage(message)) {
-      console.error(`Invalid message from peer ${peer.id}:`, message)
+      // biome-ignore lint/suspicious/noExplicitAny: Need to access type property of unknown message structure
+      const messageType = (message as any)?.type || 'unknown'
+      logger.error('message:invalidFormat', {
+        peerId: peer.id,
+        messageType,
+        messageKeys:
+          message && typeof message === 'object' ? Object.keys(message) : []
+      })
       return
     }
 
-    console.log(
-      `Received message from peer ${peer.id}:${JSON.stringify(message)}`
-    )
+    logger.debug('message:received', { peerId: peer.id, type: message.type })
 
     switch (message.type) {
       case 'JOIN_ROOM':
@@ -209,7 +220,7 @@ export class GrabstreamServer extends EventEmitter {
         break
       default: {
         const _exhaustive: never = message
-        console.error('Unexpected message type', _exhaustive)
+        logger.error('message:unexpectedType', { message: _exhaustive })
         return
       }
     }
@@ -236,13 +247,18 @@ export class GrabstreamServer extends EventEmitter {
 
     try {
       peer.joinRoom(roomId)
+      logger.debug('peer:stateChanged', {
+        peerId: peer.id,
+        state: 'joinedRoom',
+        roomId
+      })
       room.addPeer(peer)
     } catch (error) {
-      console.error(`Failed to add peer ${peer.id} to room ${roomId}:`, error)
+      logger.error('room:joinFailed', { peerId: peer.id, roomId, error })
 
       if (isNewRoom) {
         this.rooms.delete(roomId)
-        console.log(`Deleted empty room ${roomId} due to join failure`)
+        logger.info('room:deletedAfterJoinFailure', { roomId })
       }
 
       if (peer.isInRoom()) {
@@ -253,14 +269,16 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     if (isNewRoom) {
-      console.log(`Created new room: ${roomId}`)
+      logger.info('room:created', { roomId })
       this.emit('room:created', room)
     }
 
-    console.log(
-      `Peer ${peer.id} (${peer.displayName}) joined room ${roomId}. ` +
-        `Room now has ${room.peers.length} peer(s).`
-    )
+    logger.info('peer:joinedRoom', {
+      peerId: peer.id,
+      displayName: peer.displayName,
+      roomId,
+      roomSize: room.peers.length
+    })
     this.emit('peer:joined', { peer, room })
 
     // Notify existing peers about the new member
@@ -323,9 +341,11 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
-    console.log(
-      `Peer ${peer.id} updated display name: "${previousDisplayName}" → "${displayName}"`
-    )
+    logger.info('peer:displayNameUpdated', {
+      peerId: peer.id,
+      from: previousDisplayName,
+      to: displayName
+    })
 
     peer.send({
       type: 'DISPLAY_NAME_UPDATED',
@@ -379,9 +399,11 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
-    console.log(
-      `Custom message from ${peer.id}: type=${customType}, target=${targetType}`
-    )
+    logger.debug('custom:received', {
+      peerId: peer.id,
+      customType,
+      targetType
+    })
 
     switch (targetType) {
       case 'peer': {
@@ -494,6 +516,11 @@ export class GrabstreamServer extends EventEmitter {
             offer: message.payload.offer
           }
         })
+        logger.debug('signaling:relayed', {
+          type: 'OFFER',
+          from: peer.id,
+          to: toPeerId
+        })
         break
       case 'ANSWER':
         targetPeer.send({
@@ -503,6 +530,11 @@ export class GrabstreamServer extends EventEmitter {
             answer: message.payload.answer
           }
         })
+        logger.debug('signaling:relayed', {
+          type: 'ANSWER',
+          from: peer.id,
+          to: toPeerId
+        })
         break
       case 'ICE_CANDIDATE':
         targetPeer.send({
@@ -511,6 +543,11 @@ export class GrabstreamServer extends EventEmitter {
             ...peerInfo,
             candidate: message.payload.candidate
           }
+        })
+        logger.debug('signaling:relayed', {
+          type: 'ICE_CANDIDATE',
+          from: peer.id,
+          to: toPeerId
         })
         break
     }
@@ -524,18 +561,24 @@ export class GrabstreamServer extends EventEmitter {
 
     try {
       peer.leaveRoom()
+      logger.debug('peer:stateChanged', {
+        peerId: peer.id,
+        state: 'leftRoom',
+        roomId
+      })
     } catch (error) {
-      console.error(`Failed to leave room for peer ${peer.id}:`, error)
+      logger.error('room:leaveFailed', { peerId: peer.id, error })
     }
 
     if (room) {
       try {
         room.removePeer(peer.id)
       } catch (error) {
-        console.error(
-          `Failed to remove peer ${peer.id} from room ${roomId}:`,
+        logger.error('room:removePeerFailed', {
+          peerId: peer.id,
+          roomId,
           error
-        )
+        })
         return false
       }
 
@@ -546,19 +589,20 @@ export class GrabstreamServer extends EventEmitter {
         }
       })
 
-      console.log(
-        `Peer ${peer.id} left room ${roomId}. ` +
-          `Room now has ${room.peers.length} peer(s).`
-      )
+      logger.info('peer:leftRoom', {
+        peerId: peer.id,
+        roomId,
+        remainingPeers: room.peers.length
+      })
       this.emit('peer:left', { peer, roomId })
 
       if (room.isEmpty) {
         this.rooms.delete(roomId)
-        console.log(`Deleted empty room: ${roomId}`)
+        logger.info('room:deletedEmpty', { roomId })
         this.emit('room:removed', { roomId })
       }
     } else {
-      console.error(`Peer ${peer.id} disconnected from unknown room ${roomId}`)
+      logger.error('room:unknownOnDisconnect', { peerId: peer.id, roomId })
       return false
     }
 
