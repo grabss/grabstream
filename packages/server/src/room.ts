@@ -19,6 +19,10 @@ export class Room extends EventEmitter {
     return this._id
   }
 
+  get peers(): Peer[] {
+    return Array.from(this._peers.values())
+  }
+
   get isEmpty(): boolean {
     return this._peers.size === 0
   }
