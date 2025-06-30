@@ -183,7 +183,7 @@ export class GrabstreamServer extends EventEmitter {
         this.handleJoinMessage({ peer, message })
         break
       case 'LEAVE_ROOM':
-        // handleLeaveMessage
+        this.handleLeaveMessage(peer)
         break
       case 'OFFER':
         // handleOfferMessage
@@ -275,6 +275,22 @@ export class GrabstreamServer extends EventEmitter {
           }))
       }
     })
+  }
+
+  private handleLeaveMessage(peer: Peer): void {
+    const roomId = peer.roomId
+    const result = this.removePeerFromRoom(peer) && !!roomId
+
+    if (result) {
+      peer.send({
+        type: 'ROOM_LEFT',
+        payload: {
+          roomId
+        }
+      })
+    } else {
+      peer.sendError('Failed to leave room')
+    }
   }
 
   private removePeerFromRoom(peer: Peer): boolean {
