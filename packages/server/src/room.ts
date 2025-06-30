@@ -19,7 +19,30 @@ export class Room extends EventEmitter {
     return this._id
   }
 
-  broadcast(message: PeerMessage, excludePeerIds: string[] = []): void {
+  get isEmpty(): boolean {
+    return this._peers.size === 0
+  }
+
+  addPeer(peer: Peer): void {
+    if (this.hasPeer(peer.id)) {
+      throw new Error(
+        `Peer with id ${peer.id} already exists in room ${this._id}`
+      )
+    }
+    this._peers.set(peer.id, peer)
+  }
+
+  hasPeer(peerId: string): boolean {
+    return this._peers.has(peerId)
+  }
+
+  broadcast({
+    message,
+    excludePeerIds = []
+  }: {
+    message: PeerMessage
+    excludePeerIds?: string[]
+  }): void {
     this._peers.forEach((peer) => {
       if (!excludePeerIds.includes(peer.id)) {
         peer.send(message)

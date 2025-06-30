@@ -203,7 +203,6 @@ export class GrabstreamServer extends EventEmitter {
     const { roomId, displayName } = message.payload
 
     if (displayName) peer.updateDisplayName(displayName)
-    peer.joinRoom(roomId)
 
     let room = this.rooms.get(roomId)
     if (!room) {
@@ -212,6 +211,21 @@ export class GrabstreamServer extends EventEmitter {
       console.log(`Created new room: ${roomId}`)
       this.emit('room:created', room)
     }
+
+    peer.joinRoom(roomId)
+    room.addPeer(peer)
+
+    // Notify existing peers about the new member
+    room.broadcast({
+      message: {
+        type: 'PEER_JOINED',
+        payload: {
+          peerId: peer.id,
+          displayName: peer.displayName
+        }
+      },
+      excludePeerIds: [peer.id]
+    })
   }
 
   private cleanup(): void {
