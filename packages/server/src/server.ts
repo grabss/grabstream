@@ -5,22 +5,9 @@ import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 
+import type { ClientToServerMessage, JoinRoomMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
-
-export type JoinMessage = {
-  type: 'JOIN'
-  payload: {
-    roomId: string
-    displayName?: string
-  }
-}
-
-export type LeaveMessage = {
-  type: 'LEAVE'
-}
-
-export type GrabstreamMessage = JoinMessage | LeaveMessage
 
 export type GrabstreamServerOptions = {
   host?: string
@@ -130,11 +117,18 @@ export class GrabstreamServer extends EventEmitter {
     const peer = new Peer({ socket })
     console.log(`New peer connected: ${peer.id}`)
 
+    peer.send({
+      type: 'CONNECTION_ESTABLISHED',
+      payload: {
+        peerId: peer.id
+      }
+    })
+
     this.peers.set(peer.id, peer)
     this.emit('peer:connected', peer)
 
     socket.on('message', (data) => {
-      this.handleMessage(peer, data)
+      this.handleMessage({ peer, data })
     })
 
     socket.on('close', () => {
@@ -169,7 +163,7 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
-    let message: GrabstreamMessage
+    let message: ClientToServerMessage
     try {
       message = JSON.parse(data.toString())
     } catch (error) {
@@ -182,10 +176,10 @@ export class GrabstreamServer extends EventEmitter {
     )
 
     switch (message.type) {
-      case 'JOIN':
-        this.handleJoinMessage(peer, message)
+      case 'JOIN_ROOM':
+        this.handleJoinMessage({ peer, message })
         break
-      case 'LEAVE':
+      case 'LEAVE_ROOM':
         // handleLeaveMessage
         break
       default:
@@ -204,7 +198,7 @@ export class GrabstreamServer extends EventEmitter {
     message
   }: {
     peer: Peer
-    message: JoinMessage
+    message: JoinRoomMessage
   }): void {
     const { roomId, displayName } = message.payload
 
@@ -231,6 +225,20 @@ export class GrabstreamServer extends EventEmitter {
         }
       },
       excludePeerIds: [peer.id]
+    })
+
+    // Notify the joining peer about the room state
+    peer.send({
+      type: 'ROOM_JOINED',
+      payload: {
+        roomId: room.id,
+        peers: room.peers
+          .filter((p) => p.id !== peer.id)
+          .map((p) => ({
+            id: p.id,
+            displayName: p.displayName
+          }))
+      }
     })
   }
 

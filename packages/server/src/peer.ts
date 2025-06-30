@@ -1,11 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { WebSocket } from 'ws'
 
-export type PeerMessage = {
-  type: string
-  // biome-ignore lint/suspicious/noExplicitAny: payload
-  payload: any
-}
+import type { ServerToClientMessage } from './messages'
 
 export class Peer {
   private readonly _id: string
@@ -71,7 +67,7 @@ export class Peer {
     return this.roomId !== undefined
   }
 
-  send(message: PeerMessage): boolean {
+  send(message: ServerToClientMessage): boolean {
     if (!this.isConnected) {
       console.warn(
         `Cannot send message to peer ${this._id}: socket is not connected`
@@ -89,11 +85,13 @@ export class Peer {
   }
 
   sendError(error: string | Error): boolean {
-    const payload = typeof error === 'string' ? error : error.message
+    const message = typeof error === 'string' ? error : error.message
 
     return this.send({
       type: 'ERROR',
-      payload
+      payload: {
+        message
+      }
     })
   }
 
