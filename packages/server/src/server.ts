@@ -8,7 +8,8 @@ import type {
   AnswerMessage,
   IceCandidateMessage,
   JoinRoomMessage,
-  OfferMessage
+  OfferMessage,
+  UpdateDisplayNameMessage
 } from './messages'
 import { isClientToServerMessage } from './messages'
 import { Peer } from './peer'
@@ -190,6 +191,9 @@ export class GrabstreamServer extends EventEmitter {
       case 'LEAVE_ROOM':
         this.handleLeaveMessage(peer)
         break
+      case 'UPDATE_DISPLAY_NAME':
+        this.handleUpdateDisplayNameMessage({ peer, message })
+        break
       case 'OFFER':
         this.handleSignalingMessage({ peer, message })
         break
@@ -296,6 +300,57 @@ export class GrabstreamServer extends EventEmitter {
     } else {
       peer.sendError('Failed to leave room')
     }
+  }
+
+  private handleUpdateDisplayNameMessage({
+    peer,
+    message
+  }: {
+    peer: Peer
+    message: UpdateDisplayNameMessage
+  }): void {
+    const { displayName } = message.payload
+    const previousDisplayName = peer.displayName
+
+    try {
+      peer.updateDisplayName(displayName)
+    } catch (error) {
+      peer.sendError(`Failed to update display name: ${error}`)
+      return
+    }
+
+    console.log(
+      `Peer ${peer.id} updated display name: "${previousDisplayName}" → "${displayName}"`
+    )
+
+    peer.send({
+      type: 'DISPLAY_NAME_UPDATED',
+      payload: {
+        displayName
+      }
+    })
+
+    if (peer.isInRoom()) {
+      const room = this.rooms.get(peer.roomId)
+      if (room) {
+        room.broadcast({
+          message: {
+            type: 'PEER_UPDATED',
+            payload: {
+              peerId: peer.id,
+              displayName
+            }
+          },
+          excludePeerIds: [peer.id]
+        })
+      }
+    }
+
+    this.emit('peer:displayNameUpdated', {
+      peer,
+      previousDisplayName,
+      displayName
+    })
   }
 
   private handleSignalingMessage({
