@@ -122,14 +122,3 @@ export function isClientToServerMessage(
     'ICE_CANDIDATE'
   ].includes(msg.type || '')
 }
-
-// ==================== Utility Types ====================
-
-export type MessageType =
-  | ClientToServerMessage['type']
-  | ServerToClientMessage['type']
-
-export type PeerInfo = {
-  id: string
-  displayName: string
-}

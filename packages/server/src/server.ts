@@ -5,7 +5,7 @@ import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 
-import type { ClientToServerMessage, JoinRoomMessage } from './messages'
+import { isClientToServerMessage, type JoinRoomMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
 
@@ -163,11 +163,16 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
-    let message: ClientToServerMessage
+    let message: unknown
     try {
       message = JSON.parse(data.toString())
     } catch (error) {
       console.error(`Failed to parse message from peer ${peer.id}:`, error)
+      return
+    }
+
+    if (!isClientToServerMessage(message)) {
+      console.error(`Invalid message from peer ${peer.id}:`, message)
       return
     }
 
@@ -182,14 +187,20 @@ export class GrabstreamServer extends EventEmitter {
       case 'LEAVE_ROOM':
         // handleLeaveMessage
         break
-      default:
-        console.warn(
-          `Unknown message type: ${
-            // biome-ignore lint/suspicious/noExplicitAny: Unknown message type
-            (message as any).type
-          }`
-        )
+      case 'OFFER':
+        // handleOfferMessage
+        break
+      case 'ANSWER':
+        // handleAnswerMessage
+        break
+      case 'ICE_CANDIDATE':
+        // handleIceCandidateMessage
+        break
+      default: {
+        const _exhaustive: never = message
+        console.error('Unexpected message type', _exhaustive)
         return
+      }
     }
   }
 
