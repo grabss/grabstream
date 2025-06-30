@@ -69,7 +69,7 @@ export class Room extends EventEmitter {
       }
     })
 
-    logger.info('room:broadcast', {
+    logger.debug('room:broadcast', {
       roomId: this._id,
       messageType: message.type,
       recipientCount,

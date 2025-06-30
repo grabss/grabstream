@@ -1,4 +1,4 @@
-export type LogLevel = 'info' | 'warn' | 'error'
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export interface LogDetails {
   // biome-ignore lint/suspicious/noExplicitAny: Log details can contain any type of data for flexible logging
@@ -18,6 +18,10 @@ class Logger {
     } else {
       console[level](message)
     }
+  }
+
+  debug(action: string, details?: LogDetails): void {
+    this.log('debug', action, details)
   }
 
   info(action: string, details?: LogDetails): void {

@@ -140,7 +140,7 @@ export class GrabstreamServer extends EventEmitter {
     })
 
     socket.on('close', (code, reason) => {
-      logger.info('websocket:closed', {
+      logger.debug('websocket:closed', {
         peerId: peer.id,
         code,
         reason: reason?.toString() || 'No reason provided'
@@ -194,7 +194,7 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
-    logger.info('message:received', { peerId: peer.id, type: message.type })
+    logger.debug('message:received', { peerId: peer.id, type: message.type })
 
     switch (message.type) {
       case 'JOIN_ROOM':
@@ -247,7 +247,7 @@ export class GrabstreamServer extends EventEmitter {
 
     try {
       peer.joinRoom(roomId)
-      logger.info('peer:stateChanged', {
+      logger.debug('peer:stateChanged', {
         peerId: peer.id,
         state: 'joinedRoom',
         roomId
@@ -399,7 +399,7 @@ export class GrabstreamServer extends EventEmitter {
       return
     }
 
-    logger.info('custom:received', {
+    logger.debug('custom:received', {
       peerId: peer.id,
       customType,
       targetType
@@ -516,7 +516,7 @@ export class GrabstreamServer extends EventEmitter {
             offer: message.payload.offer
           }
         })
-        logger.info('signaling:relayed', {
+        logger.debug('signaling:relayed', {
           type: 'OFFER',
           from: peer.id,
           to: toPeerId
@@ -530,7 +530,7 @@ export class GrabstreamServer extends EventEmitter {
             answer: message.payload.answer
           }
         })
-        logger.info('signaling:relayed', {
+        logger.debug('signaling:relayed', {
           type: 'ANSWER',
           from: peer.id,
           to: toPeerId
@@ -544,7 +544,7 @@ export class GrabstreamServer extends EventEmitter {
             candidate: message.payload.candidate
           }
         })
-        logger.info('signaling:relayed', {
+        logger.debug('signaling:relayed', {
           type: 'ICE_CANDIDATE',
           from: peer.id,
           to: toPeerId
@@ -561,7 +561,7 @@ export class GrabstreamServer extends EventEmitter {
 
     try {
       peer.leaveRoom()
-      logger.info('peer:stateChanged', {
+      logger.debug('peer:stateChanged', {
         peerId: peer.id,
         state: 'leftRoom',
         roomId
