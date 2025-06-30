@@ -158,7 +158,7 @@ export class GrabstreamServer extends EventEmitter {
     this.emit('peer:disconnected', peer)
   }
 
-  private handleMessage(peer: Peer, data: RawData): void {
+  private handleMessage({ peer, data }: { peer: Peer; data: RawData }): void {
     if (!peer.isConnected) {
       console.warn(`Received message from disconnected peer ${peer.id}`)
       return
@@ -199,7 +199,13 @@ export class GrabstreamServer extends EventEmitter {
     }
   }
 
-  private handleJoinMessage(peer: Peer, message: JoinMessage): void {
+  private handleJoinMessage({
+    peer,
+    message
+  }: {
+    peer: Peer
+    message: JoinMessage
+  }): void {
     const { roomId, displayName } = message.payload
 
     if (displayName) peer.updateDisplayName(displayName)
