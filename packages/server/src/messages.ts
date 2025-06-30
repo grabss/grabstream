@@ -35,6 +35,19 @@ export type UpdateDisplayNameMessage = {
   }
 }
 
+// Custom messages
+export type CustomMessage = {
+  type: 'CUSTOM'
+  payload: {
+    customType: string
+    target?: {
+      type: 'peer' | 'room'
+      peerId?: string
+    }
+    data: unknown
+  }
+}
+
 // WebRTC Signaling
 export type OfferMessage = {
   type: 'OFFER'
@@ -147,6 +160,16 @@ export type IceCandidateRelayMessage = {
   }
 }
 
+// Custom message relay
+export type CustomRelayMessage = {
+  type: 'CUSTOM'
+  payload: {
+    fromPeerId: string
+    customType: string
+    data: unknown
+  }
+}
+
 // Error
 export type ErrorMessage = {
   type: 'ERROR'
@@ -161,6 +184,7 @@ export type ClientToServerMessage =
   | JoinRoomMessage
   | LeaveRoomMessage
   | UpdateDisplayNameMessage
+  | CustomMessage
   | OfferMessage
   | AnswerMessage
   | IceCandidateMessage
@@ -173,6 +197,7 @@ export type ServerToClientMessage =
   | PeerLeftMessage
   | PeerUpdatedMessage
   | DisplayNameUpdatedMessage
+  | CustomRelayMessage
   | ErrorMessage
   | OfferRelayMessage
   | AnswerRelayMessage
@@ -191,6 +216,7 @@ export function isClientToServerMessage(
     'JOIN_ROOM',
     'LEAVE_ROOM',
     'UPDATE_DISPLAY_NAME',
+    'CUSTOM',
     'OFFER',
     'ANSWER',
     'ICE_CANDIDATE'

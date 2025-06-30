@@ -6,6 +6,7 @@ import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 import type {
   AnswerMessage,
+  CustomMessage,
   IceCandidateMessage,
   JoinRoomMessage,
   OfferMessage,
@@ -194,6 +195,9 @@ export class GrabstreamServer extends EventEmitter {
       case 'UPDATE_DISPLAY_NAME':
         this.handleUpdateDisplayNameMessage({ peer, message })
         break
+      case 'CUSTOM':
+        this.handleCustomMessage({ peer, message })
+        break
       case 'OFFER':
         this.handleSignalingMessage({ peer, message })
         break
@@ -351,6 +355,96 @@ export class GrabstreamServer extends EventEmitter {
       previousDisplayName,
       displayName
     })
+  }
+
+  private handleCustomMessage({
+    peer,
+    message
+  }: {
+    peer: Peer
+    message: CustomMessage
+  }): void {
+    const { customType, target, data } = message.payload
+
+    if (!customType) {
+      peer.sendError('Custom type is required')
+      return
+    }
+
+    // Default to room broadcast if in a room, otherwise error
+    const targetType = target?.type || (peer.isInRoom() ? 'room' : undefined)
+
+    if (!targetType) {
+      peer.sendError('Target is required when not in a room')
+      return
+    }
+
+    console.log(
+      `Custom message from ${peer.id}: type=${customType}, target=${targetType}`
+    )
+
+    switch (targetType) {
+      case 'peer': {
+        if (!target?.peerId) {
+          peer.sendError('Target peer ID is required')
+          return
+        }
+
+        if (!peer.isInRoom()) {
+          peer.sendError('Must be in a room to send to peers')
+          return
+        }
+
+        const room = this.rooms.get(peer.roomId)
+        if (!room) {
+          peer.sendError('Room not found')
+          return
+        }
+
+        const targetPeer = room.getPeer(target.peerId)
+        if (!targetPeer) {
+          peer.sendError('Target peer not found')
+          return
+        }
+
+        targetPeer.send({
+          type: 'CUSTOM',
+          payload: {
+            fromPeerId: peer.id,
+            customType,
+            data
+          }
+        })
+        break
+      }
+      case 'room': {
+        if (!peer.isInRoom()) {
+          peer.sendError('Not in any room')
+          return
+        }
+
+        const room = this.rooms.get(peer.roomId)
+        if (!room) {
+          peer.sendError('Room not found')
+          return
+        }
+
+        room.broadcast({
+          message: {
+            type: 'CUSTOM',
+            payload: {
+              fromPeerId: peer.id,
+              customType,
+              data
+            }
+          },
+          excludePeerIds: [peer.id]
+        })
+        break
+      }
+      default:
+        peer.sendError('Invalid target type')
+    }
   }
 
   private handleSignalingMessage({
