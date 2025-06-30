@@ -35,6 +35,13 @@ export type RoomJoinedMessage = {
   }
 }
 
+export type RoomLeftMessage = {
+  type: 'ROOM_LEFT'
+  payload: {
+    roomId: string
+  }
+}
+
 export type PeerJoinedMessage = {
   type: 'PEER_JOINED'
   payload: {
@@ -98,6 +105,7 @@ export type ClientToServerMessage =
 export type ServerToClientMessage =
   | ConnectionEstablishedMessage
   | RoomJoinedMessage
+  | RoomLeftMessage
   | PeerJoinedMessage
   | PeerLeftMessage
   | ErrorMessage
