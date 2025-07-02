@@ -134,6 +134,11 @@ export class GrabstreamServer extends EventEmitter {
     })
   }
 
+  knock(roomId: string): boolean {
+    logger.debug('server:knock', { roomId })
+    return this.rooms.has(roomId)
+  }
+
   private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
     wss.on('error', (error) => {
       logger.error('websocket:error', { error })
@@ -764,13 +769,6 @@ export class GrabstreamServer extends EventEmitter {
     return true
   }
 
-  private cleanup(): void {
-    this.stopPingInterval()
-    this.wss = undefined
-    this.rooms.clear()
-    this.peers.clear()
-  }
-
   private startPingInterval(): void {
     this.pingInterval = setInterval(() => {
       this.peers.forEach((peer) => {
@@ -794,5 +792,12 @@ export class GrabstreamServer extends EventEmitter {
       this.pingInterval = undefined
       logger.debug('pingInterval:stopped')
     }
+  }
+
+  private cleanup(): void {
+    this.stopPingInterval()
+    this.wss = undefined
+    this.rooms.clear()
+    this.peers.clear()
   }
 }
