@@ -98,14 +98,6 @@ export class Room extends EventEmitter {
     return !this.hasPassword || this._password === password
   }
 
-  updatePassword(currentPassword: string, newPassword: string): void {
-    if (this._password !== currentPassword) {
-      throw new Error('Current password is incorrect')
-    }
-    this.validatePassword(newPassword)
-    this._password = newPassword
-  }
-
   toJSON() {
     return {
       id: this._id,

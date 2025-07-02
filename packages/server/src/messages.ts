@@ -36,14 +36,6 @@ export type UpdateDisplayNameMessage = {
   }
 }
 
-export type UpdateRoomPasswordMessage = {
-  type: 'UPDATE_ROOM_PASSWORD'
-  payload: {
-    currentPassword: string
-    newPassword: string
-  }
-}
-
 // Custom messages
 export type CustomMessage = {
   type: 'CUSTOM'
@@ -195,20 +187,12 @@ export type PasswordRequiredMessage = {
   }
 }
 
-export type RoomPasswordUpdatedMessage = {
-  type: 'ROOM_PASSWORD_UPDATED'
-  payload: {
-    roomId: string
-  }
-}
-
 // ==================== Union Types ====================
 
 export type ClientToServerMessage =
   | JoinRoomMessage
   | LeaveRoomMessage
   | UpdateDisplayNameMessage
-  | UpdateRoomPasswordMessage
   | CustomMessage
   | OfferMessage
   | AnswerMessage
@@ -225,7 +209,6 @@ export type ServerToClientMessage =
   | CustomRelayMessage
   | ErrorMessage
   | PasswordRequiredMessage
-  | RoomPasswordUpdatedMessage
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage
