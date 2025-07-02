@@ -290,6 +290,23 @@ export class GrabstreamServer extends EventEmitter {
     let room = this.rooms.get(roomId)
     let isNewRoom = false
     if (!room) {
+      const maxRooms = this.configuration.limits.maxRoomsPerServer
+      if (maxRooms > 0 && this.rooms.size >= maxRooms) {
+        logger.error('room:limitReached', {
+          roomId,
+          currentRooms: this.rooms.size,
+          maxRooms
+        })
+        peer.sendError('Server room limit reached. Cannot create new room.')
+        this.emit('room:limitReached', {
+          roomId,
+          peerId: peer.id,
+          currentRooms: this.rooms.size,
+          maxRooms
+        })
+        return
+      }
+
       try {
         room = new Room(roomId)
         this.rooms.set(roomId, room)
