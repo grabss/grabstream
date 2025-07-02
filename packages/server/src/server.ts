@@ -4,7 +4,12 @@ import type { Server as HTTPSServer } from 'node:https'
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
-import { CUSTOM_TYPE_PATTERN, MAX_CUSTOM_TYPE_LENGTH } from './constants'
+import {
+  CUSTOM_TYPE_PATTERN,
+  DEFAULT_MAX_PEERS_PER_ROOM,
+  DEFAULT_MAX_ROOMS_PER_SERVER,
+  MAX_CUSTOM_TYPE_LENGTH
+} from './constants'
 import { logger } from './logger'
 import type {
   AnswerMessage,
@@ -18,18 +23,32 @@ import { isClientToServerMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
 
-export type GrabstreamServerOptions = {
+type GrabstreamServerConnectionOptions = {
   host?: string
   port?: number
   path?: string
   server?: HTTPServer | HTTPSServer
 }
 
+export type GrabstreamServerLimits = {
+  maxPeersPerRoom: number
+  maxRoomsPerServer: number
+}
+
+export type GrabstreamServerOptions = GrabstreamServerConnectionOptions & {
+  limits?: Partial<GrabstreamServerLimits>
+}
+
+type GrabstreamServerConfiguration = {
+  connectionOptions: GrabstreamServerConnectionOptions
+  limits: GrabstreamServerLimits
+}
+
 export class GrabstreamServer extends EventEmitter {
   private wss?: WebSocketServer
   private readonly rooms: Map<string, Room> = new Map()
   private readonly peers: Map<string, Peer> = new Map()
-  private readonly options: GrabstreamServerOptions
+  private readonly configuration: GrabstreamServerConfiguration
 
   constructor(options: GrabstreamServerOptions = {}) {
     super()
@@ -38,17 +57,30 @@ export class GrabstreamServer extends EventEmitter {
       throw new Error('Cannot specify both server and host/port options')
     }
 
+    let connectionOptions: GrabstreamServerConnectionOptions
     if (options.server) {
-      this.options = {
+      connectionOptions = {
         path: options.path,
         server: options.server
       }
     } else {
-      this.options = {
-        host: options.host || '0.0.0.0',
-        port: options.port || 8080,
+      connectionOptions = {
+        host: options.host ?? '0.0.0.0',
+        port: options.port ?? 8080,
         path: options.path
       }
+    }
+
+    const limits: GrabstreamServerLimits = {
+      maxPeersPerRoom:
+        options.limits?.maxPeersPerRoom ?? DEFAULT_MAX_PEERS_PER_ROOM,
+      maxRoomsPerServer:
+        options.limits?.maxRoomsPerServer ?? DEFAULT_MAX_ROOMS_PER_SERVER
+    }
+
+    this.configuration = {
+      connectionOptions,
+      limits
     }
   }
 
@@ -58,7 +90,7 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     this.wss = new WebSocketServer({
-      ...this.options,
+      ...this.configuration.connectionOptions,
       perMessageDeflate: false,
       maxPayload: 1024 * 1024
     })
