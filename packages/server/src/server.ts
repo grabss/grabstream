@@ -274,7 +274,8 @@ export class GrabstreamServer extends EventEmitter {
       try {
         peer.updateDisplayName(displayName)
       } catch (error) {
-        peer.sendError(`Failed to update display name: ${error}`)
+        logger.warn('peer:updateDisplayNameFailed', { peerId: peer.id, error })
+        peer.sendError('Failed to update display name')
         return
       }
     }
@@ -305,8 +306,8 @@ export class GrabstreamServer extends EventEmitter {
         this.rooms.set(roomId, room)
         isNewRoom = true
       } catch (error) {
-        logger.error('room:creationFailed', { roomId, error })
-        peer.sendError(`Failed to create room: ${error}`)
+        logger.warn('room:creationFailed', { roomId, error })
+        peer.sendError('Failed to create room')
         return
       }
     } else {
@@ -349,7 +350,7 @@ export class GrabstreamServer extends EventEmitter {
         peer.leaveRoom()
       }
 
-      peer.sendError(`Failed to join room: ${error}`)
+      peer.sendError('Failed to join room')
     }
 
     if (isNewRoom) {
@@ -421,7 +422,8 @@ export class GrabstreamServer extends EventEmitter {
     try {
       peer.updateDisplayName(displayName)
     } catch (error) {
-      peer.sendError(`Failed to update display name: ${error}`)
+      logger.warn('peer:updateDisplayNameFailed', { peerId: peer.id, error })
+      peer.sendError('Failed to update display name')
       return
     }
 
