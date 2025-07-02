@@ -24,7 +24,8 @@ export class Room extends EventEmitter {
     this._createdAt = new Date()
 
     if (password !== undefined) {
-      this._password = this.validatePassword(password)
+      this.validatePassword(password)
+      this._password = password
     }
   }
 
@@ -93,24 +94,16 @@ export class Room extends EventEmitter {
     })
   }
 
-  verifyPassword(password?: string): boolean {
-    if (!this.hasPassword) {
-      return true
-    }
-
-    if (password === undefined) {
-      return false
-    }
-
-    return this._password === password
+  verifyPassword(password: string): boolean {
+    return !this.hasPassword || this._password === password
   }
 
   updatePassword(currentPassword: string, newPassword: string): void {
     if (this._password !== currentPassword) {
       throw new Error('Current password is incorrect')
     }
-
-    this._password = this.validatePassword(newPassword)
+    this.validatePassword(newPassword)
+    this._password = newPassword
   }
 
   toJSON() {
@@ -136,25 +129,21 @@ export class Room extends EventEmitter {
     }
   }
 
-  private validatePassword(password: string): string {
-    const trimmedPassword = password.trim()
-
-    if (!trimmedPassword) {
-      throw new Error('Password cannot be empty or whitespace only')
+  private validatePassword(password: string): void {
+    if (!password) {
+      throw new Error('Password cannot be empty')
     }
 
-    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
+    if (password.length < MIN_PASSWORD_LENGTH) {
       throw new Error(
         `Password must be at least ${MIN_PASSWORD_LENGTH} characters`
       )
     }
 
-    if (trimmedPassword.length > MAX_PASSWORD_LENGTH) {
+    if (password.length > MAX_PASSWORD_LENGTH) {
       throw new Error(
         `Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`
       )
     }
-
-    return trimmedPassword
   }
 }
