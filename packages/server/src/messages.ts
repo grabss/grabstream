@@ -246,6 +246,7 @@ export function isClientToServerMessage(
     'JOIN_ROOM',
     'LEAVE_ROOM',
     'UPDATE_DISPLAY_NAME',
+    'KNOCK',
     'CUSTOM',
     'OFFER',
     'ANSWER',
