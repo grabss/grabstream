@@ -306,7 +306,7 @@ export class GrabstreamServer extends EventEmitter {
           currentRooms: this.rooms.size,
           maxRooms
         })
-        peer.sendError('Server room limit reached. Cannot create new room.')
+        peer.sendError('Server room limit reached. Cannot create new room')
         this.emit('room:limitReachedPerServer', {
           roomId,
           peerId: peer.id,
@@ -334,7 +334,7 @@ export class GrabstreamServer extends EventEmitter {
           currentPeers: room.peers.length,
           maxPeers
         })
-        peer.sendError(`Room is full. Maximum ${maxPeers} peers allowed.`)
+        peer.sendError(`Room is full. Maximum ${maxPeers} peers allowed`)
         this.emit('peer:limitReachedPerRoom', {
           peerId: peer.id,
           roomId,
