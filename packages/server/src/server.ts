@@ -286,7 +286,7 @@ export class GrabstreamServer extends EventEmitter {
     if (!room) {
       const maxRooms = this.configuration.limits.maxRoomsPerServer
       if (maxRooms > 0 && this.rooms.size >= maxRooms) {
-        logger.error('room:limitReachedPerServer', {
+        logger.warn('room:limitReachedPerServer', {
           roomId,
           currentRooms: this.rooms.size,
           maxRooms
@@ -313,7 +313,7 @@ export class GrabstreamServer extends EventEmitter {
     } else {
       const maxPeers = this.configuration.limits.maxPeersPerRoom
       if (maxPeers > 0 && room.peers.length >= maxPeers) {
-        logger.error('peer:limitReachedPerRoom', {
+        logger.warn('peer:limitReachedPerRoom', {
           peerId: peer.id,
           roomId,
           currentPeers: room.peers.length,
@@ -405,6 +405,7 @@ export class GrabstreamServer extends EventEmitter {
         }
       })
     } else {
+      logger.warn('peer:leaveRoomFailed', { peerId: peer.id, roomId })
       peer.sendError('Failed to leave room')
     }
   }
@@ -473,11 +474,18 @@ export class GrabstreamServer extends EventEmitter {
     const { customType, target, data } = message.payload
 
     if (!customType) {
+      logger.warn('custom:missingType', { peerId: peer.id })
       peer.sendError('Custom type is required')
       return
     }
 
     if (customType.length > MAX_CUSTOM_TYPE_LENGTH) {
+      logger.warn('custom:typeTooLong', {
+        peerId: peer.id,
+        customType,
+        length: customType.length,
+        maxLength: MAX_CUSTOM_TYPE_LENGTH
+      })
       peer.sendError(
         `Custom type cannot exceed ${MAX_CUSTOM_TYPE_LENGTH} characters`
       )
@@ -485,6 +493,11 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     if (!CUSTOM_TYPE_PATTERN.test(customType)) {
+      logger.warn('custom:invalidPattern', {
+        peerId: peer.id,
+        customType,
+        pattern: CUSTOM_TYPE_PATTERN.source
+      })
       peer.sendError(
         `Custom type must match pattern: ${CUSTOM_TYPE_PATTERN.source}`
       )
@@ -495,6 +508,7 @@ export class GrabstreamServer extends EventEmitter {
     const targetType = target?.type || (peer.isInRoom() ? 'room' : undefined)
 
     if (!targetType) {
+      logger.warn('custom:missingTarget', { peerId: peer.id })
       peer.sendError('Target is required when not in a room')
       return
     }
@@ -508,11 +522,16 @@ export class GrabstreamServer extends EventEmitter {
     switch (targetType) {
       case 'peer': {
         if (!target?.peerId) {
+          logger.warn('custom:missingTargetPeerId', { peerId: peer.id })
           peer.sendError('Target peer ID is required')
           return
         }
 
         if (!peer.isInRoom()) {
+          logger.warn('custom:notInRoom', {
+            peerId: peer.id,
+            targetType: 'peer'
+          })
           peer.sendError('Must be in a room to send to peers')
           return
         }
@@ -525,6 +544,10 @@ export class GrabstreamServer extends EventEmitter {
 
         const targetPeer = room.getPeer(target.peerId)
         if (!targetPeer) {
+          logger.warn('custom:targetPeerNotFound', {
+            peerId: peer.id,
+            targetPeerId: target.peerId
+          })
           peer.sendError('Target peer not found')
           return
         }
@@ -541,6 +564,10 @@ export class GrabstreamServer extends EventEmitter {
       }
       case 'room': {
         if (!peer.isInRoom()) {
+          logger.warn('custom:notInRoom', {
+            peerId: peer.id,
+            targetType: 'room'
+          })
           peer.sendError('Not in any room')
           return
         }
@@ -577,12 +604,20 @@ export class GrabstreamServer extends EventEmitter {
     message: OfferMessage | AnswerMessage | IceCandidateMessage
   }): void {
     if (!peer.isInRoom()) {
+      logger.warn('signaling:notInRoom', {
+        peerId: peer.id,
+        messageType: message.type
+      })
       peer.sendError(`Cannot send ${message.type.toLowerCase()}: not in a room`)
       return
     }
 
     const { toPeerId } = message.payload
     if (toPeerId === peer.id) {
+      logger.warn('signaling:selfTarget', {
+        peerId: peer.id,
+        messageType: message.type
+      })
       peer.sendError(`Cannot send ${message.type.toLowerCase()} to self`)
       return
     }
@@ -597,6 +632,11 @@ export class GrabstreamServer extends EventEmitter {
 
     const targetPeer = room.getPeer(toPeerId)
     if (!targetPeer) {
+      logger.warn('signaling:targetPeerNotFound', {
+        peerId: peer.id,
+        targetPeerId: toPeerId,
+        messageType: message.type
+      })
       peer.sendError(
         `Cannot send ${message.type.toLowerCase()}: target peer not found`
       )
@@ -702,7 +742,7 @@ export class GrabstreamServer extends EventEmitter {
         this.emit('room:removed', { roomId })
       }
     } else {
-      logger.error('room:unknownOnDisconnect', { peerId: peer.id, roomId })
+      logger.warn('room:unknownOnDisconnect', { peerId: peer.id, roomId })
       return false
     }
 
@@ -727,7 +767,6 @@ export class GrabstreamServer extends EventEmitter {
         }
 
         peer.ping()
-        logger.debug('peer:pingSent', { peerId: peer.id })
       })
     }, PING_INTERVAL_MS)
 
