@@ -6,6 +6,7 @@ import {
   DEFAULT_MAX_PEERS_PER_ROOM,
   DEFAULT_MAX_ROOMS_PER_SERVER,
   MAX_CUSTOM_TYPE_LENGTH,
+  PING_INTERVAL_MS,
   WEBSOCKET_MAX_PAYLOAD,
   WEBSOCKET_PER_MESSAGE_DEFLATE
 } from './constants'
@@ -33,6 +34,7 @@ export class GrabstreamServer extends EventEmitter {
   private readonly rooms: Map<string, Room> = new Map()
   private readonly peers: Map<string, Peer> = new Map()
   private readonly configuration: GrabstreamServerConfiguration
+  private pingInterval?: NodeJS.Timeout
 
   constructor(options: GrabstreamServerOptions = {}) {
     super()
@@ -85,6 +87,7 @@ export class GrabstreamServer extends EventEmitter {
         wss.off('error', onError)
 
         this.setupWebSocketServerEventHandlers(wss)
+        this.startPingInterval()
 
         logger.info('server:started')
         this.emit('server:started')
@@ -111,6 +114,8 @@ export class GrabstreamServer extends EventEmitter {
     if (!this.wss) {
       throw new Error('GrabstreamServer is not running')
     }
+
+    this.stopPingInterval()
 
     const wss = this.wss
     return new Promise((resolve, reject) => {
@@ -176,6 +181,11 @@ export class GrabstreamServer extends EventEmitter {
     socket.on('error', (error) => {
       logger.error('peer:socketError', { peerId: peer.id, error })
       this.emit('peer:error', { peer, error })
+    })
+
+    socket.on('pong', () => {
+      peer.updatePongReceived()
+      logger.debug('peer:pongReceived', { peerId: peer.id })
     })
   }
 
@@ -698,8 +708,35 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   private cleanup(): void {
+    this.stopPingInterval()
     this.wss = undefined
     this.rooms.clear()
     this.peers.clear()
+  }
+
+  private startPingInterval(): void {
+    this.pingInterval = setInterval(() => {
+      this.peers.forEach((peer) => {
+        if (!peer.isAlive) {
+          logger.info('peer:timeout', { peerId: peer.id })
+          this.emit('peer:timeout', peer)
+          peer.socket.terminate()
+          return
+        }
+
+        peer.ping()
+        logger.debug('peer:pingSent', { peerId: peer.id })
+      })
+    }, PING_INTERVAL_MS)
+
+    logger.debug('pingInterval:started')
+  }
+
+  private stopPingInterval(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval)
+      this.pingInterval = undefined
+      logger.debug('pingInterval:stopped')
+    }
   }
 }
