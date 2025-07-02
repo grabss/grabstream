@@ -854,7 +854,7 @@ export class GrabstreamServer extends EventEmitter {
 
         peer.ping()
       })
-    }, PING_INTERVAL_MS)
+    }, PING_INTERVAL_MS).unref()
 
     logger.debug('pingInterval:started')
   }
