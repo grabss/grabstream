@@ -134,11 +134,6 @@ export class GrabstreamServer extends EventEmitter {
     })
   }
 
-  knock(roomId: string): boolean {
-    logger.debug('server:knock', { roomId })
-    return this.rooms.has(roomId)
-  }
-
   private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
     wss.on('error', (error) => {
       logger.error('websocket:error', { error })
