@@ -94,27 +94,22 @@ export class Room extends EventEmitter {
   }
 
   verifyPassword(password?: string): boolean {
-    // If room has no password, always return true
     if (!this.hasPassword) {
       return true
     }
 
-    // If room has password but none provided, return false
     if (password === undefined) {
       return false
     }
 
-    // Compare passwords
     return this._password === password
   }
 
   updatePassword(currentPassword: string, newPassword: string): void {
-    // Verify current password
     if (this._password !== currentPassword) {
       throw new Error('Current password is incorrect')
     }
 
-    // Validate and set new password
     this._password = this.validatePassword(newPassword)
   }
 
