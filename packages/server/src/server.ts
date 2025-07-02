@@ -122,7 +122,15 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   private handleConnection(socket: WebSocket): void {
-    const peer = new Peer({ socket })
+    let peer: Peer
+    try {
+      peer = new Peer({ socket })
+    } catch (error) {
+      logger.error('peer:creationFailed', { error })
+      socket.close(1002, 'Failed to create peer')
+      return
+    }
+
     logger.info('peer:connected', { peerId: peer.id })
 
     peer.send({
@@ -235,7 +243,14 @@ export class GrabstreamServer extends EventEmitter {
   }): void {
     const { roomId, displayName } = message.payload
 
-    if (displayName) peer.updateDisplayName(displayName)
+    if (displayName) {
+      try {
+        peer.updateDisplayName(displayName)
+      } catch (error) {
+        peer.sendError(`Failed to update display name: ${error}`)
+        return
+      }
+    }
 
     let room = this.rooms.get(roomId)
     let isNewRoom = false
