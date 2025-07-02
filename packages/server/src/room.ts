@@ -1,5 +1,10 @@
 import { EventEmitter } from 'eventemitter3'
-import { MAX_ROOM_ID_LENGTH, ROOM_ID_PATTERN } from './constants'
+import {
+  MAX_PASSWORD_LENGTH,
+  MAX_ROOM_ID_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  ROOM_ID_PATTERN
+} from './constants'
 import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 import type { Peer } from './peer'
@@ -8,14 +13,19 @@ export class Room extends EventEmitter {
   private readonly _id: string
   private readonly _peers: Map<string, Peer>
   private readonly _createdAt: Date
+  private _password?: string
 
-  constructor(id: string) {
+  constructor(id: string, password?: string) {
     super()
 
     this.validateRoomId(id)
     this._id = id
     this._peers = new Map<string, Peer>()
     this._createdAt = new Date()
+
+    if (password !== undefined) {
+      this._password = this.validatePassword(password)
+    }
   }
 
   get id(): string {
@@ -28,6 +38,10 @@ export class Room extends EventEmitter {
 
   get isEmpty(): boolean {
     return this._peers.size === 0
+  }
+
+  get hasPassword(): boolean {
+    return this._password !== undefined
   }
 
   addPeer(peer: Peer): void {
@@ -79,11 +93,37 @@ export class Room extends EventEmitter {
     })
   }
 
+  verifyPassword(password?: string): boolean {
+    // If room has no password, always return true
+    if (!this.hasPassword) {
+      return true
+    }
+
+    // If room has password but none provided, return false
+    if (password === undefined) {
+      return false
+    }
+
+    // Compare passwords
+    return this._password === password
+  }
+
+  updatePassword(currentPassword: string, newPassword: string): void {
+    // Verify current password
+    if (this._password !== currentPassword) {
+      throw new Error('Current password is incorrect')
+    }
+
+    // Validate and set new password
+    this._password = this.validatePassword(newPassword)
+  }
+
   toJSON() {
     return {
       id: this._id,
       peers: this.peers.map((peer) => peer.toJSON()),
-      createdAt: this._createdAt
+      createdAt: this._createdAt,
+      hasPassword: this.hasPassword
     }
   }
 
@@ -99,5 +139,27 @@ export class Room extends EventEmitter {
     if (!ROOM_ID_PATTERN.test(roomId)) {
       throw new Error(`Room ID must match pattern: ${ROOM_ID_PATTERN.source}`)
     }
+  }
+
+  private validatePassword(password: string): string {
+    const trimmedPassword = password.trim()
+
+    if (!trimmedPassword) {
+      throw new Error('Password cannot be empty or whitespace only')
+    }
+
+    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
+      throw new Error(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`
+      )
+    }
+
+    if (trimmedPassword.length > MAX_PASSWORD_LENGTH) {
+      throw new Error(
+        `Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`
+      )
+    }
+
+    return trimmedPassword
   }
 }

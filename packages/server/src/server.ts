@@ -253,6 +253,9 @@ export class GrabstreamServer extends EventEmitter {
       case 'ICE_CANDIDATE':
         this.handleSignalingMessage({ peer, message })
         break
+      case 'UPDATE_ROOM_PASSWORD':
+        // TODO: Implement password update handler
+        break
       default: {
         const _exhaustive: never = message
         logger.error('message:unexpectedType', { message: _exhaustive })
@@ -268,7 +271,7 @@ export class GrabstreamServer extends EventEmitter {
     peer: Peer
     message: JoinRoomMessage
   }): void {
-    const { roomId, displayName } = message.payload
+    const { roomId, displayName, password } = message.payload
 
     if (displayName) {
       try {
@@ -302,7 +305,7 @@ export class GrabstreamServer extends EventEmitter {
       }
 
       try {
-        room = new Room(roomId)
+        room = new Room(roomId, password)
         this.rooms.set(roomId, room)
         isNewRoom = true
       } catch (error) {
