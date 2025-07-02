@@ -271,6 +271,7 @@ export class GrabstreamServer extends EventEmitter {
 
     let room = this.rooms.get(roomId)
     let isNewRoom = false
+
     if (!room) {
       const maxRooms = this.configuration.limits.maxRoomsPerServer
       if (maxRooms > 0 && this.rooms.size >= maxRooms) {
@@ -296,6 +297,24 @@ export class GrabstreamServer extends EventEmitter {
       } catch (error) {
         logger.error('room:creationFailed', { roomId, error })
         peer.sendError(`Failed to create room: ${error}`)
+        return
+      }
+    } else {
+      const maxPeers = this.configuration.limits.maxPeersPerRoom
+      if (maxPeers > 0 && room.peers.length >= maxPeers) {
+        logger.error('peer:limitReached', {
+          peerId: peer.id,
+          roomId,
+          currentPeers: room.peers.length,
+          maxPeers
+        })
+        peer.sendError(`Room is full. Maximum ${maxPeers} peers allowed.`)
+        this.emit('peer:limitReached', {
+          peerId: peer.id,
+          roomId,
+          currentPeers: room.peers.length,
+          maxPeers
+        })
         return
       }
     }
