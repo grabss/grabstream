@@ -8,7 +8,9 @@ import {
   CUSTOM_TYPE_PATTERN,
   DEFAULT_MAX_PEERS_PER_ROOM,
   DEFAULT_MAX_ROOMS_PER_SERVER,
-  MAX_CUSTOM_TYPE_LENGTH
+  MAX_CUSTOM_TYPE_LENGTH,
+  WEBSOCKET_MAX_PAYLOAD,
+  WEBSOCKET_PER_MESSAGE_DEFLATE
 } from './constants'
 import { logger } from './logger'
 import type {
@@ -91,8 +93,8 @@ export class GrabstreamServer extends EventEmitter {
 
     this.wss = new WebSocketServer({
       ...this.configuration.connectionOptions,
-      perMessageDeflate: false,
-      maxPayload: 1024 * 1024
+      perMessageDeflate: WEBSOCKET_PER_MESSAGE_DEFLATE,
+      maxPayload: WEBSOCKET_MAX_PAYLOAD
     })
 
     const wss = this.wss
