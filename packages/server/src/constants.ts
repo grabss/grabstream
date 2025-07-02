@@ -4,15 +4,18 @@ export const MAX_DISPLAY_NAME_LENGTH = 50
 
 // ==================== Room Configuration ====================
 
-export const ROOM_ID_PATTERN = /^[a-zA-Z0-9_-]+$/
 export const MAX_ROOM_ID_LENGTH = 64
+export const ROOM_ID_PATTERN = /^[a-zA-Z0-9_-]+$/
+
+// false - rooms can be created without password by default
+export const DEFAULT_REQUIRE_ROOM_PASSWORD = false
 export const MIN_PASSWORD_LENGTH = 4
 export const MAX_PASSWORD_LENGTH = 128
 
 // ==================== Custom Message Configuration ====================
 
-export const CUSTOM_TYPE_PATTERN = /^[a-zA-Z0-9._-]+$/
 export const MAX_CUSTOM_TYPE_LENGTH = 32
+export const CUSTOM_TYPE_PATTERN = /^[a-zA-Z0-9._-]+$/
 
 // ==================== WebSocket Configuration ====================
 

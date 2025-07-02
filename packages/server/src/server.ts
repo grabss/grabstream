@@ -5,6 +5,7 @@ import {
   CUSTOM_TYPE_PATTERN,
   DEFAULT_MAX_PEERS_PER_ROOM,
   DEFAULT_MAX_ROOMS_PER_SERVER,
+  DEFAULT_REQUIRE_ROOM_PASSWORD,
   MAX_CUSTOM_TYPE_LENGTH,
   PING_INTERVAL_MS,
   WEBSOCKET_MAX_PAYLOAD,
@@ -66,7 +67,9 @@ export class GrabstreamServer extends EventEmitter {
 
     this.configuration = {
       connectionOptions,
-      limits
+      limits,
+      requireRoomPassword:
+        options.requireRoomPassword ?? DEFAULT_REQUIRE_ROOM_PASSWORD
     }
   }
 
@@ -287,6 +290,15 @@ export class GrabstreamServer extends EventEmitter {
     let isNewRoom = false
 
     if (!room) {
+      if (this.configuration.requireRoomPassword && !password) {
+        logger.warn('room:passwordRequiredForCreation', {
+          peerId: peer.id,
+          roomId
+        })
+        peer.sendError('Password is required to create a room')
+        return
+      }
+
       const maxRooms = this.configuration.limits.maxRoomsPerServer
       if (maxRooms > 0 && this.rooms.size >= maxRooms) {
         logger.warn('room:limitReachedPerServer', {
