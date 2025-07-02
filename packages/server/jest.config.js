@@ -13,9 +13,7 @@ export default {
       statements: 80
     }
   },
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { useESM: true }]
   }
 }
