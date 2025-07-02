@@ -20,17 +20,12 @@ export const WEBSOCKET_PER_MESSAGE_DEFLATE = false
 // 1MB - sufficient for SDP/ICE
 export const WEBSOCKET_MAX_PAYLOAD = 1024 * 1024
 
+// 30 seconds - WebSocket keepalive ping interval
+export const PING_INTERVAL_MS = 30 * 1000
+
 // ==================== Connection Limits ====================
 
 export const DEFAULT_MAX_PEERS_PER_ROOM = 4
 
 // 0 = unlimited
 export const DEFAULT_MAX_ROOMS_PER_SERVER = 0
-
-// ==================== Timeout Configuration ====================
-
-// 1 hour
-export const IDLE_TIMEOUT_MS = 60 * 60 * 1000
-
-// 30 seconds
-export const PING_INTERVAL_MS = 30 * 1000
