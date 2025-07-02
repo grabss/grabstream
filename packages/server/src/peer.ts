@@ -118,6 +118,11 @@ export class Peer {
   sendError(error: string | Error): boolean {
     const message = typeof error === 'string' ? error : error.message
 
+    logger.debug('peer:errorSent', {
+      peerId: this._id,
+      message
+    })
+
     return this.send({
       type: 'ERROR',
       payload: {

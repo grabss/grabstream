@@ -74,8 +74,8 @@ export class Room extends EventEmitter {
     logger.debug('room:broadcast', {
       roomId: this._id,
       messageType: message.type,
-      recipientCount,
-      excludedCount: excludePeerIds.length
+      targetCount: this._peers.size - excludePeerIds.length,
+      recipientCount
     })
   }
 

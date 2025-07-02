@@ -538,6 +538,11 @@ export class GrabstreamServer extends EventEmitter {
 
         const room = this.rooms.get(peer.roomId)
         if (!room) {
+          logger.warn('custom:roomNotFound', {
+            peerId: peer.id,
+            roomId: peer.roomId,
+            targetType: 'peer'
+          })
           peer.sendError('Room not found')
           return
         }
@@ -574,6 +579,11 @@ export class GrabstreamServer extends EventEmitter {
 
         const room = this.rooms.get(peer.roomId)
         if (!room) {
+          logger.warn('custom:roomNotFound', {
+            peerId: peer.id,
+            roomId: peer.roomId,
+            targetType: 'room'
+          })
           peer.sendError('Room not found')
           return
         }
@@ -624,6 +634,11 @@ export class GrabstreamServer extends EventEmitter {
 
     const room = this.rooms.get(peer.roomId)
     if (!room) {
+      logger.warn('signaling:roomNotFound', {
+        peerId: peer.id,
+        roomId: peer.roomId,
+        messageType: message.type
+      })
       peer.sendError(
         `Cannot send ${message.type.toLowerCase()}: room not found`
       )
