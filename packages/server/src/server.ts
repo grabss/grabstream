@@ -326,6 +326,20 @@ export class GrabstreamServer extends EventEmitter {
         return
       }
     } else {
+      if (room.hasPassword) {
+        if (!password || !room.verifyPassword(password)) {
+          logger.warn('room:passwordVerificationFailed', {
+            peerId: peer.id,
+            roomId
+          })
+          peer.send({
+            type: 'PASSWORD_REQUIRED',
+            payload: { roomId }
+          })
+          return
+        }
+      }
+
       const maxPeers = this.configuration.limits.maxPeersPerRoom
       if (maxPeers > 0 && room.peers.length >= maxPeers) {
         logger.warn('peer:limitReachedPerRoom', {
