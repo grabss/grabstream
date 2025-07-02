@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { WebSocket } from 'ws'
 
+import { MAX_DISPLAY_NAME_LENGTH } from './constants'
 import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 
@@ -16,7 +17,13 @@ export class Peer {
     displayName
   }: { socket: WebSocket; displayName?: string }) {
     this._id = uuidv4()
-    this._displayName = displayName || `Peer-${this._id.slice(0, 8)}`
+
+    if (displayName) {
+      this._displayName = this.validatedDisplayName(displayName)
+    } else {
+      this._displayName = `Peer-${this._id.slice(0, 8)}`
+    }
+
     this._socket = socket
     this._joinedAt = new Date()
   }
@@ -38,10 +45,7 @@ export class Peer {
   }
 
   updateDisplayName(displayName: string): void {
-    if (!displayName || displayName.trim() === '') {
-      throw new Error('Display name cannot be empty')
-    }
-    this._displayName = displayName.trim()
+    this._displayName = this.validatedDisplayName(displayName)
   }
 
   joinRoom(roomId: string): void {
@@ -103,5 +107,21 @@ export class Peer {
       roomId: this._roomId,
       joinedAt: this._joinedAt
     }
+  }
+
+  private validatedDisplayName(displayName: string): string {
+    const trimmedDisplayName = displayName.trim()
+
+    if (!trimmedDisplayName) {
+      throw new Error('Display name cannot be empty')
+    }
+
+    if (trimmedDisplayName.length > MAX_DISPLAY_NAME_LENGTH) {
+      throw new Error(
+        `Display name cannot exceed ${MAX_DISPLAY_NAME_LENGTH} characters`
+      )
+    }
+
+    return trimmedDisplayName
   }
 }

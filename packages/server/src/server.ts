@@ -1,9 +1,14 @@
-import type { Server as HTTPServer } from 'node:http'
-import type { Server as HTTPSServer } from 'node:https'
-
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
+import {
+  CUSTOM_TYPE_PATTERN,
+  DEFAULT_MAX_PEERS_PER_ROOM,
+  DEFAULT_MAX_ROOMS_PER_SERVER,
+  MAX_CUSTOM_TYPE_LENGTH,
+  WEBSOCKET_MAX_PAYLOAD,
+  WEBSOCKET_PER_MESSAGE_DEFLATE
+} from './constants'
 import { logger } from './logger'
 import type {
   AnswerMessage,
@@ -16,19 +21,18 @@ import type {
 import { isClientToServerMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
-
-export type GrabstreamServerOptions = {
-  host?: string
-  port?: number
-  path?: string
-  server?: HTTPServer | HTTPSServer
-}
+import type {
+  GrabstreamServerConfiguration,
+  GrabstreamServerConnectionOptions,
+  GrabstreamServerLimits,
+  GrabstreamServerOptions
+} from './types'
 
 export class GrabstreamServer extends EventEmitter {
   private wss?: WebSocketServer
   private readonly rooms: Map<string, Room> = new Map()
   private readonly peers: Map<string, Peer> = new Map()
-  private readonly options: GrabstreamServerOptions
+  private readonly configuration: GrabstreamServerConfiguration
 
   constructor(options: GrabstreamServerOptions = {}) {
     super()
@@ -37,17 +41,30 @@ export class GrabstreamServer extends EventEmitter {
       throw new Error('Cannot specify both server and host/port options')
     }
 
+    let connectionOptions: GrabstreamServerConnectionOptions
     if (options.server) {
-      this.options = {
+      connectionOptions = {
         path: options.path,
         server: options.server
       }
     } else {
-      this.options = {
-        host: options.host || '0.0.0.0',
-        port: options.port || 8080,
+      connectionOptions = {
+        host: options.host ?? '0.0.0.0',
+        port: options.port ?? 8080,
         path: options.path
       }
+    }
+
+    const limits: GrabstreamServerLimits = {
+      maxPeersPerRoom:
+        options.limits?.maxPeersPerRoom ?? DEFAULT_MAX_PEERS_PER_ROOM,
+      maxRoomsPerServer:
+        options.limits?.maxRoomsPerServer ?? DEFAULT_MAX_ROOMS_PER_SERVER
+    }
+
+    this.configuration = {
+      connectionOptions,
+      limits
     }
   }
 
@@ -57,9 +74,9 @@ export class GrabstreamServer extends EventEmitter {
     }
 
     this.wss = new WebSocketServer({
-      ...this.options,
-      perMessageDeflate: false,
-      maxPayload: 1024 * 1024
+      ...this.configuration.connectionOptions,
+      perMessageDeflate: WEBSOCKET_PER_MESSAGE_DEFLATE,
+      maxPayload: WEBSOCKET_MAX_PAYLOAD
     })
 
     const wss = this.wss
@@ -122,7 +139,15 @@ export class GrabstreamServer extends EventEmitter {
   }
 
   private handleConnection(socket: WebSocket): void {
-    const peer = new Peer({ socket })
+    let peer: Peer
+    try {
+      peer = new Peer({ socket })
+    } catch (error) {
+      logger.error('peer:creationFailed', { error })
+      socket.close(1002, 'Failed to create peer')
+      return
+    }
+
     logger.info('peer:connected', { peerId: peer.id })
 
     peer.send({
@@ -235,14 +260,63 @@ export class GrabstreamServer extends EventEmitter {
   }): void {
     const { roomId, displayName } = message.payload
 
-    if (displayName) peer.updateDisplayName(displayName)
+    if (displayName) {
+      try {
+        peer.updateDisplayName(displayName)
+      } catch (error) {
+        peer.sendError(`Failed to update display name: ${error}`)
+        return
+      }
+    }
 
     let room = this.rooms.get(roomId)
     let isNewRoom = false
+
     if (!room) {
-      room = new Room(roomId)
-      this.rooms.set(roomId, room)
-      isNewRoom = true
+      const maxRooms = this.configuration.limits.maxRoomsPerServer
+      if (maxRooms > 0 && this.rooms.size >= maxRooms) {
+        logger.error('room:limitReachedPerServer', {
+          roomId,
+          currentRooms: this.rooms.size,
+          maxRooms
+        })
+        peer.sendError('Server room limit reached. Cannot create new room.')
+        this.emit('room:limitReachedPerServer', {
+          roomId,
+          peerId: peer.id,
+          currentRooms: this.rooms.size,
+          maxRooms
+        })
+        return
+      }
+
+      try {
+        room = new Room(roomId)
+        this.rooms.set(roomId, room)
+        isNewRoom = true
+      } catch (error) {
+        logger.error('room:creationFailed', { roomId, error })
+        peer.sendError(`Failed to create room: ${error}`)
+        return
+      }
+    } else {
+      const maxPeers = this.configuration.limits.maxPeersPerRoom
+      if (maxPeers > 0 && room.peers.length >= maxPeers) {
+        logger.error('peer:limitReachedPerRoom', {
+          peerId: peer.id,
+          roomId,
+          currentPeers: room.peers.length,
+          maxPeers
+        })
+        peer.sendError(`Room is full. Maximum ${maxPeers} peers allowed.`)
+        this.emit('peer:limitReachedPerRoom', {
+          peerId: peer.id,
+          roomId,
+          currentPeers: room.peers.length,
+          maxPeers
+        })
+        return
+      }
     }
 
     try {
@@ -388,6 +462,20 @@ export class GrabstreamServer extends EventEmitter {
 
     if (!customType) {
       peer.sendError('Custom type is required')
+      return
+    }
+
+    if (customType.length > MAX_CUSTOM_TYPE_LENGTH) {
+      peer.sendError(
+        `Custom type cannot exceed ${MAX_CUSTOM_TYPE_LENGTH} characters`
+      )
+      return
+    }
+
+    if (!CUSTOM_TYPE_PATTERN.test(customType)) {
+      peer.sendError(
+        `Custom type must match pattern: ${CUSTOM_TYPE_PATTERN.source}`
+      )
       return
     }
 

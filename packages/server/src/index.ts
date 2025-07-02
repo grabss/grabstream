@@ -1,1 +1,2 @@
-export { GrabstreamServer, type GrabstreamServerOptions } from './server'
+export { GrabstreamServer } from './server'
+export type { GrabstreamServerLimits, GrabstreamServerOptions } from './types'
