@@ -1,11 +1,9 @@
+import { createServer } from 'node:http'
 import { EventEmitter } from 'eventemitter3'
-import type { Server } from 'http'
-import { createServer } from 'http'
-import type { WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
-import { GrabstreamServer } from './server'
 import { Peer } from './peer'
 import { Room } from './room'
+import { GrabstreamServer } from './server'
 
 // Mock WebSocket
 class MockWebSocket extends EventEmitter {
@@ -60,7 +58,9 @@ jest.mock('ws', () => ({
   WebSocketServer: jest.fn()
 }))
 
-const MockedWebSocketServer = WebSocketServer as jest.MockedClass<typeof WebSocketServer>
+const MockedWebSocketServer = WebSocketServer as jest.MockedClass<
+  typeof WebSocketServer
+>
 
 describe('GrabstreamServer', () => {
   let server: GrabstreamServer
@@ -68,10 +68,12 @@ describe('GrabstreamServer', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     mockWss = new MockWebSocketServer()
-    MockedWebSocketServer.mockImplementation(() => mockWss as unknown as WebSocketServer)
-    
+    MockedWebSocketServer.mockImplementation(
+      () => mockWss as unknown as WebSocketServer
+    )
+
     server = new GrabstreamServer()
   })
 
@@ -134,10 +136,10 @@ describe('GrabstreamServer', () => {
   describe('lifecycle', () => {
     it('should start server successfully', async () => {
       const startPromise = server.start()
-      
+
       // Simulate successful listening
       mockWss.simulateListening()
-      
+
       await expect(startPromise).resolves.toBeUndefined()
       expect(MockedWebSocketServer).toHaveBeenCalledWith({
         host: '0.0.0.0',
@@ -162,10 +164,10 @@ describe('GrabstreamServer', () => {
     it('should reject start promise on WebSocket server error', async () => {
       const error = new Error('Failed to start')
       const startPromise = server.start()
-      
+
       // Simulate error during startup
       mockWss.simulateError(error)
-      
+
       await expect(startPromise).rejects.toThrow('Failed to start')
     })
 
@@ -174,7 +176,9 @@ describe('GrabstreamServer', () => {
       mockWss.simulateListening()
       await startPromise
 
-      await expect(server.start()).rejects.toThrow('GrabstreamServer is already running')
+      await expect(server.start()).rejects.toThrow(
+        'GrabstreamServer is already running'
+      )
     })
 
     it('should stop server successfully', async () => {
@@ -185,7 +189,7 @@ describe('GrabstreamServer', () => {
 
       const stopPromise = server.stop()
       // mockWss.close callback is called automatically in mock
-      
+
       await expect(stopPromise).resolves.toBeUndefined()
       expect(mockWss.close).toHaveBeenCalled()
     })
@@ -204,7 +208,9 @@ describe('GrabstreamServer', () => {
     })
 
     it('should throw error when stopping non-running server', async () => {
-      await expect(server.stop()).rejects.toThrow('GrabstreamServer is not running')
+      await expect(server.stop()).rejects.toThrow(
+        'GrabstreamServer is not running'
+      )
     })
 
     it('should reject stop promise on close error', async () => {
@@ -227,7 +233,7 @@ describe('GrabstreamServer', () => {
 
     beforeEach(async () => {
       mockSocket = new MockWebSocket()
-      
+
       // Start server
       const startPromise = server.start()
       mockWss.simulateListening()
@@ -269,7 +275,7 @@ describe('GrabstreamServer', () => {
       server.on('peer:error', peerErrorHandler)
 
       mockWss.simulateConnection(mockSocket)
-      
+
       const error = new Error('Socket error')
       mockSocket.simulateError(error)
 
@@ -303,7 +309,7 @@ describe('GrabstreamServer', () => {
 
     beforeEach(async () => {
       mockSocket = new MockWebSocket()
-      
+
       // Start server
       const startPromise = server.start()
       mockWss.simulateListening()
@@ -324,7 +330,7 @@ describe('GrabstreamServer', () => {
 
     it('should ignore messages from disconnected peers', () => {
       mockSocket.readyState = mockSocket.CLOSED
-      
+
       mockSocket.simulateMessage({
         type: 'JOIN_ROOM',
         payload: { roomId: 'test-room' }
@@ -420,7 +426,7 @@ describe('GrabstreamServer', () => {
 
     it('should handle KNOCK message', () => {
       jest.clearAllMocks() // Clear any previous send calls
-      
+
       mockSocket.simulateMessage({
         type: 'KNOCK',
         payload: {
@@ -481,7 +487,7 @@ describe('GrabstreamServer', () => {
 
     beforeEach(async () => {
       mockSocket = new MockWebSocket()
-      
+
       serverWithLimits = new GrabstreamServer({
         limits: {
           maxPeersPerRoom: 2,
@@ -576,7 +582,7 @@ describe('GrabstreamServer', () => {
 
     beforeEach(async () => {
       mockSocket = new MockWebSocket()
-      
+
       secureServer = new GrabstreamServer({
         requireRoomPassword: true
       })
@@ -606,7 +612,9 @@ describe('GrabstreamServer', () => {
       })
 
       expect(mockSocket.send).toHaveBeenCalledWith(
-        expect.stringContaining('"message":"Password is required to create a room"')
+        expect.stringContaining(
+          '"message":"Password is required to create a room"'
+        )
       )
     })
 

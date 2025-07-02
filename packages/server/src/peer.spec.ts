@@ -25,7 +25,7 @@ describe('Peer', () => {
     it('should generate unique ID', () => {
       const peer1 = new Peer({ socket: mockSocket as unknown as WebSocket })
       const peer2 = new Peer({ socket: mockSocket as unknown as WebSocket })
-      
+
       expect(peer1.id).toBeDefined()
       expect(peer2.id).toBeDefined()
       expect(peer1.id).not.toBe(peer2.id)
@@ -40,7 +40,7 @@ describe('Peer', () => {
         socket: mockSocket as unknown as WebSocket,
         displayName: 'TestUser'
       })
-      
+
       expect(customPeer.displayName).toBe('TestUser')
     })
 
@@ -49,7 +49,7 @@ describe('Peer', () => {
         socket: mockSocket as unknown as WebSocket,
         displayName: '  TestUser  '
       })
-      
+
       expect(customPeer.displayName).toBe('TestUser')
     })
 
@@ -64,7 +64,7 @@ describe('Peer', () => {
 
     it('should throw error for too long display name', () => {
       const longName = 'a'.repeat(51)
-      
+
       expect(() => {
         new Peer({
           socket: mockSocket as unknown as WebSocket,
@@ -107,7 +107,7 @@ describe('Peer', () => {
 
     it('should throw error for too long display name', () => {
       const longName = 'a'.repeat(51)
-      
+
       expect(() => {
         peer.updateDisplayName(longName)
       }).toThrow('Display name cannot exceed 50 characters')
@@ -117,14 +117,14 @@ describe('Peer', () => {
   describe('room management', () => {
     it('should join room successfully', () => {
       peer.joinRoom('test-room')
-      
+
       expect(peer.roomId).toBe('test-room')
       expect(peer.isInRoom()).toBe(true)
     })
 
     it('should throw error when joining room while already in room', () => {
       peer.joinRoom('room1')
-      
+
       expect(() => {
         peer.joinRoom('room2')
       }).toThrow('Peer')
@@ -133,7 +133,7 @@ describe('Peer', () => {
     it('should leave room successfully', () => {
       peer.joinRoom('test-room')
       const leftRoomId = peer.leaveRoom()
-      
+
       expect(leftRoomId).toBe('test-room')
       expect(peer.roomId).toBeUndefined()
       expect(peer.isInRoom()).toBe(false)
@@ -152,23 +152,23 @@ describe('Peer', () => {
         type: 'CONNECTION_ESTABLISHED' as const,
         payload: { peerId: 'test' }
       }
-      
+
       const result = peer.send(message)
-      
+
       expect(result).toBe(true)
       expect(mockSocket.send).toHaveBeenCalledWith(JSON.stringify(message))
     })
 
     it('should return false when socket is disconnected', () => {
       mockSocket.readyState = 3 // CLOSED
-      
+
       const message = {
         type: 'CONNECTION_ESTABLISHED' as const,
         payload: { peerId: 'test' }
       }
-      
+
       const result = peer.send(message)
-      
+
       expect(result).toBe(false)
       expect(mockSocket.send).not.toHaveBeenCalled()
     })
@@ -177,20 +177,20 @@ describe('Peer', () => {
       mockSocket.send.mockImplementation(() => {
         throw new Error('Send failed')
       })
-      
+
       const message = {
         type: 'CONNECTION_ESTABLISHED' as const,
         payload: { peerId: 'test' }
       }
-      
+
       const result = peer.send(message)
-      
+
       expect(result).toBe(false)
     })
 
     it('should send error message with string', () => {
       const result = peer.sendError('Test error')
-      
+
       expect(result).toBe(true)
       expect(mockSocket.send).toHaveBeenCalledWith(
         JSON.stringify({
@@ -203,7 +203,7 @@ describe('Peer', () => {
     it('should send error message with Error object', () => {
       const error = new Error('Test error')
       const result = peer.sendError(error)
-      
+
       expect(result).toBe(true)
       expect(mockSocket.send).toHaveBeenCalledWith(
         JSON.stringify({
@@ -217,7 +217,7 @@ describe('Peer', () => {
   describe('ping/pong functionality', () => {
     it('should send ping and set isAlive to false', () => {
       peer.ping()
-      
+
       expect(peer.isAlive).toBe(false)
       expect(mockSocket.ping).toHaveBeenCalled()
     })
@@ -225,18 +225,20 @@ describe('Peer', () => {
     it('should update pong received', async () => {
       peer.ping()
       const beforePong = peer.lastPongReceivedAt
-      
+
       // Add small delay to ensure time difference
-      await new Promise(resolve => setTimeout(resolve, 1))
+      await new Promise((resolve) => setTimeout(resolve, 1))
       peer.updatePongReceived()
-      
+
       expect(peer.isAlive).toBe(true)
-      expect(peer.lastPongReceivedAt.getTime()).toBeGreaterThan(beforePong.getTime())
+      expect(peer.lastPongReceivedAt.getTime()).toBeGreaterThan(
+        beforePong.getTime()
+      )
     })
 
     it('should terminate connection', () => {
       peer.terminate()
-      
+
       expect(mockSocket.terminate).toHaveBeenCalled()
     })
   })
@@ -245,7 +247,7 @@ describe('Peer', () => {
     it('should return correct JSON representation', () => {
       peer.joinRoom('test-room')
       const json = peer.toJSON()
-      
+
       expect(json).toEqual({
         id: peer.id,
         displayName: peer.displayName,
@@ -257,7 +259,7 @@ describe('Peer', () => {
 
     it('should return JSON with undefined roomId when not in room', () => {
       const json = peer.toJSON()
-      
+
       expect(json.roomId).toBeUndefined()
     })
   })

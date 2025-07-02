@@ -1,7 +1,7 @@
 import { EventEmitter } from 'eventemitter3'
 import type { WebSocket } from 'ws'
-import { Room } from './room'
 import { Peer } from './peer'
+import { Room } from './room'
 
 // Mock WebSocket
 class MockWebSocket extends EventEmitter {
@@ -20,8 +20,14 @@ describe('Room', () => {
 
   beforeEach(() => {
     mockSocket = new MockWebSocket()
-    peer1 = new Peer({ socket: mockSocket as unknown as WebSocket, displayName: 'Peer1' })
-    peer2 = new Peer({ socket: mockSocket as unknown as WebSocket, displayName: 'Peer2' })
+    peer1 = new Peer({
+      socket: mockSocket as unknown as WebSocket,
+      displayName: 'Peer1'
+    })
+    peer2 = new Peer({
+      socket: mockSocket as unknown as WebSocket,
+      displayName: 'Peer2'
+    })
   })
 
   describe('constructor', () => {
