@@ -9,8 +9,10 @@ export class Peer {
   private readonly _id: string
   private _displayName: string
   private _roomId?: string
-  private readonly _socket: WebSocket
   private readonly _joinedAt: Date
+  private readonly _socket: WebSocket
+  private _isAlive: boolean
+  private _lastPongReceivedAt: Date
 
   constructor({
     socket,
@@ -26,6 +28,8 @@ export class Peer {
 
     this._socket = socket
     this._joinedAt = new Date()
+    this._isAlive = true
+    this._lastPongReceivedAt = new Date()
   }
 
   get id(): string {
@@ -42,6 +46,28 @@ export class Peer {
 
   get isConnected(): boolean {
     return this._socket.readyState === this._socket.OPEN
+  }
+
+  get isAlive(): boolean {
+    return this._isAlive
+  }
+
+  get lastPongReceivedAt(): Date {
+    return this._lastPongReceivedAt
+  }
+
+  ping(): void {
+    this._isAlive = false
+    this._socket.ping()
+  }
+
+  terminate(): void {
+    this._socket.terminate()
+  }
+
+  updatePongReceived(): void {
+    this._isAlive = true
+    this._lastPongReceivedAt = new Date()
   }
 
   updateDisplayName(displayName: string): void {
@@ -105,7 +131,8 @@ export class Peer {
       id: this._id,
       displayName: this._displayName,
       roomId: this._roomId,
-      joinedAt: this._joinedAt
+      joinedAt: this._joinedAt,
+      lastPongReceivedAt: this._lastPongReceivedAt
     }
   }
 
