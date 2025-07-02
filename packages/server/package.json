@@ -22,13 +22,14 @@
     "websocket",
     "webrtc"
   ],
+  "type": "module",
   "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       },
       "require": {
         "types": "./dist/cjs/index.d.ts",
@@ -36,14 +37,15 @@
       }
     }
   },
-  "types": "./dist/cjs/index.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "pnpm build:cjs && pnpm build:esm",
-    "build:cjs": "tsc",
-    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "pnpm build:esm && pnpm build:cjs && pnpm build:cjs-package",
+    "build:esm": "tsc",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs-package": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
     "dev": "tsc -v --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
