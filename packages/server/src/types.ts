@@ -15,9 +15,11 @@ export type GrabstreamServerLimits = {
 
 export type GrabstreamServerOptions = GrabstreamServerConnectionOptions & {
   limits?: Partial<GrabstreamServerLimits>
+  requireRoomPassword?: boolean
 }
 
 export type GrabstreamServerConfiguration = {
   connectionOptions: GrabstreamServerConnectionOptions
   limits: GrabstreamServerLimits
+  requireRoomPassword: boolean
 }

@@ -20,6 +20,7 @@ export type JoinRoomMessage = {
   payload: {
     roomId: string
     displayName?: string
+    password?: string
   }
 }
 
@@ -32,6 +33,13 @@ export type UpdateDisplayNameMessage = {
   type: 'UPDATE_DISPLAY_NAME'
   payload: {
     displayName: string
+  }
+}
+
+export type KnockMessage = {
+  type: 'KNOCK'
+  payload: {
+    roomId: string
   }
 }
 
@@ -178,12 +186,32 @@ export type ErrorMessage = {
   }
 }
 
+// Password management
+export type PasswordRequiredMessage = {
+  type: 'PASSWORD_REQUIRED'
+  payload: {
+    roomId: string
+  }
+}
+
+export type KnockResponseMessage = {
+  type: 'KNOCK_RESPONSE'
+  payload: {
+    roomId: string
+    exists: boolean
+    hasPassword: boolean
+    peerCount: number
+    isFull: boolean
+  }
+}
+
 // ==================== Union Types ====================
 
 export type ClientToServerMessage =
   | JoinRoomMessage
   | LeaveRoomMessage
   | UpdateDisplayNameMessage
+  | KnockMessage
   | CustomMessage
   | OfferMessage
   | AnswerMessage
@@ -199,6 +227,8 @@ export type ServerToClientMessage =
   | DisplayNameUpdatedMessage
   | CustomRelayMessage
   | ErrorMessage
+  | PasswordRequiredMessage
+  | KnockResponseMessage
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage

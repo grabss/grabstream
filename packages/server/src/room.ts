@@ -1,21 +1,32 @@
 import { EventEmitter } from 'eventemitter3'
-import { MAX_ROOM_ID_LENGTH, ROOM_ID_PATTERN } from './constants'
+import {
+  MAX_PASSWORD_LENGTH,
+  MAX_ROOM_ID_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  ROOM_ID_PATTERN
+} from './constants'
 import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 import type { Peer } from './peer'
 
 export class Room extends EventEmitter {
   private readonly _id: string
+  private readonly _password?: string
   private readonly _peers: Map<string, Peer>
   private readonly _createdAt: Date
 
-  constructor(id: string) {
+  constructor(id: string, password?: string) {
     super()
 
     this.validateRoomId(id)
     this._id = id
     this._peers = new Map<string, Peer>()
     this._createdAt = new Date()
+
+    if (password !== undefined) {
+      this.validatePassword(password)
+      this._password = password
+    }
   }
 
   get id(): string {
@@ -28,6 +39,10 @@ export class Room extends EventEmitter {
 
   get isEmpty(): boolean {
     return this._peers.size === 0
+  }
+
+  get hasPassword(): boolean {
+    return this._password !== undefined
   }
 
   addPeer(peer: Peer): void {
@@ -79,11 +94,16 @@ export class Room extends EventEmitter {
     })
   }
 
+  verifyPassword(password: string): boolean {
+    return !this.hasPassword || this._password === password
+  }
+
   toJSON() {
     return {
       id: this._id,
       peers: this.peers.map((peer) => peer.toJSON()),
-      createdAt: this._createdAt
+      createdAt: this._createdAt,
+      hasPassword: this.hasPassword
     }
   }
 
@@ -98,6 +118,24 @@ export class Room extends EventEmitter {
 
     if (!ROOM_ID_PATTERN.test(roomId)) {
       throw new Error(`Room ID must match pattern: ${ROOM_ID_PATTERN.source}`)
+    }
+  }
+
+  private validatePassword(password: string): void {
+    if (!password) {
+      throw new Error('Password cannot be empty')
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      throw new Error(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`
+      )
+    }
+
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      throw new Error(
+        `Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`
+      )
     }
   }
 }

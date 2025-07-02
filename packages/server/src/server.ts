@@ -5,6 +5,7 @@ import {
   CUSTOM_TYPE_PATTERN,
   DEFAULT_MAX_PEERS_PER_ROOM,
   DEFAULT_MAX_ROOMS_PER_SERVER,
+  DEFAULT_REQUIRE_ROOM_PASSWORD,
   MAX_CUSTOM_TYPE_LENGTH,
   PING_INTERVAL_MS,
   WEBSOCKET_MAX_PAYLOAD,
@@ -16,6 +17,7 @@ import type {
   CustomMessage,
   IceCandidateMessage,
   JoinRoomMessage,
+  KnockMessage,
   OfferMessage,
   UpdateDisplayNameMessage
 } from './messages'
@@ -66,7 +68,9 @@ export class GrabstreamServer extends EventEmitter {
 
     this.configuration = {
       connectionOptions,
-      limits
+      limits,
+      requireRoomPassword:
+        options.requireRoomPassword ?? DEFAULT_REQUIRE_ROOM_PASSWORD
     }
   }
 
@@ -241,6 +245,9 @@ export class GrabstreamServer extends EventEmitter {
       case 'UPDATE_DISPLAY_NAME':
         this.handleUpdateDisplayNameMessage({ peer, message })
         break
+      case 'KNOCK':
+        this.handleKnockMessage({ peer, message })
+        break
       case 'CUSTOM':
         this.handleCustomMessage({ peer, message })
         break
@@ -268,7 +275,7 @@ export class GrabstreamServer extends EventEmitter {
     peer: Peer
     message: JoinRoomMessage
   }): void {
-    const { roomId, displayName } = message.payload
+    const { roomId, displayName, password } = message.payload
 
     if (displayName) {
       try {
@@ -284,6 +291,15 @@ export class GrabstreamServer extends EventEmitter {
     let isNewRoom = false
 
     if (!room) {
+      if (this.configuration.requireRoomPassword && !password) {
+        logger.warn('room:passwordRequiredForCreation', {
+          peerId: peer.id,
+          roomId
+        })
+        peer.sendError('Password is required to create a room')
+        return
+      }
+
       const maxRooms = this.configuration.limits.maxRoomsPerServer
       if (maxRooms > 0 && this.rooms.size >= maxRooms) {
         logger.warn('room:limitReachedPerServer', {
@@ -291,7 +307,7 @@ export class GrabstreamServer extends EventEmitter {
           currentRooms: this.rooms.size,
           maxRooms
         })
-        peer.sendError('Server room limit reached. Cannot create new room.')
+        peer.sendError('Server room limit reached. Cannot create new room')
         this.emit('room:limitReachedPerServer', {
           roomId,
           peerId: peer.id,
@@ -302,7 +318,7 @@ export class GrabstreamServer extends EventEmitter {
       }
 
       try {
-        room = new Room(roomId)
+        room = new Room(roomId, password)
         this.rooms.set(roomId, room)
         isNewRoom = true
       } catch (error) {
@@ -311,6 +327,20 @@ export class GrabstreamServer extends EventEmitter {
         return
       }
     } else {
+      if (room.hasPassword) {
+        if (!password || !room.verifyPassword(password)) {
+          logger.warn('room:passwordVerificationFailed', {
+            peerId: peer.id,
+            roomId
+          })
+          peer.send({
+            type: 'PASSWORD_REQUIRED',
+            payload: { roomId }
+          })
+          return
+        }
+      }
+
       const maxPeers = this.configuration.limits.maxPeersPerRoom
       if (maxPeers > 0 && room.peers.length >= maxPeers) {
         logger.warn('peer:limitReachedPerRoom', {
@@ -319,7 +349,7 @@ export class GrabstreamServer extends EventEmitter {
           currentPeers: room.peers.length,
           maxPeers
         })
-        peer.sendError(`Room is full. Maximum ${maxPeers} peers allowed.`)
+        peer.sendError(`Room is full. Maximum ${maxPeers} peers allowed`)
         this.emit('peer:limitReachedPerRoom', {
           peerId: peer.id,
           roomId,
@@ -461,6 +491,54 @@ export class GrabstreamServer extends EventEmitter {
       peer,
       previousDisplayName,
       displayName
+    })
+  }
+
+  private handleKnockMessage({
+    peer,
+    message
+  }: {
+    peer: Peer
+    message: KnockMessage
+  }): void {
+    const { roomId } = message.payload
+    const room = this.rooms.get(roomId)
+
+    if (!room) {
+      peer.send({
+        type: 'KNOCK_RESPONSE',
+        payload: {
+          roomId,
+          exists: false,
+          hasPassword: false,
+          peerCount: 0,
+          isFull: false
+        }
+      })
+      return
+    }
+
+    const maxPeers = this.configuration.limits.maxPeersPerRoom
+    const isFull = maxPeers > 0 && room.peers.length >= maxPeers
+
+    peer.send({
+      type: 'KNOCK_RESPONSE',
+      payload: {
+        roomId,
+        exists: true,
+        hasPassword: room.hasPassword,
+        peerCount: room.peers.length,
+        isFull
+      }
+    })
+
+    logger.debug('room:knocked', {
+      peerId: peer.id,
+      roomId,
+      exists: true,
+      hasPassword: room.hasPassword,
+      peerCount: room.peers.length,
+      isFull
     })
   }
 
@@ -764,13 +842,6 @@ export class GrabstreamServer extends EventEmitter {
     return true
   }
 
-  private cleanup(): void {
-    this.stopPingInterval()
-    this.wss = undefined
-    this.rooms.clear()
-    this.peers.clear()
-  }
-
   private startPingInterval(): void {
     this.pingInterval = setInterval(() => {
       this.peers.forEach((peer) => {
@@ -794,5 +865,12 @@ export class GrabstreamServer extends EventEmitter {
       this.pingInterval = undefined
       logger.debug('pingInterval:stopped')
     }
+  }
+
+  private cleanup(): void {
+    this.stopPingInterval()
+    this.wss = undefined
+    this.rooms.clear()
+    this.peers.clear()
   }
 }
