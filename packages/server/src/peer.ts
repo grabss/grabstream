@@ -48,10 +48,6 @@ export class Peer {
     return this._socket.readyState === this._socket.OPEN
   }
 
-  get socket(): WebSocket {
-    return this._socket
-  }
-
   get isAlive(): boolean {
     return this._isAlive
   }
@@ -63,6 +59,10 @@ export class Peer {
   ping(): void {
     this._isAlive = false
     this._socket.ping()
+  }
+
+  terminate(): void {
+    this._socket.terminate()
   }
 
   updatePongReceived(): void {

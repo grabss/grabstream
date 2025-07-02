@@ -720,7 +720,7 @@ export class GrabstreamServer extends EventEmitter {
         if (!peer.isAlive) {
           logger.info('peer:timeout', { peerId: peer.id })
           this.emit('peer:timeout', peer)
-          peer.socket.terminate()
+          peer.terminate()
           return
         }
 
