@@ -1,6 +1,3 @@
-import type { Server as HTTPServer } from 'node:http'
-import type { Server as HTTPSServer } from 'node:https'
-
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
@@ -24,27 +21,12 @@ import type {
 import { isClientToServerMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
-
-type GrabstreamServerConnectionOptions = {
-  host?: string
-  port?: number
-  path?: string
-  server?: HTTPServer | HTTPSServer
-}
-
-export type GrabstreamServerLimits = {
-  maxPeersPerRoom: number
-  maxRoomsPerServer: number
-}
-
-export type GrabstreamServerOptions = GrabstreamServerConnectionOptions & {
-  limits?: Partial<GrabstreamServerLimits>
-}
-
-type GrabstreamServerConfiguration = {
-  connectionOptions: GrabstreamServerConnectionOptions
-  limits: GrabstreamServerLimits
-}
+import type {
+  GrabstreamServerConfiguration,
+  GrabstreamServerConnectionOptions,
+  GrabstreamServerLimits,
+  GrabstreamServerOptions
+} from './types'
 
 export class GrabstreamServer extends EventEmitter {
   private wss?: WebSocketServer
