@@ -9,9 +9,9 @@ export const MAX_DISPLAY_NAME_LENGTH = 50
 export const MAX_ROOM_ID_LENGTH = 64
 export const ROOM_ID_PATTERN = /^[a-zA-Z0-9_-]+$/
 
-// Custom message (to be implemented)
+// Custom message
 export const MAX_CUSTOM_TYPE_LENGTH = 32
-export const MAX_CUSTOM_DATA_SIZE = 64 * 1024 // 64KB
+export const CUSTOM_TYPE_PATTERN = /^[a-zA-Z0-9._-]+$/
 
 // Connection limits (to be implemented)
 export const MAX_PEERS_PER_ROOM = 100

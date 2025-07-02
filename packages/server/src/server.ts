@@ -4,6 +4,7 @@ import type { Server as HTTPSServer } from 'node:https'
 import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
+import { CUSTOM_TYPE_PATTERN, MAX_CUSTOM_TYPE_LENGTH } from './constants'
 import { logger } from './logger'
 import type {
   AnswerMessage,
@@ -409,6 +410,20 @@ export class GrabstreamServer extends EventEmitter {
 
     if (!customType) {
       peer.sendError('Custom type is required')
+      return
+    }
+
+    if (customType.length > MAX_CUSTOM_TYPE_LENGTH) {
+      peer.sendError(
+        `Custom type cannot exceed ${MAX_CUSTOM_TYPE_LENGTH} characters`
+      )
+      return
+    }
+
+    if (!CUSTOM_TYPE_PATTERN.test(customType)) {
+      peer.sendError(
+        `Custom type must match pattern: ${CUSTOM_TYPE_PATTERN.source}`
+      )
       return
     }
 
