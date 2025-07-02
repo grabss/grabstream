@@ -255,9 +255,15 @@ export class GrabstreamServer extends EventEmitter {
     let room = this.rooms.get(roomId)
     let isNewRoom = false
     if (!room) {
-      room = new Room(roomId)
-      this.rooms.set(roomId, room)
-      isNewRoom = true
+      try {
+        room = new Room(roomId)
+        this.rooms.set(roomId, room)
+        isNewRoom = true
+      } catch (error) {
+        logger.error('room:creationFailed', { roomId, error })
+        peer.sendError(`Failed to create room: ${error}`)
+        return
+      }
     }
 
     try {

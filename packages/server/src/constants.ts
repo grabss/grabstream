@@ -2,14 +2,14 @@
  * Validation constants
  */
 
-// Display name constraints
+// Display name
 export const MAX_DISPLAY_NAME_LENGTH = 50
 
-// Room ID constraints (to be implemented)
+// Room ID
 export const MAX_ROOM_ID_LENGTH = 64
 export const ROOM_ID_PATTERN = /^[a-zA-Z0-9_-]+$/
 
-// Custom message constraints (to be implemented)
+// Custom message (to be implemented)
 export const MAX_CUSTOM_TYPE_LENGTH = 32
 export const MAX_CUSTOM_DATA_SIZE = 64 * 1024 // 64KB
 

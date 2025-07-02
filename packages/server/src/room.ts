@@ -1,4 +1,5 @@
 import { EventEmitter } from 'eventemitter3'
+import { MAX_ROOM_ID_LENGTH, ROOM_ID_PATTERN } from './constants'
 import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 import type { Peer } from './peer'
@@ -11,6 +12,7 @@ export class Room extends EventEmitter {
   constructor(id: string) {
     super()
 
+    this.validateRoomId(id)
     this._id = id
     this._peers = new Map<string, Peer>()
     this._createdAt = new Date()
@@ -82,6 +84,20 @@ export class Room extends EventEmitter {
       id: this._id,
       peers: this.peers.map((peer) => peer.toJSON()),
       createdAt: this._createdAt
+    }
+  }
+
+  private validateRoomId(roomId: string): void {
+    if (!roomId) {
+      throw new Error('Room ID cannot be empty')
+    }
+
+    if (roomId.length > MAX_ROOM_ID_LENGTH) {
+      throw new Error(`Room ID cannot exceed ${MAX_ROOM_ID_LENGTH} characters`)
+    }
+
+    if (!ROOM_ID_PATTERN.test(roomId)) {
+      throw new Error(`Room ID must match pattern: ${ROOM_ID_PATTERN.source}`)
     }
   }
 }
