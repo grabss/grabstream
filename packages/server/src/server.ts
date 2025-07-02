@@ -17,6 +17,7 @@ import type {
   CustomMessage,
   IceCandidateMessage,
   JoinRoomMessage,
+  KnockMessage,
   OfferMessage,
   UpdateDisplayNameMessage
 } from './messages'
@@ -243,6 +244,9 @@ export class GrabstreamServer extends EventEmitter {
         break
       case 'UPDATE_DISPLAY_NAME':
         this.handleUpdateDisplayNameMessage({ peer, message })
+        break
+      case 'KNOCK':
+        this.handleKnockMessage({ peer, message })
         break
       case 'CUSTOM':
         this.handleCustomMessage({ peer, message })
@@ -487,6 +491,54 @@ export class GrabstreamServer extends EventEmitter {
       peer,
       previousDisplayName,
       displayName
+    })
+  }
+
+  private handleKnockMessage({
+    peer,
+    message
+  }: {
+    peer: Peer
+    message: KnockMessage
+  }): void {
+    const { roomId } = message.payload
+    const room = this.rooms.get(roomId)
+
+    if (!room) {
+      peer.send({
+        type: 'KNOCK_RESPONSE',
+        payload: {
+          roomId,
+          exists: false,
+          hasPassword: false,
+          peerCount: 0,
+          isFull: false
+        }
+      })
+      return
+    }
+
+    const maxPeers = this.configuration.limits.maxPeersPerRoom
+    const isFull = maxPeers > 0 && room.peers.length >= maxPeers
+
+    peer.send({
+      type: 'KNOCK_RESPONSE',
+      payload: {
+        roomId,
+        exists: true,
+        hasPassword: room.hasPassword,
+        peerCount: room.peers.length,
+        isFull
+      }
+    })
+
+    logger.debug('room:knocked', {
+      peerId: peer.id,
+      roomId,
+      exists: true,
+      hasPassword: room.hasPassword,
+      peerCount: room.peers.length,
+      isFull
     })
   }
 
