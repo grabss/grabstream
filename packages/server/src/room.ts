@@ -11,9 +11,9 @@ import type { Peer } from './peer'
 
 export class Room extends EventEmitter {
   private readonly _id: string
+  private readonly _password?: string
   private readonly _peers: Map<string, Peer>
   private readonly _createdAt: Date
-  private _password?: string
 
   constructor(id: string, password?: string) {
     super()
