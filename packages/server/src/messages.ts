@@ -1,3 +1,5 @@
+import type { RTCIceServer } from './types'
+
 // ==================== WebRTC Types ====================
 
 export type RTCSessionDescription = {
@@ -88,6 +90,7 @@ export type ConnectionEstablishedMessage = {
   type: 'CONNECTION_ESTABLISHED'
   payload: {
     peerId: string
+    iceServers: RTCIceServer[]
   }
 }
 

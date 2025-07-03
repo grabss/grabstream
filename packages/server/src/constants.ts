@@ -34,3 +34,10 @@ export const DEFAULT_MAX_PEERS_PER_ROOM = 4
 
 // 0 = unlimited
 export const DEFAULT_MAX_ROOMS_PER_SERVER = 0
+
+// ==================== ICE Server Configuration ====================
+
+export const DEFAULT_ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+]

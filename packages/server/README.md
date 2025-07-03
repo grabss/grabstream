@@ -56,5 +56,6 @@ interface GrabstreamServerOptions {
     maxRoomsPerServer?: number　// Default: 0 (unlimited)
   }
   requireRoomPassword?: boolean // Default: false
+  iceServers?: RTCIceServer[] // Default: Google STUN servers
 }
 ```

@@ -321,6 +321,37 @@ describe('GrabstreamServer', () => {
       )
     })
 
+    it('should send default ICE servers in CONNECTION_ESTABLISHED message', () => {
+      mockWss.simulateConnection(mockSocket)
+
+      expect(mockSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '"iceServers":[{"urls":"stun:stun.l.google.com:19302"},{"urls":"stun:stun1.l.google.com:19302"}]'
+        )
+      )
+    })
+
+    it('should send custom ICE servers when provided in options', () => {
+      const customIceServers = [
+        { urls: 'stun:custom-stun.example.com:19302' },
+        {
+          urls: 'turn:custom-turn.example.com:3478',
+          username: 'user',
+          credential: 'pass'
+        }
+      ]
+
+      const customServer = new GrabstreamServer({
+        host: '0.0.0.0',
+        port: 8080,
+        iceServers: customIceServers
+      })
+
+      // Verify the configuration contains custom ICE servers
+      // @ts-expect-error - Accessing private property for testing
+      expect(customServer.configuration.iceServers).toEqual(customIceServers)
+    })
+
     it('should handle connection close', () => {
       const peerDisconnectedHandler = jest.fn()
       server.on('peer:disconnected', peerDisconnectedHandler)
