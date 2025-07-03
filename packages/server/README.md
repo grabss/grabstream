@@ -4,6 +4,9 @@
 
 *A minimal, extensible WebRTC signaling server for Node.js.*
 
+[![NPM Version](https://img.shields.io/npm/v/@grabstream/server.svg)](https://www.npmjs.com/package/@grabstream/server)
+[![License](https://img.shields.io/npm/l/@grabstream/server.svg)](https://github.com/grabss/grabstream/blob/main/LICENSE)
+
 </div>
 
 ## Installation
