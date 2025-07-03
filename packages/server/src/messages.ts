@@ -208,7 +208,6 @@ export type KnockResponseMessage = {
   }
 }
 
-
 // ==================== Union Types ====================
 
 export type ClientToServerMessage =
