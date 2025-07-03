@@ -2,6 +2,7 @@ import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 import {
   CUSTOM_TYPE_PATTERN,
+  DEFAULT_ICE_SERVERS,
   DEFAULT_MAX_PEERS_PER_ROOM,
   DEFAULT_MAX_ROOMS_PER_SERVER,
   DEFAULT_REQUIRE_ROOM_PASSWORD,
@@ -70,7 +71,8 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       connectionOptions,
       limits,
       requireRoomPassword:
-        options.requireRoomPassword ?? DEFAULT_REQUIRE_ROOM_PASSWORD
+        options.requireRoomPassword ?? DEFAULT_REQUIRE_ROOM_PASSWORD,
+      iceServers: options.iceServers ?? DEFAULT_ICE_SERVERS
     }
   }
 
