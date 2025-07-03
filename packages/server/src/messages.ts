@@ -90,6 +90,7 @@ export type ConnectionEstablishedMessage = {
   type: 'CONNECTION_ESTABLISHED'
   payload: {
     peerId: string
+    iceServers: RTCIceServer[]
   }
 }
 
@@ -207,13 +208,6 @@ export type KnockResponseMessage = {
   }
 }
 
-// ICE server configuration
-export type ICEServersMessage = {
-  type: 'ICE_SERVERS'
-  payload: {
-    servers: RTCIceServer[]
-  }
-}
 
 // ==================== Union Types ====================
 
@@ -242,7 +236,6 @@ export type ServerToClientMessage =
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage
-  | ICEServersMessage
 
 // ==================== Type Guards ====================
 
