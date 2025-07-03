@@ -10,7 +10,7 @@
 
 | Package | Description | Version |
 |---------|-------------|---------|
-| [@grabstream/server](./packages/server) | A minimal, extensible WebRTC signaling server for Node.js. | [![npm](https://img.shields.io/npm/v/@grabstream/server)](https://www.npmjs.com/package/@grabstream/server) |
+| [@grabstream/server](./packages/server) | A minimal, extensible WebRTC signaling server for Node.js. | [![NPM Version](https://img.shields.io/npm/v/@grabstream/server.svg)](https://www.npmjs.com/package/@grabstream/server) |
 
 ## License
 
