@@ -164,7 +164,8 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
     peer.send({
       type: 'CONNECTION_ESTABLISHED',
       payload: {
-        peerId: peer.id
+        peerId: peer.id,
+        iceServers: this.configuration.iceServers
       }
     })
 
