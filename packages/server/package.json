@@ -43,7 +43,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm build:esm && pnpm build:cjs && pnpm build:cjs-package",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:cjs-package",
+    "clean": "rm -rf dist",
     "build:esm": "tsc",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:cjs-package": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
@@ -53,7 +54,8 @@
     "lint:ci": "biome ci .",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
