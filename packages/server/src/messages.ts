@@ -1,3 +1,5 @@
+import type { RTCIceServer } from './types'
+
 // ==================== WebRTC Types ====================
 
 export type RTCSessionDescription = {
@@ -205,6 +207,14 @@ export type KnockResponseMessage = {
   }
 }
 
+// ICE server configuration
+export type ICEServersMessage = {
+  type: 'ICE_SERVERS'
+  payload: {
+    servers: RTCIceServer[]
+  }
+}
+
 // ==================== Union Types ====================
 
 export type ClientToServerMessage =
@@ -232,6 +242,7 @@ export type ServerToClientMessage =
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage
+  | ICEServersMessage
 
 // ==================== Type Guards ====================
 
