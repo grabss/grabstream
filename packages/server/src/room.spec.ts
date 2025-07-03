@@ -1,16 +1,32 @@
-import { EventEmitter } from 'eventemitter3'
 import type { WebSocket } from 'ws'
 import { Peer } from './peer'
 import { Room } from './room'
 
 // Mock WebSocket
-class MockWebSocket extends EventEmitter {
+class MockWebSocket {
   public readyState = 1 // OPEN
   public OPEN = 1
+  private listeners = new Map<string, Array<(...args: unknown[]) => void>>()
 
   send = jest.fn()
   ping = jest.fn()
   terminate = jest.fn()
+
+  on(event: string, callback: (...args: unknown[]) => void): void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, [])
+    }
+    this.listeners.get(event)?.push(callback)
+  }
+
+  emit(event: string, ...args: unknown[]): void {
+    const callbacks = this.listeners.get(event)
+    if (callbacks) {
+      for (const callback of callbacks) {
+        callback(...args)
+      }
+    }
+  }
 }
 
 describe('Room', () => {
@@ -295,24 +311,6 @@ describe('Room', () => {
       const json = room.toJSON()
 
       expect(json.peers).toEqual([])
-    })
-  })
-
-  describe('EventEmitter inheritance', () => {
-    it('should extend EventEmitter', () => {
-      const room = new Room('test-room')
-
-      expect(room).toBeInstanceOf(EventEmitter)
-    })
-
-    it('should support event emission and listening', () => {
-      const room = new Room('test-room')
-      const handler = jest.fn()
-
-      room.on('test-event', handler)
-      room.emit('test-event', 'test-data')
-
-      expect(handler).toHaveBeenCalledWith('test-data')
     })
   })
 })

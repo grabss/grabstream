@@ -1,15 +1,31 @@
-import { EventEmitter } from 'eventemitter3'
 import type { WebSocket } from 'ws'
 import { Peer } from './peer'
 
 // Mock WebSocket
-class MockWebSocket extends EventEmitter {
+class MockWebSocket {
   public readyState = 1 // OPEN
   public OPEN = 1
+  private listeners = new Map<string, Array<(...args: unknown[]) => void>>()
 
   send = jest.fn()
   ping = jest.fn()
   terminate = jest.fn()
+
+  on(event: string, callback: (...args: unknown[]) => void): void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, [])
+    }
+    this.listeners.get(event)?.push(callback)
+  }
+
+  emit(event: string, ...args: unknown[]): void {
+    const callbacks = this.listeners.get(event)
+    if (callbacks) {
+      for (const callback of callbacks) {
+        callback(...args)
+      }
+    }
+  }
 }
 
 describe('Peer', () => {
@@ -227,7 +243,7 @@ describe('Peer', () => {
       const beforePong = peer.lastPongReceivedAt
 
       // Add small delay to ensure time difference
-      await new Promise((resolve) => setTimeout(resolve, 1))
+      await new Promise((resolve) => setTimeout(resolve, 10))
       peer.updatePongReceived()
 
       expect(peer.isAlive).toBe(true)

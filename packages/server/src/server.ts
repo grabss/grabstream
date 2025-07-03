@@ -1,4 +1,3 @@
-import { EventEmitter } from 'eventemitter3'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 import {
@@ -11,6 +10,7 @@ import {
   WEBSOCKET_MAX_PAYLOAD,
   WEBSOCKET_PER_MESSAGE_DEFLATE
 } from './constants'
+import { GrabstreamServerEmitter } from './emitter'
 import { logger } from './logger'
 import type {
   AnswerMessage,
@@ -31,7 +31,7 @@ import type {
   GrabstreamServerOptions
 } from './types'
 
-export class GrabstreamServer extends EventEmitter {
+export class GrabstreamServer extends GrabstreamServerEmitter {
   private wss?: WebSocketServer
   private readonly rooms: Map<string, Room> = new Map()
   private readonly peers: Map<string, Peer> = new Map()
@@ -448,7 +448,7 @@ export class GrabstreamServer extends EventEmitter {
     message: UpdateDisplayNameMessage
   }): void {
     const { displayName } = message.payload
-    const previousDisplayName = peer.displayName
+    const oldDisplayName = peer.displayName
 
     try {
       peer.updateDisplayName(displayName)
@@ -460,8 +460,8 @@ export class GrabstreamServer extends EventEmitter {
 
     logger.info('peer:displayNameUpdated', {
       peerId: peer.id,
-      from: previousDisplayName,
-      to: displayName
+      oldDisplayName,
+      newDisplayName: displayName
     })
 
     peer.send({
@@ -489,8 +489,8 @@ export class GrabstreamServer extends EventEmitter {
 
     this.emit('peer:displayNameUpdated', {
       peer,
-      previousDisplayName,
-      displayName
+      oldDisplayName,
+      newDisplayName: displayName
     })
   }
 
