@@ -1,4 +1,3 @@
-import { EventEmitter } from 'eventemitter3'
 import {
   MAX_PASSWORD_LENGTH,
   MAX_ROOM_ID_LENGTH,
@@ -9,15 +8,13 @@ import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 import type { Peer } from './peer'
 
-export class Room extends EventEmitter {
+export class Room {
   private readonly _id: string
   private readonly _password?: string
   private readonly _peers: Map<string, Peer>
   private readonly _createdAt: Date
 
   constructor(id: string, password?: string) {
-    super()
-
     this.validateRoomId(id)
     this._id = id
     this._peers = new Map<string, Peer>()
