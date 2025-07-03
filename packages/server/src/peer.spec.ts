@@ -166,7 +166,7 @@ describe('Peer', () => {
     it('should send message successfully', () => {
       const message = {
         type: 'CONNECTION_ESTABLISHED' as const,
-        payload: { 
+        payload: {
           peerId: 'test',
           iceServers: []
         }
@@ -183,7 +183,7 @@ describe('Peer', () => {
 
       const message = {
         type: 'CONNECTION_ESTABLISHED' as const,
-        payload: { 
+        payload: {
           peerId: 'test',
           iceServers: []
         }
@@ -202,7 +202,7 @@ describe('Peer', () => {
 
       const message = {
         type: 'CONNECTION_ESTABLISHED' as const,
-        payload: { 
+        payload: {
           peerId: 'test',
           iceServers: []
         }

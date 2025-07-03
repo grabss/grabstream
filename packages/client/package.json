@@ -1,0 +1,40 @@
+{
+  "name": "@grabstream/client",
+  "version": "0.1.0",
+  "description": "grabstream client SDK for browsers.",
+  "license": "MIT",
+  "author": "grabss Inc.",
+  "homepage": "https://grabss.co.jp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grabss/grabstream.git",
+    "directory": "packages/client"
+  },
+  "bugs": {
+    "url": "https://github.com/grabss/grabstream/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "browser",
+    "typescript",
+    "minimal",
+    "websocket",
+    "webrtc",
+    "client",
+    "sdk"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.0.0",
+    "vitest": "^2.0.0"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "publishConfig": {
+    "access": "public"
+  }
+}
