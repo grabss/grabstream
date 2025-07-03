@@ -26,6 +26,20 @@
     "sdk"
   ],
   "type": "module",
+  "main": "TODO",
+  "module": "TODO",
+  "exports": {
+    "TODO": {}
+  },
+  "types": "TODO",
+  "files": [
+    "TODO"
+  ],
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "lint:ci": "biome ci ."
+  },
   "sideEffects": false,
   "devDependencies": {
     "@types/node": "^24.0.3",
