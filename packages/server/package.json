@@ -1,6 +1,7 @@
 {
   "name": "@grabstream/server",
   "version": "0.1.0",
+  "description": "A minimal, extensible WebRTC signaling server for Node.js.",
   "license": "MIT",
   "author": "grabss Inc.",
   "homepage": "https://grabss.co.jp",
@@ -63,9 +64,9 @@
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
-  "packageManager": "pnpm@10.12.1",
   "dependencies": {
     "uuid": "^11.1.0",
     "ws": "^8.18.2"
-  }
+  },
+  "packageManager": "pnpm@10.12.1"
 }
