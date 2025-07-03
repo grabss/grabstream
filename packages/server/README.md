@@ -2,7 +2,7 @@
 
 # @grabstream/server
 
-_A minimal, extensible WebRTC signaling server for Node.js._
+*A minimal, extensible WebRTC signaling server for Node.js.*
 
 </div>
 
@@ -14,7 +14,7 @@ npm install @grabstream/server
 
 ## How to use
 
-```typescript
+```ts
 import { GrabstreamServer } from '@grabstream/server'
 
 const server = new GrabstreamServer()
@@ -37,7 +37,7 @@ await server.stop()
 
 ## Configuration
 
-```typescript
+```ts
 interface GrabstreamServerOptions {
   // Choose one approach:
   // Option 1: Create new server
