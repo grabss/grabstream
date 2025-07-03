@@ -5,20 +5,20 @@ import { Peer } from './peer'
 class MockWebSocket {
   public readyState = 1 // OPEN
   public OPEN = 1
-  private listeners = new Map<string, Function[]>()
+  private listeners = new Map<string, Array<(...args: unknown[]) => void>>()
 
   send = jest.fn()
   ping = jest.fn()
   terminate = jest.fn()
 
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, [])
     }
-    this.listeners.get(event)!.push(callback)
+    this.listeners.get(event)?.push(callback)
   }
 
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     const callbacks = this.listeners.get(event)
     if (callbacks) {
       for (const callback of callbacks) {

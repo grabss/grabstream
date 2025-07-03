@@ -10,21 +10,21 @@ class MockWebSocket {
   public readyState = 1 // OPEN
   public OPEN = 1
   public CLOSED = 3
-  private listeners = new Map<string, Function[]>()
+  private listeners = new Map<string, Array<(...args: unknown[]) => void>>()
 
   send = jest.fn()
   ping = jest.fn()
   terminate = jest.fn()
   close = jest.fn()
 
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, [])
     }
-    this.listeners.get(event)!.push(callback)
+    this.listeners.get(event)?.push(callback)
   }
 
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     const callbacks = this.listeners.get(event)
     if (callbacks) {
       for (const callback of callbacks) {
@@ -53,28 +53,28 @@ class MockWebSocket {
 
 // Mock WebSocketServer
 class MockWebSocketServer {
-  private listeners = new Map<string, Function[]>()
+  private listeners = new Map<string, Array<(...args: unknown[]) => void>>()
 
   close = jest.fn((callback?: (err?: Error) => void) => {
     setImmediate(() => callback?.())
   })
 
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, [])
     }
-    this.listeners.get(event)!.push(callback)
+    this.listeners.get(event)?.push(callback)
   }
 
-  once(event: string, callback: Function): void {
-    const onceWrapper = (...args: any[]) => {
+  once(event: string, callback: (...args: unknown[]) => void): void {
+    const onceWrapper = (...args: unknown[]) => {
       this.off(event, onceWrapper)
       callback(...args)
     }
     this.on(event, onceWrapper)
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: (...args: unknown[]) => void): void {
     const callbacks = this.listeners.get(event)
     if (callbacks) {
       const index = callbacks.indexOf(callback)
@@ -92,7 +92,7 @@ class MockWebSocketServer {
     }
   }
 
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     const callbacks = this.listeners.get(event)
     if (callbacks) {
       for (const callback of callbacks) {
@@ -359,18 +359,18 @@ describe('GrabstreamServer', () => {
       // the server properly handles it. In our mock setup, the WebSocket server
       // instance used by the server is the mockWss, and error handlers are set up
       // during the listening phase.
-      
+
       const serverErrorHandler = jest.fn()
       server.on('server:error', serverErrorHandler)
 
-      const error = new Error('WebSocket server error')
-      
+      const _error = new Error('WebSocket server error')
+
       // Skip this test for now as the mock setup doesn't perfectly replicate
       // the real WebSocket server behavior for post-startup errors
       // In production, this would work correctly
       // mockWss.simulateError(error)
       // expect(serverErrorHandler).toHaveBeenCalledWith(error)
-      
+
       // Instead, verify that the error handler registration works
       expect(typeof serverErrorHandler).toBe('function')
     })
