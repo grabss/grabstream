@@ -43,7 +43,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm build:esm && pnpm build:cjs && pnpm build:cjs-package",
+    "build": "pnpm clean && pnpm build:esm && pnpm build:cjs && pnpm build:cjs-package",
+    "clean": "rm -rf dist",
     "build:esm": "tsc",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:cjs-package": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
