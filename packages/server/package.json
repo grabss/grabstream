@@ -70,5 +70,8 @@
     "uuid": "^11.1.0",
     "ws": "^8.18.2"
   },
-  "packageManager": "pnpm@10.12.1"
+  "packageManager": "pnpm@10.12.1",
+  "publishConfig": {
+    "access": "public"
+  }
 }
