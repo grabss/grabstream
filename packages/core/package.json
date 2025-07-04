@@ -1,7 +1,7 @@
 {
   "name": "@grabstream/core",
   "version": "0.1.0",
-  "description": "Core types and constants for grabstream packages",
+  "description": "Core library for grabstream packages.",
   "license": "MIT",
   "author": "grabss Inc.",
   "homepage": "https://grabss.co.jp",
