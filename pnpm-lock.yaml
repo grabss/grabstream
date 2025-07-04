@@ -32,9 +32,18 @@ importers:
 
   packages/core:
     devDependencies:
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
       '@types/node':
         specifier: ^24.0.3
         version: 24.0.3
+      jest:
+        specifier: ^30.0.2
+        version: 30.0.2(@types/node@24.0.3)
+      ts-jest:
+        specifier: ^29.4.0
+        version: 29.4.0(@babel/core@7.27.4)(@jest/transform@30.0.2)(@jest/types@30.0.1)(babel-jest@30.0.2(@babel/core@7.27.4))(jest-util@30.0.2)(jest@30.0.2(@types/node@24.0.3))(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
