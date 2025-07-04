@@ -7,12 +7,21 @@ export function isClientToServerMessage(
     return false
   }
   const msg = message as { type?: string; payload?: unknown }
-  if (!msg.type || typeof msg.payload !== 'object') {
+  if (!msg.type) {
     return false
   }
+
+  // LEAVE_ROOM can have optional payload, others require payload
+  if (msg.type === 'LEAVE_ROOM') {
+    return true
+  }
+
+  if (typeof msg.payload !== 'object') {
+    return false
+  }
+
   return [
     'JOIN_ROOM',
-    'LEAVE_ROOM',
     'UPDATE_DISPLAY_NAME',
     'KNOCK',
     'CUSTOM',

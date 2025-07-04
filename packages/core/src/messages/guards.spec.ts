@@ -15,10 +15,18 @@ describe('Message Guards', () => {
       expect(isClientToServerMessage(message)).toBe(true)
     })
 
-    it('should return true for valid LEAVE_ROOM message', () => {
+    it('should return true for valid LEAVE_ROOM message with payload', () => {
       const message = {
         type: 'LEAVE_ROOM',
         payload: {}
+      }
+
+      expect(isClientToServerMessage(message)).toBe(true)
+    })
+
+    it('should return true for valid LEAVE_ROOM message without payload', () => {
+      const message = {
+        type: 'LEAVE_ROOM'
       }
 
       expect(isClientToServerMessage(message)).toBe(true)

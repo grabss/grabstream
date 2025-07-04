@@ -503,6 +503,11 @@ describe('GrabstreamServer', () => {
         payload: { roomId: 'test-room' }
       })
 
+      // Verify room join was successful
+      expect(mockSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"ROOM_JOINED"')
+      )
+
       jest.clearAllMocks()
 
       // Then leave the room
