@@ -1,11 +1,6 @@
 import type { Server as HTTPServer } from 'node:http'
 import type { Server as HTTPSServer } from 'node:https'
-
-export type RTCIceServer = {
-  urls: string | string[]
-  username?: string
-  credential?: string
-}
+import type { RTCIceServer } from '@grabstream/core'
 
 export type GrabstreamServerConnectionOptions = {
   host?: string
