@@ -1,9 +1,4 @@
-import {
-  MAX_PASSWORD_LENGTH,
-  MAX_ROOM_ID_LENGTH,
-  MIN_PASSWORD_LENGTH,
-  ROOM_ID_PATTERN
-} from './constants'
+import { validatePassword, validateRoomId } from '@grabstream/core'
 import { logger } from './logger'
 import type { ServerToClientMessage } from './messages'
 import type { Peer } from './peer'
@@ -105,34 +100,16 @@ export class Room {
   }
 
   private validateRoomId(roomId: string): void {
-    if (!roomId) {
-      throw new Error('Room ID cannot be empty')
-    }
-
-    if (roomId.length > MAX_ROOM_ID_LENGTH) {
-      throw new Error(`Room ID cannot exceed ${MAX_ROOM_ID_LENGTH} characters`)
-    }
-
-    if (!ROOM_ID_PATTERN.test(roomId)) {
-      throw new Error(`Room ID must match pattern: ${ROOM_ID_PATTERN.source}`)
+    const validation = validateRoomId(roomId)
+    if (!validation.success) {
+      throw new Error(validation.error)
     }
   }
 
   private validatePassword(password: string): void {
-    if (!password) {
-      throw new Error('Password cannot be empty')
-    }
-
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      throw new Error(
-        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`
-      )
-    }
-
-    if (password.length > MAX_PASSWORD_LENGTH) {
-      throw new Error(
-        `Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`
-      )
+    const validation = validatePassword(password)
+    if (!validation.success) {
+      throw new Error(validation.error)
     }
   }
 }
