@@ -45,8 +45,8 @@
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:cjs-package",
     "clean": "rm -rf dist",
-    "build:esm": "tsc",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -v",
+    "build:cjs": "tsc -v -p tsconfig.cjs.json",
     "build:cjs-package": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
     "dev": "tsc -v --watch",
     "lint": "biome check .",
