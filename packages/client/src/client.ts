@@ -44,7 +44,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     return this._roomId
   }
 
-  get peers(): ReadonlyArray<Peer> {
+  get peers(): Peer[] {
     return Array.from(this._peers.values())
   }
 
