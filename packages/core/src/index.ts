@@ -1,4 +1,5 @@
 // @grabstream/core
-// Core types and constants for grabstream packages
+// Core library for grabstream packages
 
-// TODO: Export types and constants here
+// Message types and guards
+export * from './messages'
