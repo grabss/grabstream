@@ -24,15 +24,39 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       connectionTimeoutMs:
         options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS
     }
-
-    logger.debug('client:initialized', {
-      url: this.configuration.url,
-      connectionTimeoutMs: this.configuration.connectionTimeoutMs
-    })
   }
 
   async connect(): Promise<void> {
-    logger.debug('client:connectAttempted')
-    throw new Error('connect() method not implemented yet')
+    if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+      throw new Error('GrabstreamClient is already connected')
+    }
+
+    this.ws = new WebSocket(this.configuration.url)
+
+    this.ws.onopen = () => {
+      logger.debug('client:connected')
+      this.emit('client:connected')
+    }
+
+    this.ws.onmessage = (event) => {
+      // TODO: handleMessage
+    }
+
+    this.ws.onclose = (event) => {
+      logger.debug('client:disconnected', {
+        code: event.code,
+        reason: event.reason
+      })
+      this.emit('client:disconnected', {
+        code: event.code,
+        reason: event.reason
+      })
+      // TODO: handleDisconnection
+    }
+
+    this.ws.onerror = (event) => {
+      logger.error('client:error', event)
+      this.emit('client:error', event)
+    }
   }
 }

@@ -4,8 +4,8 @@ import type { Peer } from './types'
 
 type EventMap = {
   'client:connected': []
-  'client:disconnected': []
-  'client:error': [Error]
+  'client:disconnected': [{ code: number; reason: string }]
+  'client:error': [Event]
   'client:ready': [{ peerId: string; iceServers: RTCIceServer[] }]
   'client:displayNameUpdated': [{ displayName: string }]
   'room:joined': [{ roomId: string; peers: Peer[] }]
