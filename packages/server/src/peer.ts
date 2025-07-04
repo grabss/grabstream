@@ -1,9 +1,10 @@
+import {
+  logger,
+  type ServerToClientMessage,
+  validateDisplayName
+} from '@grabstream/core'
 import { v4 as uuidv4 } from 'uuid'
 import type { WebSocket } from 'ws'
-
-import { MAX_DISPLAY_NAME_LENGTH } from './constants'
-import { logger } from './logger'
-import type { ServerToClientMessage } from './messages'
 
 export class Peer {
   private readonly _id: string
@@ -144,14 +145,9 @@ export class Peer {
   private validatedDisplayName(displayName: string): string {
     const trimmedDisplayName = displayName.trim()
 
-    if (!trimmedDisplayName) {
-      throw new Error('Display name cannot be empty')
-    }
-
-    if (trimmedDisplayName.length > MAX_DISPLAY_NAME_LENGTH) {
-      throw new Error(
-        `Display name cannot exceed ${MAX_DISPLAY_NAME_LENGTH} characters`
-      )
+    const validation = validateDisplayName(trimmedDisplayName)
+    if (!validation.success) {
+      throw new Error(validation.error)
     }
 
     return trimmedDisplayName

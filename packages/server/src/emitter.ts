@@ -1,4 +1,5 @@
-import { logger } from './logger'
+import { logger } from '@grabstream/core'
+
 import type { Peer } from './peer'
 import type { Room } from './room'
 

@@ -1,27 +1,26 @@
 {
-  "name": "@grabstream/server",
+  "name": "@grabstream/core",
   "version": "0.1.0",
-  "description": "A minimal, extensible WebRTC signaling server for Node.js.",
+  "description": "Core library for grabstream packages.",
   "license": "MIT",
   "author": "grabss Inc.",
   "homepage": "https://grabss.co.jp",
   "repository": {
     "type": "git",
     "url": "https://github.com/grabss/grabstream.git",
-    "directory": "packages/server"
+    "directory": "packages/core"
   },
   "bugs": {
     "url": "https://github.com/grabss/grabstream/issues"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "keywords": [
-    "nodejs",
-    "typescript",
-    "minimal",
-    "websocket",
-    "webrtc"
+    "webrtc",
+    "protocol",
+    "types",
+    "constants",
+    "signaling",
+    "messaging",
+    "core"
   ],
   "type": "module",
   "main": "./dist/cjs/index.js",
@@ -61,16 +60,9 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.3",
-    "@types/uuid": "^10.0.0",
-    "@types/ws": "^8.18.1",
     "jest": "^30.0.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "@grabstream/core": "workspace:^",
-    "uuid": "^11.1.0",
-    "ws": "^8.18.2"
   },
   "packageManager": "pnpm@10.12.1",
   "publishConfig": {

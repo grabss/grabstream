@@ -1,5 +1,6 @@
 import { createServer } from 'node:http'
 import { WebSocketServer } from 'ws'
+
 import { GrabstreamServerEmitter } from './emitter'
 import { Peer } from './peer'
 import { Room } from './room'
@@ -501,6 +502,11 @@ describe('GrabstreamServer', () => {
         type: 'JOIN_ROOM',
         payload: { roomId: 'test-room' }
       })
+
+      // Verify room join was successful
+      expect(mockSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"ROOM_JOINED"')
+      )
 
       jest.clearAllMocks()
 

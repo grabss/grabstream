@@ -5,7 +5,7 @@ export interface LogDetails {
   [key: string]: any
 }
 
-class Logger {
+export class Logger {
   private formatMessage(level: LogLevel, action: string): string {
     return `[grabstream] [${level.toUpperCase()}] ${action}`
   }

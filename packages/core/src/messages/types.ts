@@ -1,6 +1,10 @@
-import type { RTCIceServer } from './types'
-
 // ==================== WebRTC Types ====================
+
+export type RTCIceServer = {
+  urls: string | string[]
+  username?: string
+  credential?: string
+}
 
 export type RTCSessionDescription = {
   type: 'offer' | 'answer'
@@ -235,24 +239,3 @@ export type ServerToClientMessage =
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage
-
-// ==================== Type Guards ====================
-
-export function isClientToServerMessage(
-  message: unknown
-): message is ClientToServerMessage {
-  if (typeof message !== 'object' || message === null) {
-    return false
-  }
-  const msg = message as { type?: string }
-  return [
-    'JOIN_ROOM',
-    'LEAVE_ROOM',
-    'UPDATE_DISPLAY_NAME',
-    'KNOCK',
-    'CUSTOM',
-    'OFFER',
-    'ANSWER',
-    'ICE_CANDIDATE'
-  ].includes(msg.type || '')
-}
