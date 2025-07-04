@@ -50,5 +50,8 @@
   "packageManager": "pnpm@10.12.1",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@grabstream/core": "0.1.0"
   }
 }
