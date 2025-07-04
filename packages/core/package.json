@@ -15,8 +15,11 @@
   },
   "keywords": [
     "webrtc",
+    "protocol",
     "types",
     "constants",
+    "signaling",
+    "messaging",
     "core"
   ],
   "type": "module",
