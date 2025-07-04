@@ -50,6 +50,9 @@ importers:
 
   packages/server:
     dependencies:
+      '@grabstream/core':
+        specifier: workspace:^
+        version: link:../core
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
