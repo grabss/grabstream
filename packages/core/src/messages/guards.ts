@@ -1,7 +1,5 @@
 import type { ClientToServerMessage, ServerToClientMessage } from './types'
 
-// ==================== Type Guards ====================
-
 export function isClientToServerMessage(
   message: unknown
 ): message is ClientToServerMessage {
