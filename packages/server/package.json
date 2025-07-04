@@ -68,7 +68,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@grabstream/core": "workspace:^",
+    "@grabstream/core": "workspace:*",
     "uuid": "^11.1.0",
     "ws": "^8.18.2"
   },
