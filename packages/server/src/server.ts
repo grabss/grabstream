@@ -1,5 +1,16 @@
+import type {
+  AnswerMessage,
+  CustomMessage,
+  IceCandidateMessage,
+  JoinRoomMessage,
+  KnockMessage,
+  OfferMessage,
+  UpdateDisplayNameMessage
+} from '@grabstream/core'
+import { isClientToServerMessage, logger } from '@grabstream/core'
 import type { RawData, WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
+
 import {
   CUSTOM_TYPE_PATTERN,
   DEFAULT_ICE_SERVERS,
@@ -12,17 +23,6 @@ import {
   WEBSOCKET_PER_MESSAGE_DEFLATE
 } from './constants'
 import { GrabstreamServerEmitter } from './emitter'
-import { logger } from './logger'
-import type {
-  AnswerMessage,
-  CustomMessage,
-  IceCandidateMessage,
-  JoinRoomMessage,
-  KnockMessage,
-  OfferMessage,
-  UpdateDisplayNameMessage
-} from './messages'
-import { isClientToServerMessage } from './messages'
 import { Peer } from './peer'
 import { Room } from './room'
 import type {

@@ -1,4 +1,5 @@
 import type { WebSocket } from 'ws'
+
 import { Peer } from './peer'
 
 // Mock WebSocket

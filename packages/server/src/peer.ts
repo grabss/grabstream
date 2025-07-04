@@ -1,8 +1,10 @@
-import { validateDisplayName } from '@grabstream/core'
+import {
+  logger,
+  type ServerToClientMessage,
+  validateDisplayName
+} from '@grabstream/core'
 import { v4 as uuidv4 } from 'uuid'
 import type { WebSocket } from 'ws'
-import { logger } from './logger'
-import type { ServerToClientMessage } from './messages'
 
 export class Peer {
   private readonly _id: string

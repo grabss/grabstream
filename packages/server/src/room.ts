@@ -1,6 +1,10 @@
-import { validatePassword, validateRoomId } from '@grabstream/core'
-import { logger } from './logger'
-import type { ServerToClientMessage } from './messages'
+import {
+  logger,
+  type ServerToClientMessage,
+  validatePassword,
+  validateRoomId
+} from '@grabstream/core'
+
 import type { Peer } from './peer'
 
 export class Room {
