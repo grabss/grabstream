@@ -5,16 +5,14 @@ import { GrabstreamClientEmitter } from './emitter'
 import type {
   GrabstreamClientConfiguration,
   GrabstreamClientOptions,
-  JoinRoomOptions,
-  Peer,
-  WebSocketConnectionState
+  Peer
 } from './types'
 
 export class GrabstreamClient extends GrabstreamClientEmitter {
-  private _peerId?: string
-  private _roomId?: string
-  private readonly _peers: Map<string, Peer> = new Map()
-  private _connectionState: WebSocketConnectionState = 'disconnected'
+  private ws?: WebSocket
+  private peerId?: string
+  private roomId?: string
+  private readonly peers: Map<string, Peer> = new Map()
 
   private readonly configuration: GrabstreamClientConfiguration
 
@@ -33,39 +31,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
   }
 
-  get peerId(): string | undefined {
-    return this._peerId
-  }
-
-  get roomId(): string | undefined {
-    return this._roomId
-  }
-
-  get peers(): Peer[] {
-    return Array.from(this._peers.values())
-  }
-
-  get connectionState(): WebSocketConnectionState {
-    return this._connectionState
-  }
-
   async connect(): Promise<void> {
     logger.debug('client:connectAttempted')
     throw new Error('connect() method not implemented yet')
-  }
-
-  async disconnect(): Promise<void> {
-    logger.debug('client:disconnectAttempted')
-    throw new Error('disconnect() method not implemented yet')
-  }
-
-  async joinRoom(roomId: string, _options?: JoinRoomOptions): Promise<void> {
-    logger.debug('client:joinRoomAttempted', { roomId })
-    throw new Error('joinRoom() method not implemented yet')
-  }
-
-  async leaveRoom(): Promise<void> {
-    logger.debug('client:leaveRoomAttempted')
-    throw new Error('leaveRoom() method not implemented yet')
   }
 }

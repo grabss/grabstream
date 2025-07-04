@@ -16,13 +16,13 @@ type EventMap = {
     { peer: Peer; oldDisplayName: string; newDisplayName: string }
   ]
   'peer:timeout': [Peer]
+  'peer:limitReachedPerRoom': [
+    { roomId: string; peerId: string; currentPeers: number; maxPeers: number }
+  ]
   'room:created': [Room]
   'room:removed': [{ roomId: string }]
   'room:limitReachedPerServer': [
     { roomId: string; peerId: string; currentRooms: number; maxRooms: number }
-  ]
-  'peer:limitReachedPerRoom': [
-    { roomId: string; peerId: string; currentPeers: number; maxPeers: number }
   ]
 }
 
