@@ -36,6 +36,8 @@
     "TODO"
   ],
   "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "lint:ci": "biome ci ."
