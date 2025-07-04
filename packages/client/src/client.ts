@@ -10,33 +10,34 @@ import type {
 } from './types'
 
 export class GrabstreamClient extends GrabstreamClientEmitter {
-  private _socket?: WebSocket
-  private readonly _configuration: GrabstreamClientConfiguration
   private _peerId?: string
   private _roomId?: string
   private readonly _peers: Map<string, Peer> = new Map()
   private _connectionState: 'disconnected' | 'connecting' | 'connected' =
     'disconnected'
 
+  private readonly configuration: GrabstreamClientConfiguration
+  private socket?: WebSocket
+
   constructor(options: GrabstreamClientOptions = {}) {
     super()
 
-    this._configuration = {
+    this.configuration = {
       url: options.url ?? DEFAULT_SERVER_URL,
       connectionTimeoutMs:
         options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS
     }
 
     logger.debug('client:initialized', {
-      url: this._configuration.url,
-      connectionTimeoutMs: this._configuration.connectionTimeoutMs
+      url: this.configuration.url,
+      connectionTimeoutMs: this.configuration.connectionTimeoutMs
     })
   }
 
   get isConnected(): boolean {
     return (
       this._connectionState === 'connected' &&
-      this._socket?.readyState === WebSocket.OPEN
+      this.socket?.readyState === WebSocket.OPEN
     )
   }
 

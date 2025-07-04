@@ -10,10 +10,11 @@ export class Peer {
   private readonly _id: string
   private _displayName: string
   private _roomId?: string
-  private readonly _joinedAt: Date
-  private readonly _socket: WebSocket
   private _isAlive: boolean
   private _lastPongReceivedAt: Date
+
+  private readonly socket: WebSocket
+  private readonly joinedAt: Date
 
   constructor({
     socket,
@@ -27,10 +28,11 @@ export class Peer {
       this._displayName = `Peer-${this._id.slice(0, 8)}`
     }
 
-    this._socket = socket
-    this._joinedAt = new Date()
     this._isAlive = true
     this._lastPongReceivedAt = new Date()
+
+    this.socket = socket
+    this.joinedAt = new Date()
   }
 
   get id(): string {
@@ -46,7 +48,7 @@ export class Peer {
   }
 
   get isConnected(): boolean {
-    return this._socket.readyState === this._socket.OPEN
+    return this.socket.readyState === this.socket.OPEN
   }
 
   get isAlive(): boolean {
@@ -59,11 +61,11 @@ export class Peer {
 
   ping(): void {
     this._isAlive = false
-    this._socket.ping()
+    this.socket.ping()
   }
 
   terminate(): void {
-    this._socket.terminate()
+    this.socket.terminate()
   }
 
   updatePongReceived(): void {
@@ -105,7 +107,7 @@ export class Peer {
     }
 
     try {
-      this._socket.send(JSON.stringify(message))
+      this.socket.send(JSON.stringify(message))
       return true
     } catch (error) {
       logger.error('peer:sendFailed', {
@@ -137,7 +139,7 @@ export class Peer {
       id: this._id,
       displayName: this._displayName,
       roomId: this._roomId,
-      joinedAt: this._joinedAt,
+      joinedAt: this.joinedAt,
       lastPongReceivedAt: this._lastPongReceivedAt
     }
   }
