@@ -21,14 +21,11 @@ export type Peer = {
   displayName: string
 }
 
-// ==================== WebRTC Types ====================
+// ==================== Connection Types ====================
 
-export type PeerConnectionState =
-  | 'new'
-  | 'connecting'
-  | 'connected'
-  | 'disconnected'
-  | 'failed'
+export type WebSocketConnectionState = 'disconnected' | 'connecting' | 'connected'
+
+// ==================== WebRTC Types ====================
 
 export type MediaStreamConstraints = {
   audio?: boolean | MediaTrackConstraints
