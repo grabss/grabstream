@@ -1,17 +1,21 @@
 import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 export default defineConfig({
+  plugins: [
+    dts({
+      insertTypesEntry: true,
+      outDir: 'dist',
+      include: ['src/**/*']
+    })
+  ],
   build: {
     lib: {
       entry: 'src/index.ts',
-      name: 'GrabstreamClient',
+      formats: ['es'],
       fileName: 'index'
     },
-    rollupOptions: {
-      external: [],
-      output: {
-        globals: {}
-      }
-    }
+    sourcemap: true,
+    minify: false
   }
 })

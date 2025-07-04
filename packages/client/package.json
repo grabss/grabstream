@@ -13,9 +13,6 @@
   "bugs": {
     "url": "https://github.com/grabss/grabstream/issues"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "keywords": [
     "browser",
     "typescript",
@@ -26,14 +23,14 @@
     "sdk"
   ],
   "type": "module",
-  "main": "TODO",
-  "module": "TODO",
   "exports": {
-    "TODO": {}
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
-  "types": "TODO",
   "files": [
-    "TODO"
+    "dist"
   ],
   "scripts": {
     "build": "vite build",
@@ -47,6 +44,7 @@
     "@types/node": "^24.0.3",
     "typescript": "^5.8.3",
     "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "^2.0.0"
   },
   "packageManager": "pnpm@10.12.1",
