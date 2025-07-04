@@ -34,13 +34,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
   }
 
-  get isConnected(): boolean {
-    return (
-      this._connectionState === 'connected' &&
-      this.socket?.readyState === WebSocket.OPEN
-    )
-  }
-
   get peerId(): string | undefined {
     return this._peerId
   }
@@ -55,6 +48,13 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   get connectionState(): 'disconnected' | 'connecting' | 'connected' {
     return this._connectionState
+  }
+
+  get isConnected(): boolean {
+    return (
+      this._connectionState === 'connected' &&
+      this.socket?.readyState === WebSocket.OPEN
+    )
   }
 
   async connect(): Promise<void> {
