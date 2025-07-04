@@ -6,7 +6,10 @@ export function isClientToServerMessage(
   if (typeof message !== 'object' || message === null) {
     return false
   }
-  const msg = message as { type?: string }
+  const msg = message as { type?: string; payload?: unknown }
+  if (!msg.type || typeof msg.payload !== 'object') {
+    return false
+  }
   return [
     'JOIN_ROOM',
     'LEAVE_ROOM',
@@ -16,7 +19,7 @@ export function isClientToServerMessage(
     'OFFER',
     'ANSWER',
     'ICE_CANDIDATE'
-  ].includes(msg.type || '')
+  ].includes(msg.type)
 }
 
 export function isServerToClientMessage(
@@ -25,7 +28,10 @@ export function isServerToClientMessage(
   if (typeof message !== 'object' || message === null) {
     return false
   }
-  const msg = message as { type?: string }
+  const msg = message as { type?: string; payload?: unknown }
+  if (!msg.type || typeof msg.payload !== 'object') {
+    return false
+  }
   return [
     'CONNECTION_ESTABLISHED',
     'ROOM_JOINED',
@@ -41,5 +47,5 @@ export function isServerToClientMessage(
     'OFFER',
     'ANSWER',
     'ICE_CANDIDATE'
-  ].includes(msg.type || '')
+  ].includes(msg.type)
 }
