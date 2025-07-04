@@ -30,6 +30,15 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.0.3)
 
+  packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.3
+        version: 24.0.3
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/server:
     dependencies:
       uuid:

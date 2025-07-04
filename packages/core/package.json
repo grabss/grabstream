@@ -1,0 +1,61 @@
+{
+  "name": "@grabstream/core",
+  "version": "0.1.0",
+  "description": "Core types and constants for grabstream packages",
+  "license": "MIT",
+  "author": "grabss Inc.",
+  "homepage": "https://grabss.co.jp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grabss/grabstream.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/grabss/grabstream/issues"
+  },
+  "keywords": [
+    "webrtc",
+    "types",
+    "constants",
+    "core"
+  ],
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:cjs-package",
+    "clean": "rm -rf dist",
+    "build:esm": "tsc",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs-package": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "lint:ci": "biome ci ."
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "publishConfig": {
+    "access": "public"
+  }
+}
