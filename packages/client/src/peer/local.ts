@@ -1,6 +1,4 @@
-import type { Peer } from './interface'
-
-export class LocalPeer implements Peer {
+export class LocalPeer {
   private readonly _id: string
   private _displayName: string
   private _roomId?: string

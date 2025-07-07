@@ -1,7 +1,6 @@
 import { logger } from '@grabstream/core'
-import type { Peer } from './interface'
 
-export class RemotePeer implements Peer {
+export class RemotePeer {
   private readonly _id: string
   private _displayName: string
   private _connection: RTCPeerConnection
