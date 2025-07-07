@@ -82,6 +82,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         clearTimeout(timeout)
         this.peer = new LocalPeer({
           id: message.payload.peerId,
+          displayName: message.payload.displayName,
           iceServers: message.payload.iceServers
         })
 
@@ -297,8 +298,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     const { roomId, peers } = message.payload
 
     this.peer?.joinRoom({
-      roomId
-      // displayName: TODO: input displayName if available
+      roomId,
+      displayName: this.peer.displayName
     })
 
     this.peers.clear()

@@ -7,7 +7,7 @@ export interface Peer {
 
 export class LocalPeer implements Peer {
   private readonly _id: string
-  private _displayName?: string
+  private _displayName: string
   private _roomId?: string
 
   private iceServers: RTCIceServer[]
@@ -16,7 +16,7 @@ export class LocalPeer implements Peer {
     id,
     displayName,
     iceServers
-  }: { id: string; displayName?: string; iceServers: RTCIceServer[] }) {
+  }: { id: string; displayName: string; iceServers: RTCIceServer[] }) {
     this._id = id
     this._displayName = displayName
     this.iceServers = iceServers
@@ -27,7 +27,7 @@ export class LocalPeer implements Peer {
   }
 
   get displayName(): string {
-    return this._displayName || '<None>'
+    return this._displayName
   }
 
   get roomId(): string | undefined {
@@ -39,16 +39,13 @@ export class LocalPeer implements Peer {
     displayName
   }: {
     roomId: string
-    displayName?: string
+    displayName: string
   }): void {
     if (this._roomId) {
       throw new Error(`Already in room ${this._roomId}`)
     }
     this._roomId = roomId
-
-    if (displayName) {
-      this._displayName = displayName
-    }
+    this._displayName = displayName
   }
 
   leaveRoom(): void {
