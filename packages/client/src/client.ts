@@ -141,6 +141,20 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   }
 
   private setupWebSocketEventHandlers(ws: WebSocket): void {
+    ws.onopen = null
+
+    ws.onmessage = (event) => this.handleMessage(event)
+
+    ws.onerror = (event) => {
+      // TODO
+    }
+
+    ws.onclose = (event) => {
+      // TODO
+    }
+  }
+
+  private handleMessage(event: MessageEvent): void {
     // TODO
   }
 
