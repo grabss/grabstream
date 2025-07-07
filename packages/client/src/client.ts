@@ -1,7 +1,5 @@
 import type {
   DisplayNameUpdatedMessage,
-  KnockResponseMessage,
-  PasswordRequiredMessage,
   PeerJoinedMessage,
   PeerLeftMessage,
   PeerUpdatedMessage,
@@ -228,11 +226,13 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'PASSWORD_REQUIRED': {
-        this.handlePasswordRequiredMessage(message)
+        logger.info('room:passwordRequired', message.payload)
+        this.emit('room:passwordRequired', message.payload)
         break
       }
       case 'KNOCK_RESPONSE': {
-        this.handleKnockResponseMessage(message)
+        logger.debug('room:knockResponse', message.payload)
+        this.emit('room:knockResponse', message.payload)
         break
       }
       case 'OFFER':
@@ -242,9 +242,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'CUSTOM': {
-        logger.debug('message:custom', {
-          payload: message.payload
-        })
+        logger.debug('message:custom', message.payload)
         this.emit('message:custom', message.payload)
         break
       }
@@ -369,34 +367,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.info('client:displayNameUpdated', { displayName })
     this.emit('client:displayNameUpdated', { displayName })
-  }
-
-  private handlePasswordRequiredMessage(
-    message: PasswordRequiredMessage
-  ): void {
-    const { roomId } = message.payload
-
-    logger.info('room:passwordRequired', { roomId })
-    this.emit('room:passwordRequired', { roomId })
-  }
-
-  private handleKnockResponseMessage(message: KnockResponseMessage): void {
-    const { roomId, exists, hasPassword, peerCount, isFull } = message.payload
-
-    logger.debug('room:knockResponse', {
-      roomId,
-      exists,
-      hasPassword,
-      peerCount,
-      isFull
-    })
-    this.emit('room:knockResponse', {
-      roomId,
-      exists,
-      hasPassword,
-      peerCount,
-      isFull
-    })
   }
 
   private cleanup(): void {
