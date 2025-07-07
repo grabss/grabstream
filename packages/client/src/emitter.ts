@@ -3,7 +3,7 @@ import { logger } from '@grabstream/core'
 import type { Peer } from './types'
 
 type EventMap = {
-  'client:connected': []
+  'client:connected': [{ peerId: string }]
   'client:disconnected': [{ code: number; reason: string }]
   'client:error': [Event]
   'client:ready': [{ peerId: string; iceServers: RTCIceServer[] }]
