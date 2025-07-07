@@ -74,6 +74,7 @@ export class RemotePeer implements Peer {
     this._id = id
     this._displayName = displayName
     this._connection = new RTCPeerConnection({ iceServers })
+    this.setupPeerConnectionEventHandlers(this._connection)
   }
 
   get id(): string {
@@ -130,5 +131,21 @@ export class RemotePeer implements Peer {
 
   async addIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
     await this._connection.addIceCandidate(candidate)
+  }
+
+  private setupPeerConnectionEventHandlers(
+    connection: RTCPeerConnection
+  ): void {
+    connection.onconnectionstatechange = () => {
+      // TODO
+    }
+
+    connection.ontrack = (event) => {
+      // TODO
+    }
+
+    connection.onicecandidate = (event) => {
+      // TODO
+    }
   }
 }
