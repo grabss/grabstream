@@ -1,5 +1,6 @@
 import type {
   AnswerRelayMessage,
+  CustomRelayMessage,
   DisplayNameUpdatedMessage,
   IceCandidateMessage,
   IceCandidateRelayMessage,
@@ -294,15 +295,14 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'CUSTOM': {
-        logger.debug('message:custom', message.payload)
-        this.emit('message:custom', message.payload)
+        this.handleCustomMessage(message)
         break
       }
       case 'ERROR': {
-        logger.error('message:error', {
+        logger.error('server:error', {
           message: message.payload.message
         })
-        this.emit('message:error', {
+        this.emit('server:error', {
           message: message.payload.message
         })
         break
@@ -451,6 +451,15 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   ): void {
     const { fromPeerId } = message.payload
 
+    const peer = this.peers.get(fromPeerId)
+    if (!peer) {
+      logger.warn('signaling:peerNotFound', {
+        fromPeerId,
+        messageType: message.type
+      })
+      return
+    }
+
     switch (message.type) {
       case 'OFFER':
         logger.debug('signaling:offerReceived', { fromPeerId })
@@ -468,7 +477,23 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
     }
 
-    this.emit('signaling:message', message)
+    this.emit('peer:signaling', { peer, message })
+  }
+
+  private handleCustomMessage(message: CustomRelayMessage): void {
+    const { fromPeerId } = message.payload
+
+    const peer = this.peers.get(fromPeerId)
+    if (!peer) {
+      logger.warn('peer:customMessage:peerNotFound', message.payload)
+      return
+    }
+
+    logger.debug('peer:customMessage', message.payload)
+    this.emit('peer:customMessage', {
+      peer,
+      ...message.payload
+    })
   }
 
   private createRemotePeer({
@@ -483,7 +508,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       displayName,
       iceServers: this.iceServers,
       onStreamReceived: (streams) => {
-        this.emit('peer:streamReceived', { peerId: id, streams })
+        this.emit('peer:streamReceived', { peer: remotePeer, streams })
       },
       onIceCandidate: (candidate) => {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {

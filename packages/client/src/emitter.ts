@@ -11,7 +11,6 @@ type EventMap = {
   'client:connected': [{ peerId: string }]
   'client:disconnected': [{ code: number; reason: string }]
   'client:error': [Event]
-  'client:ready': [{ peerId: string; iceServers: RTCIceServer[] }]
   'client:displayNameUpdated': [{ displayName: string }]
   'room:joined': [{ roomId: string; peers: RemotePeer[] }]
   'room:left': [{ roomId: string }]
@@ -28,15 +27,20 @@ type EventMap = {
   'peer:joined': [RemotePeer]
   'peer:left': [RemotePeer]
   'peer:updated': [RemotePeer]
-  'peer:connected': [{ peerId: string }]
-  'peer:disconnected': [{ peerId: string }]
-  'peer:error': [{ peerId: string; error: Error }]
-  'peer:streamReceived': [{ peerId: string; streams: readonly MediaStream[] }]
-  'signaling:message': [
-    OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
+  'peer:connected': [RemotePeer]
+  'peer:disconnected': [RemotePeer]
+  'peer:error': [{ peer: RemotePeer; error: Error }]
+  'peer:signaling': [
+    {
+      peer: RemotePeer
+      message: OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
+    }
   ]
-  'message:custom': [{ fromPeerId: string; customType: string; data: unknown }]
-  'message:error': [{ message: string }]
+  'peer:streamReceived': [{ peer: RemotePeer; streams: readonly MediaStream[] }]
+  'peer:customMessage': [
+    { peer: RemotePeer; customType: string; data: unknown }
+  ]
+  'server:error': [{ message: string }]
 }
 
 export abstract class GrabstreamClientEmitter {
