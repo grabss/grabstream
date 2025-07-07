@@ -11,6 +11,7 @@ export class LocalPeer implements Peer {
   private readonly _id: string
   private _displayName: string
   private _roomId?: string
+  private _stream?: MediaStream
 
   constructor({ id, displayName }: { id: string; displayName: string }) {
     this._id = id
@@ -27,6 +28,17 @@ export class LocalPeer implements Peer {
 
   get roomId(): string | undefined {
     return this._roomId
+  }
+
+  get stream(): MediaStream | undefined {
+    return this._stream
+  }
+
+  set stream(stream: MediaStream) {
+    if (this._stream) {
+      this._stream.getTracks().forEach((track) => track.stop())
+    }
+    this._stream = stream
   }
 
   joinRoom({
