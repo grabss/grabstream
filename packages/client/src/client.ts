@@ -60,7 +60,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         ) {
           // biome-ignore lint/suspicious/noExplicitAny: Need to access type property of unknown message structure
           const messageType = (message as any)?.type || 'unknown'
-          logger.error('connect:invalidFormat', { messageType })
+          logger.error('connect:invalidFormat', {
+            messageType,
+            messageKeys:
+              message && typeof message === 'object' ? Object.keys(message) : []
+          })
           ws.close(1002, 'Invalid message format')
           return
         }
@@ -160,7 +164,50 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   }
 
   private handleMessage(event: MessageEvent): void {
-    // TODO
+    let message: unknown
+    try {
+      message = JSON.parse(event.data)
+    } catch (error) {
+      logger.error('message:parseFailed', { error })
+      return
+    }
+
+    if (!isServerToClientMessage(message)) {
+      // biome-ignore lint/suspicious/noExplicitAny: Need to access type property of unknown message structure
+      const messageType = (message as any)?.type || 'unknown'
+      logger.error('connect:invalidFormat', {
+        messageType,
+        messageKeys:
+          message && typeof message === 'object' ? Object.keys(message) : []
+      })
+      return
+    }
+
+    logger.debug('message:received', { type: message.type })
+
+    switch (message.type) {
+      case 'CONNECTION_ESTABLISHED': {
+        // Invalid
+        break
+      }
+      case 'PEER_JOINED': {
+        // TODO
+        break
+      }
+      case 'PEER_LEFT': {
+        // TODO
+        break
+      }
+      case 'PEER_UPDATED': {
+        // TODO
+        break
+      }
+      default: {
+        const _exhaustive: never = message
+        logger.error('message:unexpectedType', { message: _exhaustive })
+        return
+      }
+    }
   }
 
   private cleanup(): void {
