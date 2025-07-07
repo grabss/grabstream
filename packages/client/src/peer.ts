@@ -72,6 +72,7 @@ export class RemotePeer implements Peer {
   private _displayName: string
   private _connection: RTCPeerConnection
   private _streams: Map<string, MediaStream> = new Map()
+  private _screenStream?: MediaStream
 
   constructor({
     id,
@@ -104,6 +105,10 @@ export class RemotePeer implements Peer {
     return this._streams
   }
 
+  get screenStream(): MediaStream | undefined {
+    return this._screenStream
+  }
+
   sendStream(stream: MediaStream): void {
     for (const track of stream.getTracks()) {
       this._connection.addTrack(track, stream)
@@ -116,6 +121,7 @@ export class RemotePeer implements Peer {
 
   leave(): void {
     this._connection.close()
+    // TODO: emit leave event to the server
   }
 
   async createOffer(): Promise<RTCSessionDescriptionInit> {
@@ -152,15 +158,23 @@ export class RemotePeer implements Peer {
 
     connection.ontrack = (event) => {
       const { track, streams } = event
+      const isScreenShare =
+        track.label.toLowerCase().includes('screen') ||
+        track.label.toLowerCase().includes('display')
 
       logger.debug('peer:trackReceived', {
         peerId: this._id,
         streams: streams.map((s) => s.id),
-        trackKind: track.kind
+        trackKind: track.kind,
+        isScreenShare
       })
 
       for (const stream of streams) {
-        this._streams.set(stream.id, stream)
+        if (isScreenShare) {
+          this._screenStream = stream
+        } else {
+          this._streams.set(stream.id, stream)
+        }
       }
 
       // TODO: emit received stream event
