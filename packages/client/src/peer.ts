@@ -63,7 +63,7 @@ export class LocalPeer implements Peer {
 export class RemotePeer implements Peer {
   private readonly _id: string
   private _displayName: string
-  private _connection?: RTCPeerConnection
+  private _connection: RTCPeerConnection
 
   constructor({
     id,
@@ -95,10 +95,13 @@ export class RemotePeer implements Peer {
     this._displayName = displayName
   }
 
-  close(): void {
-    if (!this._connection) return
-
+  leave(): void {
     this._connection.close()
-    this._connection = undefined
+  }
+
+  async createOffer(): Promise<RTCSessionDescriptionInit> {
+    const offer = await this._connection.createOffer()
+    await this._connection.setLocalDescription(offer)
+    return offer
   }
 }
