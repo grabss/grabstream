@@ -1,3 +1,4 @@
+import type { RoomJoinedMessage } from '@grabstream/core'
 import { isServerToClientMessage, logger } from '@grabstream/core'
 
 import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
@@ -194,7 +195,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'ROOM_JOINED': {
-        // TODO
+        this.handleRoomJoinedMessage(message)
         break
       }
       case 'ROOM_LEFT': {
@@ -252,6 +253,27 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         logger.error('message:unexpectedType', { message: _exhaustive })
         return
       }
+    }
+  }
+
+  private handleRoomJoinedMessage(message: RoomJoinedMessage): void {
+    const { roomId, peers } = message.payload
+
+    this.roomId = roomId
+
+    this.peers.clear()
+    for (const peer of peers) {
+      this.peers.set(peer.id, peer)
+    }
+
+    logger.info('room:joined', {
+      roomId,
+      peers
+    })
+    this.emit('room:joined', { roomId, peers })
+
+    for (const _peer of peers) {
+      // TODO: initiateConnectionToPeer
     }
   }
 
