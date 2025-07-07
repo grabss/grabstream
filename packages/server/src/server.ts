@@ -239,30 +239,38 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
     logger.debug('message:received', { peerId: peer.id, type: message.type })
 
     switch (message.type) {
-      case 'JOIN_ROOM':
+      case 'JOIN_ROOM': {
         this.handleJoinMessage({ peer, message })
         break
-      case 'LEAVE_ROOM':
+      }
+      case 'LEAVE_ROOM': {
         this.handleLeaveMessage(peer)
         break
-      case 'UPDATE_DISPLAY_NAME':
+      }
+      case 'UPDATE_DISPLAY_NAME': {
         this.handleUpdateDisplayNameMessage({ peer, message })
         break
-      case 'KNOCK':
+      }
+      case 'KNOCK': {
         this.handleKnockMessage({ peer, message })
         break
-      case 'CUSTOM':
+      }
+      case 'CUSTOM': {
         this.handleCustomMessage({ peer, message })
         break
-      case 'OFFER':
+      }
+      case 'OFFER': {
         this.handleSignalingMessage({ peer, message })
         break
-      case 'ANSWER':
+      }
+      case 'ANSWER': {
         this.handleSignalingMessage({ peer, message })
         break
-      case 'ICE_CANDIDATE':
+      }
+      case 'ICE_CANDIDATE': {
         this.handleSignalingMessage({ peer, message })
         break
+      }
       default: {
         const _exhaustive: never = message
         logger.error('message:unexpectedType', { message: _exhaustive })
@@ -682,8 +690,9 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
         })
         break
       }
-      default:
+      default: {
         peer.sendError('Invalid target type')
+      }
     }
   }
 
@@ -744,7 +753,7 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       toPeerId
     }
     switch (message.type) {
-      case 'OFFER':
+      case 'OFFER': {
         targetPeer.send({
           type: 'OFFER',
           payload: {
@@ -758,7 +767,8 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
           to: toPeerId
         })
         break
-      case 'ANSWER':
+      }
+      case 'ANSWER': {
         targetPeer.send({
           type: 'ANSWER',
           payload: {
@@ -772,7 +782,8 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
           to: toPeerId
         })
         break
-      case 'ICE_CANDIDATE':
+      }
+      case 'ICE_CANDIDATE': {
         targetPeer.send({
           type: 'ICE_CANDIDATE',
           payload: {
@@ -786,6 +797,7 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
           to: toPeerId
         })
         break
+      }
     }
   }
 
