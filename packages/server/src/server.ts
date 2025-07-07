@@ -259,14 +259,8 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
         this.handleCustomMessage({ peer, message })
         break
       }
-      case 'OFFER': {
-        this.handleSignalingMessage({ peer, message })
-        break
-      }
-      case 'ANSWER': {
-        this.handleSignalingMessage({ peer, message })
-        break
-      }
+      case 'OFFER':
+      case 'ANSWER':
       case 'ICE_CANDIDATE': {
         this.handleSignalingMessage({ peer, message })
         break

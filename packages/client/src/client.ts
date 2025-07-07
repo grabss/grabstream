@@ -214,14 +214,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         // TODO
         break
       }
-      case 'OFFER': {
-        // TODO
-        break
-      }
-      case 'ANSWER': {
-        // TODO
-        break
-      }
+      case 'OFFER':
+      case 'ANSWER':
       case 'ICE_CANDIDATE': {
         // TODO
         break
