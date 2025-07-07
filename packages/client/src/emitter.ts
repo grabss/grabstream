@@ -31,11 +31,10 @@ type EventMap = {
   'peer:connected': [{ peerId: string }]
   'peer:disconnected': [{ peerId: string }]
   'peer:error': [{ peerId: string; error: Error }]
+  'peer:streamReceived': [{ peerId: string; streams: readonly MediaStream[] }]
   'signaling:message': [
     OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
   ]
-  'stream:added': [{ peerId: string; stream: MediaStream }]
-  'stream:removed': [{ peerId: string; streamId: string }]
   'message:custom': [{ fromPeerId: string; customType: string; data: unknown }]
   'message:error': [{ message: string }]
 }

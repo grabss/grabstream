@@ -1,6 +1,7 @@
 import type {
   AnswerRelayMessage,
   DisplayNameUpdatedMessage,
+  IceCandidateMessage,
   IceCandidateRelayMessage,
   JoinRoomMessage,
   OfferRelayMessage,
@@ -330,10 +331,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     this.peers.clear()
     for (const peer of peers) {
-      const remotePeer = new RemotePeer({
+      const remotePeer = this.createRemotePeer({
         id: peer.id,
-        displayName: peer.displayName,
-        iceServers: this.iceServers
+        displayName: peer.displayName
       })
       this.peers.set(peer.id, remotePeer)
     }
@@ -373,10 +373,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handlePeerJoinedMessage(message: PeerJoinedMessage): void {
     const { peerId, displayName } = message.payload
 
-    const remotePeer = new RemotePeer({
+    const remotePeer = this.createRemotePeer({
       id: peerId,
-      displayName,
-      iceServers: this.iceServers
+      displayName
     })
     this.peers.set(peerId, remotePeer)
 
@@ -470,6 +469,42 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     this.emit('signaling:message', message)
+  }
+
+  private createRemotePeer({
+    id,
+    displayName
+  }: {
+    id: string
+    displayName: string
+  }): RemotePeer {
+    const remotePeer = new RemotePeer({
+      id,
+      displayName,
+      iceServers: this.iceServers,
+      onStreamReceived: (streams) => {
+        this.emit('peer:streamReceived', { peerId: id, streams })
+      },
+      onIceCandidate: (candidate) => {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+          logger.warn('Cannot send ICE candidate: WebSocket not connected')
+          return
+        }
+
+        const message: IceCandidateMessage = {
+          type: 'ICE_CANDIDATE',
+          payload: {
+            toPeerId: id,
+            candidate
+          }
+        }
+        this.ws.send(JSON.stringify(message))
+        // TODO: ログ
+      }
+    })
+
+    this.peers.set(id, remotePeer)
+    return remotePeer
   }
 
   private cleanup(): void {
