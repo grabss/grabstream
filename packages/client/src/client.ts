@@ -117,24 +117,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     const ws = this.ws
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       ws.onclose = (event) => {
-        this.cleanup()
-        logger.info('client:disconnected', {
-          code: event.code,
-          reason: event.reason
-        })
-        this.emit('client:disconnected', {
-          code: event.code,
-          reason: event.reason
-        })
+        this.handleDisconnection(event)
         resolve()
       }
-
-      ws.onerror = (event) => {
-        logger.error('websocket:error', event)
-      }
-
       ws.close(1000, 'Client disconnect requested')
     })
   }
@@ -149,9 +136,27 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       this.emit('client:error', event)
     }
 
-    ws.onclose = (event) => {
-      // TODO
+    ws.onclose = (event) => this.handleDisconnection(event)
+  }
+
+  private handleDisconnection(event: CloseEvent): void {
+    this.cleanup()
+
+    if (event.code === 1000 || event.code === 1001) {
+      logger.info('client:disconnected', {
+        code: event.code,
+        reason: event.reason
+      })
+    } else {
+      logger.error('client:disconnected', {
+        code: event.code,
+        reason: event.reason
+      })
     }
+    this.emit('client:disconnected', {
+      code: event.code,
+      reason: event.reason
+    })
   }
 
   private handleMessage(event: MessageEvent): void {
