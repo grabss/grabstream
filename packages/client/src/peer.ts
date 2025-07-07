@@ -63,10 +63,16 @@ export class LocalPeer implements Peer {
 export class RemotePeer implements Peer {
   private readonly _id: string
   private _displayName: string
+  private _connection?: RTCPeerConnection
 
-  constructor({ id, displayName }: { id: string; displayName: string }) {
+  constructor({
+    id,
+    displayName,
+    iceServers
+  }: { id: string; displayName: string; iceServers: RTCIceServer[] }) {
     this._id = id
     this._displayName = displayName
+    this._connection = new RTCPeerConnection({ iceServers })
   }
 
   get id(): string {
@@ -77,7 +83,22 @@ export class RemotePeer implements Peer {
     return this._displayName
   }
 
+  get connection(): RTCPeerConnection | undefined {
+    return this._connection
+  }
+
+  get connectionState(): RTCPeerConnectionState {
+    return this._connection?.connectionState ?? 'new'
+  }
+
   updateDisplayName(displayName: string): void {
     this._displayName = displayName
+  }
+
+  close(): void {
+    if (!this._connection) return
+
+    this._connection.close()
+    this._connection = undefined
   }
 }
