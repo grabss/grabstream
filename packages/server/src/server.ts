@@ -165,6 +165,7 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       type: 'CONNECTION_ESTABLISHED',
       payload: {
         peerId: peer.id,
+        displayName: peer.displayName,
         iceServers: this.configuration.iceServers
       }
     })
@@ -418,6 +419,7 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       type: 'ROOM_JOINED',
       payload: {
         roomId: room.id,
+        displayName: peer.displayName,
         peers: room.peers
           .filter((p) => p.id !== peer.id)
           .map((p) => ({
