@@ -236,7 +236,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'ERROR': {
-        // TODO
+        logger.error('message:error', {
+          message: message.payload.message
+        })
+        this.emit('message:error', {
+          message: message.payload.message
+        })
         break
       }
       default: {
