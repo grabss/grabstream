@@ -149,22 +149,6 @@ export type DisplayNameUpdatedMessage = {
   }
 }
 
-export type CustomRelayMessage = {
-  type: 'CUSTOM'
-  payload: {
-    fromPeerId: string
-    customType: string
-    data: unknown
-  }
-}
-
-export type ErrorMessage = {
-  type: 'ERROR'
-  payload: {
-    message: string
-  }
-}
-
 export type PasswordRequiredMessage = {
   type: 'PASSWORD_REQUIRED'
   payload: {
@@ -180,6 +164,22 @@ export type KnockResponseMessage = {
     hasPassword: boolean
     peerCount: number
     isFull: boolean
+  }
+}
+
+export type CustomRelayMessage = {
+  type: 'CUSTOM'
+  payload: {
+    fromPeerId: string
+    customType: string
+    data: unknown
+  }
+}
+
+export type ErrorMessage = {
+  type: 'ERROR'
+  payload: {
+    message: string
   }
 }
 
@@ -231,10 +231,10 @@ export type ServerToClientMessage =
   | PeerLeftMessage
   | PeerUpdatedMessage
   | DisplayNameUpdatedMessage
-  | CustomRelayMessage
-  | ErrorMessage
   | PasswordRequiredMessage
   | KnockResponseMessage
+  | CustomRelayMessage
+  | ErrorMessage
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage

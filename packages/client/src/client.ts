@@ -288,12 +288,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         this.emit('room:knockResponse', message.payload)
         break
       }
-      case 'OFFER':
-      case 'ANSWER':
-      case 'ICE_CANDIDATE': {
-        this.handleSignalingMessage(message)
-        break
-      }
       case 'CUSTOM': {
         this.handleCustomMessage(message)
         break
@@ -305,6 +299,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         this.emit('server:error', {
           message: message.payload.message
         })
+        break
+      }
+      case 'OFFER':
+      case 'ANSWER':
+      case 'ICE_CANDIDATE': {
+        this.handleSignalingMessage(message)
         break
       }
       default: {
