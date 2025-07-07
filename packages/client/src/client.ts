@@ -80,7 +80,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
       ws.onerror = (event) => {
         clearTimeout(timeout)
-        logger.error('client:error', event)
+        logger.error('connect:error', event)
 
         if (
           ws.readyState !== WebSocket.CLOSED &&
@@ -94,7 +94,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         clearTimeout(timeout)
         this.cleanup()
 
-        logger.error('client:disconnected', {
+        logger.error('connect:failed', {
           code: event.code,
           reason: event.reason
         })
@@ -132,8 +132,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
 
       ws.onerror = (event) => {
-        logger.error('client:error', event)
-        reject(new Error(`WebSocket error: ${event}`))
+        logger.error('websocket:error', event)
       }
 
       ws.close(1000, 'Client disconnect requested')
@@ -146,7 +145,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     ws.onmessage = (event) => this.handleMessage(event)
 
     ws.onerror = (event) => {
-      // TODO
+      logger.error('websocket:error', event)
+      this.emit('client:error', event)
     }
 
     ws.onclose = (event) => {
