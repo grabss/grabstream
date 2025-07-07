@@ -13,18 +13,16 @@ import { isServerToClientMessage, logger } from '@grabstream/core'
 
 import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
 import { GrabstreamClientEmitter } from './emitter'
+import { LocalPeer, RemotePeer } from './peer'
 import type {
   GrabstreamClientConfiguration,
-  GrabstreamClientOptions,
-  Peer
+  GrabstreamClientOptions
 } from './types'
 
 export class GrabstreamClient extends GrabstreamClientEmitter {
   private ws?: WebSocket
-  private peerId?: string
-  private roomId?: string
-  private iceServers: RTCIceServer[] = []
-  private readonly peers: Map<string, Peer> = new Map()
+  private peer?: LocalPeer
+  private readonly peers: Map<string, RemotePeer> = new Map()
 
   private readonly configuration: GrabstreamClientConfiguration
 
@@ -81,15 +79,17 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         }
 
         clearTimeout(timeout)
-        this.peerId = message.payload.peerId
-        this.iceServers = message.payload.iceServers
+        this.peer = new LocalPeer({
+          id: message.payload.peerId,
+          iceServers: message.payload.iceServers
+        })
 
         this.setupWebSocketEventHandlers(ws)
 
         logger.info('client:connected', {
-          peerId: this.peerId
+          peerId: this.peer.id
         })
-        this.emit('client:connected', { peerId: this.peerId })
+        this.emit('client:connected', { peerId: this.peer.id })
         resolve()
       }
 
@@ -199,7 +199,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     switch (message.type) {
       case 'CONNECTION_ESTABLISHED': {
         logger.warn('message:unexpectedConnectionEstablished', {
-          currentPeerId: this.peerId,
+          currentPeerId: this.peer?.id,
           newPeerId: message.payload.peerId
         })
         break
@@ -269,11 +269,15 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handleRoomJoinedMessage(message: RoomJoinedMessage): void {
     const { roomId, peers } = message.payload
 
-    this.roomId = roomId
+    this.peer?.joinRoom({
+      roomId
+      // displayName: TODO: input displayName if available
+    })
 
     this.peers.clear()
     for (const peer of peers) {
-      this.peers.set(peer.id, peer)
+      const remotePeer = new RemotePeer(peer)
+      this.peers.set(peer.id, remotePeer)
     }
 
     logger.info('room:joined', {
@@ -282,7 +286,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
     this.emit('room:joined', {
       roomId,
-      peers
+      peers: Array.from(this.peers.values())
     })
 
     for (const _peer of peers) {
@@ -293,7 +297,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handleRoomLeftMessage(message: RoomLeftMessage): void {
     const { roomId } = message.payload
 
-    this.roomId = undefined
+    this.peer?.leaveRoom()
     this.peers.clear()
 
     logger.info('room:left', { roomId })
@@ -305,16 +309,15 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handlePeerJoinedMessage(message: PeerJoinedMessage): void {
     const { peerId, displayName } = message.payload
 
-    const peer = { id: peerId, displayName }
-    this.peers.set(peerId, peer)
+    const remotePeer = new RemotePeer({ id: peerId, displayName })
+    this.peers.set(peerId, remotePeer)
 
     logger.info('peer:joined', {
       peerId,
       displayName,
       peerCount: this.peers.size
     })
-
-    this.emit('peer:joined', peer)
+    this.emit('peer:joined', remotePeer)
 
     // TODO: initiateConnectionToPeer(peerId)
   }
@@ -350,7 +353,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     const oldDisplayName = peer.displayName
-    peer.displayName = displayName
+    peer.updateDisplayName(displayName)
     this.peers.set(peerId, peer)
 
     logger.info('peer:updated', {
@@ -399,8 +402,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   private cleanup(): void {
     this.ws = undefined
-    this.peerId = undefined
-    this.roomId = undefined
+    this.peer = undefined
     this.peers.clear()
   }
 }

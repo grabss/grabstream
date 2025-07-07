@@ -5,7 +5,7 @@ import type {
 } from '@grabstream/core'
 import { logger } from '@grabstream/core'
 
-import type { Peer } from './peer'
+import type { RemotePeer } from './peer'
 
 type EventMap = {
   'client:connected': [{ peerId: string }]
@@ -13,7 +13,7 @@ type EventMap = {
   'client:error': [Event]
   'client:ready': [{ peerId: string; iceServers: RTCIceServer[] }]
   'client:displayNameUpdated': [{ displayName: string }]
-  'room:joined': [{ roomId: string; peers: Peer[] }]
+  'room:joined': [{ roomId: string; peers: RemotePeer[] }]
   'room:left': [{ roomId: string }]
   'room:passwordRequired': [{ roomId: string }]
   'room:knockResponse': [
@@ -25,9 +25,9 @@ type EventMap = {
       isFull: boolean
     }
   ]
-  'peer:joined': [Peer]
-  'peer:left': [Peer]
-  'peer:updated': [Peer]
+  'peer:joined': [RemotePeer]
+  'peer:left': [RemotePeer]
+  'peer:updated': [RemotePeer]
   'peer:connected': [{ peerId: string }]
   'peer:disconnected': [{ peerId: string }]
   'peer:error': [{ peerId: string; error: Error }]
