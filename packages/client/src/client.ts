@@ -1,5 +1,6 @@
 import type {
   PeerJoinedMessage,
+  PeerLeftMessage,
   RoomJoinedMessage,
   RoomLeftMessage
 } from '@grabstream/core'
@@ -211,7 +212,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'PEER_LEFT': {
-        // TODO
+        this.handlePeerLeftMessage(message)
         break
       }
       case 'PEER_UPDATED': {
@@ -311,6 +312,27 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.emit('peer:joined', peer)
 
     // TODO: initiateConnectionToPeer(peerId)
+  }
+
+  private handlePeerLeftMessage(message: PeerLeftMessage): void {
+    const { peerId } = message.payload
+
+    const peer = this.peers.get(peerId)
+    if (!peer) {
+      logger.warn('peer:notFound', { peerId })
+      return
+    }
+
+    this.peers.delete(peerId)
+
+    logger.info('peer:left', {
+      peerId,
+      displayName: peer.displayName,
+      peerCount: this.peers.size
+    })
+    this.emit('peer:left', peer)
+
+    // TODO: closePeerConnection(peerId)
   }
 
   private cleanup(): void {
