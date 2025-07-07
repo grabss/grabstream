@@ -1,6 +1,8 @@
 export interface Peer {
   id: string
   displayName: string
+
+  updateDisplayName(displayName: string): void
 }
 
 export class LocalPeer implements Peer {
@@ -54,6 +56,10 @@ export class LocalPeer implements Peer {
       throw new Error('Not in any room')
     }
     this._roomId = undefined
+  }
+
+  updateDisplayName(displayName: string): void {
+    this._displayName = displayName
   }
 }
 
