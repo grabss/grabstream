@@ -226,20 +226,31 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.debug('message:received', { type: message.type })
 
+    if (!this.peer) {
+      logger.error('message:peerNotInitialized', { messageType: message.type })
+      return
+    }
+
     switch (message.type) {
       case 'CONNECTION_ESTABLISHED': {
         logger.warn('message:unexpectedConnectionEstablished', {
-          currentPeerId: this.peer?.id,
+          currentPeerId: this.peer.id,
           newPeerId: message.payload.peerId
         })
         break
       }
       case 'ROOM_JOINED': {
-        this.handleRoomJoinedMessage(message)
+        this.handleRoomJoinedMessage({
+          localPeer: this.peer,
+          message
+        })
         break
       }
       case 'ROOM_LEFT': {
-        this.handleRoomLeftMessage(message)
+        this.handleRoomLeftMessage({
+          localPeer: this.peer,
+          message
+        })
         break
       }
       case 'PEER_JOINED': {
@@ -255,7 +266,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'DISPLAY_NAME_UPDATED': {
-        this.handleDisplayNameUpdatedMessage(message)
+        this.handleDisplayNameUpdatedMessage({
+          localPeer: this.peer,
+          message
+        })
         break
       }
       case 'PASSWORD_REQUIRED': {
@@ -296,12 +310,18 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
-  private handleRoomJoinedMessage(message: RoomJoinedMessage): void {
-    const { roomId, peers } = message.payload
+  private handleRoomJoinedMessage({
+    localPeer,
+    message
+  }: {
+    localPeer: LocalPeer
+    message: RoomJoinedMessage
+  }): void {
+    const { roomId, displayName, peers } = message.payload
 
-    this.peer?.joinRoom({
+    localPeer.joinRoom({
       roomId,
-      displayName: this.peer.displayName
+      displayName
     })
 
     this.peers.clear()
@@ -328,10 +348,16 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
-  private handleRoomLeftMessage(message: RoomLeftMessage): void {
+  private handleRoomLeftMessage({
+    localPeer,
+    message
+  }: {
+    localPeer: LocalPeer
+    message: RoomLeftMessage
+  }): void {
     const { roomId } = message.payload
 
-    this.peer?.leaveRoom()
+    localPeer.leaveRoom()
     this.peers.clear()
 
     logger.info('room:left', { roomId })
@@ -402,12 +428,16 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.emit('peer:updated', peer)
   }
 
-  private handleDisplayNameUpdatedMessage(
+  private handleDisplayNameUpdatedMessage({
+    localPeer,
+    message
+  }: {
+    localPeer: LocalPeer
     message: DisplayNameUpdatedMessage
-  ): void {
+  }): void {
     const { displayName } = message.payload
 
-    // TODO: update displayName in local state
+    localPeer.updateDisplayName(displayName)
 
     logger.info('client:displayNameUpdated', { displayName })
     this.emit('client:displayNameUpdated', { displayName })
