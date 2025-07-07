@@ -102,6 +102,18 @@ export class RemotePeer implements Peer {
   async createOffer(): Promise<RTCSessionDescriptionInit> {
     const offer = await this._connection.createOffer()
     await this._connection.setLocalDescription(offer)
+
     return offer
+  }
+
+  async createAnswer(
+    offer: RTCSessionDescriptionInit
+  ): Promise<RTCSessionDescriptionInit> {
+    await this._connection.setRemoteDescription(offer)
+
+    const answer = await this._connection.createAnswer()
+    await this._connection.setLocalDescription(answer)
+
+    return answer
   }
 }
