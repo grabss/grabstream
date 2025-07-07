@@ -1,3 +1,5 @@
+import { logger } from '@grabstream/core'
+
 export interface Peer {
   id: string
   displayName: string
@@ -137,15 +139,39 @@ export class RemotePeer implements Peer {
     connection: RTCPeerConnection
   ): void {
     connection.onconnectionstatechange = () => {
-      // TODO
+      logger.debug('peer:connectionStateChanged', {
+        peerId: this._id,
+        state: connection.connectionState
+      })
     }
 
     connection.ontrack = (event) => {
-      // TODO
+      const { track, streams } = event
+
+      logger.debug('peer:trackReceived', {
+        peerId: this._id,
+        streams: streams.map((s) => s.id),
+        trackKind: track.kind
+      })
+
+      for (const stream of streams) {
+        this._streams.set(stream.id, stream)
+      }
+
+      // TODO: emit received stream event
     }
 
     connection.onicecandidate = (event) => {
-      // TODO
+      const { candidate } = event
+
+      if (candidate) {
+        logger.debug('peer:iceCandidateGenerated', {
+          peerId: this._id,
+          candidate
+        })
+
+        // TODO: emit this candidate to the server
+      }
     }
   }
 }
