@@ -64,6 +64,7 @@ export class RemotePeer implements Peer {
   private readonly _id: string
   private _displayName: string
   private _connection: RTCPeerConnection
+  private _streams: Map<string, MediaStream> = new Map()
 
   constructor({
     id,
@@ -89,6 +90,16 @@ export class RemotePeer implements Peer {
 
   get connectionState(): RTCPeerConnectionState {
     return this._connection?.connectionState ?? 'new'
+  }
+
+  get streams(): Map<string, MediaStream> {
+    return this._streams
+  }
+
+  sendStream(stream: MediaStream): void {
+    for (const track of stream.getTracks()) {
+      this._connection.addTrack(track, stream)
+    }
   }
 
   updateDisplayName(displayName: string): void {
