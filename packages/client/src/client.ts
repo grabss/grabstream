@@ -1,5 +1,6 @@
 import type {
   DisplayNameUpdatedMessage,
+  KnockResponseMessage,
   PasswordRequiredMessage,
   PeerJoinedMessage,
   PeerLeftMessage,
@@ -231,7 +232,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'KNOCK_RESPONSE': {
-        // TODO
+        this.handleKnockResponseMessage(message)
         break
       }
       case 'OFFER':
@@ -377,6 +378,25 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.info('room:passwordRequired', { roomId })
     this.emit('room:passwordRequired', { roomId })
+  }
+
+  private handleKnockResponseMessage(message: KnockResponseMessage): void {
+    const { roomId, exists, hasPassword, peerCount, isFull } = message.payload
+
+    logger.debug('room:knockResponse', {
+      roomId,
+      exists,
+      hasPassword,
+      peerCount,
+      isFull
+    })
+    this.emit('room:knockResponse', {
+      roomId,
+      exists,
+      hasPassword,
+      peerCount,
+      isFull
+    })
   }
 
   private cleanup(): void {

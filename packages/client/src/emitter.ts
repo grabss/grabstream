@@ -11,6 +11,15 @@ type EventMap = {
   'room:joined': [{ roomId: string; peers: Peer[] }]
   'room:left': [{ roomId: string }]
   'room:passwordRequired': [{ roomId: string }]
+  'room:knockResponse': [
+    {
+      roomId: string
+      exists: boolean
+      hasPassword: boolean
+      peerCount: number
+      isFull: boolean
+    }
+  ]
   'peer:joined': [Peer]
   'peer:left': [Peer]
   'peer:updated': [Peer]
