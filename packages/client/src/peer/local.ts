@@ -30,20 +30,6 @@ export class LocalPeer {
     return this._screenStream
   }
 
-  set stream(stream: MediaStream) {
-    if (this._stream) {
-      this._stream.getTracks().forEach((track) => track.stop())
-    }
-    this._stream = stream
-  }
-
-  set screenStream(stream: MediaStream) {
-    if (this._screenStream) {
-      this._screenStream.getTracks().forEach((track) => track.stop())
-    }
-    this._screenStream = stream
-  }
-
   joinRoom({
     roomId,
     displayName
@@ -67,5 +53,19 @@ export class LocalPeer {
 
   updateDisplayName(displayName: string): void {
     this._displayName = displayName
+  }
+
+  setStream(stream: MediaStream): void {
+    if (this._stream) {
+      this._stream.getTracks().forEach((track) => track.stop())
+    }
+    this._stream = stream
+  }
+
+  setScreenStream(stream: MediaStream): void {
+    if (this._screenStream) {
+      this._screenStream.getTracks().forEach((track) => track.stop())
+    }
+    this._screenStream = stream
   }
 }
