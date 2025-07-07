@@ -2,6 +2,7 @@ import type {
   AnswerRelayMessage,
   DisplayNameUpdatedMessage,
   IceCandidateRelayMessage,
+  JoinRoomMessage,
   OfferRelayMessage,
   PeerJoinedMessage,
   PeerLeftMessage,
@@ -139,6 +140,32 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
       ws.close(1000, 'Client disconnect requested')
     })
+  }
+
+  async joinRoom(
+    roomId: string,
+    options?: {
+      displayName?: string
+      password?: string
+    }
+  ): Promise<void> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not connected')
+    }
+
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    const message: JoinRoomMessage = {
+      type: 'JOIN_ROOM',
+      payload: {
+        roomId,
+        displayName: options?.displayName,
+        password: options?.password
+      }
+    }
+    this.ws.send(JSON.stringify(message))
   }
 
   private setupWebSocketEventHandlers(ws: WebSocket): void {
