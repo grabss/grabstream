@@ -94,6 +94,7 @@ export type ConnectionEstablishedMessage = {
   type: 'CONNECTION_ESTABLISHED'
   payload: {
     peerId: string
+    displayName: string
     iceServers: RTCIceServer[]
   }
 }
@@ -103,6 +104,7 @@ export type RoomJoinedMessage = {
   type: 'ROOM_JOINED'
   payload: {
     roomId: string
+    displayName: string
     peers: Array<{
       id: string
       displayName: string
