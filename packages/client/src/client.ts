@@ -1,4 +1,4 @@
-import type { RoomJoinedMessage } from '@grabstream/core'
+import type { RoomJoinedMessage, RoomLeftMessage } from '@grabstream/core'
 import { isServerToClientMessage, logger } from '@grabstream/core'
 
 import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
@@ -199,7 +199,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'ROOM_LEFT': {
-        // TODO
+        this.handleRoomLeftMessage(message)
         break
       }
       case 'PEER_JOINED': {
@@ -270,11 +270,26 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       roomId,
       peers
     })
-    this.emit('room:joined', { roomId, peers })
+    this.emit('room:joined', {
+      roomId,
+      peers
+    })
 
     for (const _peer of peers) {
       // TODO: initiateConnectionToPeer
     }
+  }
+
+  private handleRoomLeftMessage(message: RoomLeftMessage): void {
+    const { roomId } = message.payload
+
+    this.roomId = undefined
+    this.peers.clear()
+
+    logger.info('room:left', { roomId })
+    this.emit('room:left', { roomId })
+
+    // TODO: closeAllPeerConnections
   }
 
   private cleanup(): void {
