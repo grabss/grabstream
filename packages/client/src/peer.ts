@@ -12,16 +12,9 @@ export class LocalPeer implements Peer {
   private _displayName: string
   private _roomId?: string
 
-  private iceServers: RTCIceServer[]
-
-  constructor({
-    id,
-    displayName,
-    iceServers
-  }: { id: string; displayName: string; iceServers: RTCIceServer[] }) {
+  constructor({ id, displayName }: { id: string; displayName: string }) {
     this._id = id
     this._displayName = displayName
-    this.iceServers = iceServers
   }
 
   get id(): string {

@@ -23,8 +23,8 @@ import type {
 export class GrabstreamClient extends GrabstreamClientEmitter {
   private ws?: WebSocket
   private peer?: LocalPeer
+  private iceServers: RTCIceServer[] = []
   private readonly peers: Map<string, RemotePeer> = new Map()
-
   private readonly configuration: GrabstreamClientConfiguration
 
   constructor(options: GrabstreamClientOptions = {}) {
@@ -84,9 +84,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         const { peerId, displayName, iceServers } = message.payload
         this.peer = new LocalPeer({
           id: peerId,
-          displayName,
-          iceServers
+          displayName
         })
+        this.iceServers = iceServers
 
         this.setupWebSocketEventHandlers(ws)
 
@@ -306,7 +306,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     this.peers.clear()
     for (const peer of peers) {
-      const remotePeer = new RemotePeer(peer)
+      const remotePeer = new RemotePeer({
+        id: peer.id,
+        displayName: peer.displayName,
+        iceServers: this.iceServers
+      })
       this.peers.set(peer.id, remotePeer)
     }
 
@@ -339,7 +343,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handlePeerJoinedMessage(message: PeerJoinedMessage): void {
     const { peerId, displayName } = message.payload
 
-    const remotePeer = new RemotePeer({ id: peerId, displayName })
+    const remotePeer = new RemotePeer({
+      id: peerId,
+      displayName,
+      iceServers: this.iceServers
+    })
     this.peers.set(peerId, remotePeer)
 
     logger.info('peer:joined', {
