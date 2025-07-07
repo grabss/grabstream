@@ -33,30 +33,52 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     this.ws = new WebSocket(this.configuration.url)
 
-    this.ws.onopen = () => {
-      logger.debug('client:connected')
-      this.emit('client:connected')
-    }
+    const ws = this.ws
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        ws.close(1000, 'Connection timeout exceeded')
+      }, this.configuration.connectionTimeoutMs)
 
-    this.ws.onmessage = (event) => {
-      // TODO: handleMessage
-    }
+      ws.onopen = () => {
+        logger.debug('websocket:opened')
+      }
 
-    this.ws.onclose = (event) => {
-      logger.debug('client:disconnected', {
-        code: event.code,
-        reason: event.reason
-      })
-      this.emit('client:disconnected', {
-        code: event.code,
-        reason: event.reason
-      })
-      // TODO: handleDisconnection
-    }
+      ws.onmessage = (event) => {
+        // TODO
+      }
 
-    this.ws.onerror = (event) => {
-      logger.error('client:error', event)
-      this.emit('client:error', event)
-    }
+      ws.onerror = (event) => {
+        clearTimeout(timeout)
+        logger.error('client:error', event)
+
+        if (
+          ws.readyState !== WebSocket.CLOSED &&
+          ws.readyState !== WebSocket.CLOSING
+        ) {
+          ws.close(1006, 'Connection error occurred')
+        }
+      }
+
+      ws.onclose = (event) => {
+        clearTimeout(timeout)
+        this.cleanup()
+
+        const reason = event.reason || 'No reason provided'
+        logger.error('client:disconnected', {
+          code: event.code,
+          reason
+        })
+        reject(
+          new Error(`Connection closed with code ${event.code}: ${reason}`)
+        )
+      }
+    })
+  }
+
+  private cleanup(): void {
+    this.ws = undefined
+    this.peerId = undefined
+    this.roomId = undefined
+    this.peers.clear()
   }
 }
