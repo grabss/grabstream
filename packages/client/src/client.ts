@@ -487,7 +487,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       },
       onIceCandidate: (candidate) => {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-          logger.warn('Cannot send ICE candidate: WebSocket not connected')
+          logger.warn('signaling:iceCandidateNotSent', {
+            toPeerId: id,
+            candidate
+          })
           return
         }
 
@@ -499,7 +502,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           }
         }
         this.ws.send(JSON.stringify(message))
-        // TODO: ログ
+
+        logger.debug('signaling:iceCandidateSent', {
+          toPeerId: id,
+          candidate
+        })
       }
     })
 
