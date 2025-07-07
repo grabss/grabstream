@@ -187,7 +187,15 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     switch (message.type) {
       case 'CONNECTION_ESTABLISHED': {
-        // Invalid
+        // TODO
+        break
+      }
+      case 'ROOM_JOINED': {
+        // TODO
+        break
+      }
+      case 'ROOM_LEFT': {
+        // TODO
         break
       }
       case 'PEER_JOINED': {
@@ -199,6 +207,38 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'PEER_UPDATED': {
+        // TODO
+        break
+      }
+      case 'DISPLAY_NAME_UPDATED': {
+        // TODO
+        break
+      }
+      case 'OFFER': {
+        // TODO
+        break
+      }
+      case 'ANSWER': {
+        // TODO
+        break
+      }
+      case 'ICE_CANDIDATE': {
+        // TODO
+        break
+      }
+      case 'CUSTOM': {
+        // TODO
+        break
+      }
+      case 'ERROR': {
+        // TODO
+        break
+      }
+      case 'PASSWORD_REQUIRED': {
+        // TODO
+        break
+      }
+      case 'KNOCK_RESPONSE': {
         // TODO
         break
       }
