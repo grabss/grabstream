@@ -69,7 +69,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         this.peerId = message.payload.peerId
         this.iceServers = message.payload.iceServers
 
-        // TODO: setup handlers
+        this.setupWebSocketEventHandlers(ws)
 
         logger.info('client:connected', {
           peerId: this.peerId
@@ -94,16 +94,54 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         clearTimeout(timeout)
         this.cleanup()
 
-        const reason = event.reason || 'No reason provided'
         logger.error('client:disconnected', {
           code: event.code,
-          reason
+          reason: event.reason
         })
         reject(
-          new Error(`Connection closed with code ${event.code}: ${reason}`)
+          new Error(
+            `Connection closed with code ${event.code}: ${event.reason}`
+          )
         )
       }
     })
+  }
+
+  async disconnect(): Promise<void> {
+    if (
+      !this.ws ||
+      this.ws.readyState === WebSocket.CLOSED ||
+      this.ws.readyState === WebSocket.CLOSING
+    ) {
+      throw new Error('GrabstreamClient is not connected')
+    }
+
+    const ws = this.ws
+    return new Promise((resolve, reject) => {
+      ws.onclose = (event) => {
+        this.cleanup()
+        logger.info('client:disconnected', {
+          code: event.code,
+          reason: event.reason
+        })
+        this.emit('client:disconnected', {
+          code: event.code,
+          reason: event.reason
+        })
+        resolve()
+      }
+
+      ws.onerror = (event) => {
+        logger.error('client:error', event)
+        reject(new Error(`WebSocket error: ${event}`))
+      }
+
+      ws.close(1000, 'Client disconnect requested')
+    })
+  }
+
+  private setupWebSocketEventHandlers(ws: WebSocket): void {
+    // TODO
   }
 
   private cleanup(): void {
