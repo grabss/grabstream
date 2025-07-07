@@ -80,10 +80,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         }
 
         clearTimeout(timeout)
+
+        const { peerId, displayName, iceServers } = message.payload
         this.peer = new LocalPeer({
-          id: message.payload.peerId,
-          displayName: message.payload.displayName,
-          iceServers: message.payload.iceServers
+          id: peerId,
+          displayName,
+          iceServers
         })
 
         this.setupWebSocketEventHandlers(ws)
