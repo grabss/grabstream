@@ -1,3 +1,8 @@
+import type {
+  AnswerRelayMessage,
+  IceCandidateRelayMessage,
+  OfferRelayMessage
+} from '@grabstream/core'
 import { logger } from '@grabstream/core'
 
 import type { Peer } from './types'
@@ -26,6 +31,9 @@ type EventMap = {
   'peer:connected': [{ peerId: string }]
   'peer:disconnected': [{ peerId: string }]
   'peer:error': [{ peerId: string; error: Error }]
+  'signaling:message': [
+    OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
+  ]
   'stream:added': [{ peerId: string; stream: MediaStream }]
   'stream:removed': [{ peerId: string; streamId: string }]
   'message:custom': [{ fromPeerId: string; customType: string; data: unknown }]

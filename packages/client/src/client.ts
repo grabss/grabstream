@@ -1,5 +1,8 @@
 import type {
+  AnswerRelayMessage,
   DisplayNameUpdatedMessage,
+  IceCandidateRelayMessage,
+  OfferRelayMessage,
   PeerJoinedMessage,
   PeerLeftMessage,
   PeerUpdatedMessage,
@@ -238,7 +241,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       case 'OFFER':
       case 'ANSWER':
       case 'ICE_CANDIDATE': {
-        // TODO
+        this.handleSignalingMessage(message)
         break
       }
       case 'CUSTOM': {
@@ -367,6 +370,31 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.info('client:displayNameUpdated', { displayName })
     this.emit('client:displayNameUpdated', { displayName })
+  }
+
+  private handleSignalingMessage(
+    message: OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
+  ): void {
+    const { fromPeerId } = message.payload
+
+    switch (message.type) {
+      case 'OFFER':
+        logger.debug('signaling:offerReceived', { fromPeerId })
+        // TODO: WebRTC - createAnswer, setRemoteDescription
+        break
+
+      case 'ANSWER':
+        logger.debug('signaling:answerReceived', { fromPeerId })
+        // TODO: WebRTC - setRemoteDescription
+        break
+
+      case 'ICE_CANDIDATE':
+        logger.debug('signaling:iceCandidateReceived', { fromPeerId })
+        // TODO: WebRTC - addIceCandidate
+        break
+    }
+
+    this.emit('signaling:message', message)
   }
 
   private cleanup(): void {
