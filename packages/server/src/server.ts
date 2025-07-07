@@ -397,7 +397,7 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       peerId: peer.id,
       displayName: peer.displayName,
       roomId,
-      roomSize: room.peers.length
+      peerCount: room.peers.length
     })
     this.emit('peer:joined', { peer, room })
 
