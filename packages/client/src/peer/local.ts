@@ -68,4 +68,36 @@ export class LocalPeer {
     }
     this._screenStream = stream
   }
+
+  muteAudio(): void {
+    this.setAudioEnabled(false)
+  }
+
+  unmuteAudio(): void {
+    this.setAudioEnabled(true)
+  }
+
+  enableVideo(): void {
+    this.setVideoEnabled(true)
+  }
+
+  disableVideo(): void {
+    this.setVideoEnabled(false)
+  }
+
+  private setAudioEnabled(enabled: boolean): void {
+    if (this._stream) {
+      this._stream.getAudioTracks().forEach((track) => {
+        track.enabled = enabled
+      })
+    }
+  }
+
+  private setVideoEnabled(enabled: boolean): void {
+    if (this._stream) {
+      this._stream.getVideoTracks().forEach((track) => {
+        track.enabled = enabled
+      })
+    }
+  }
 }
