@@ -13,9 +13,9 @@ export type RTCSessionDescription = {
 
 export type RTCIceCandidate = {
   candidate: string
-  sdpMLineIndex?: number
-  sdpMid?: string
-  usernameFragment?: string
+  sdpMLineIndex: number | null
+  sdpMid: string | null
+  usernameFragment: string | null
 }
 
 // ==================== Client to Server Messages ====================
