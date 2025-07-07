@@ -146,7 +146,7 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       this.emit('server:error', error)
     })
 
-    wss.on('connection', this.handleConnection.bind(this))
+    wss.on('connection', (socket) => this.handleConnection(socket))
   }
 
   private handleConnection(socket: WebSocket): void {
