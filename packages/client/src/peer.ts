@@ -116,4 +116,8 @@ export class RemotePeer implements Peer {
 
     return answer
   }
+
+  async addIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
+    await this._connection.addIceCandidate(candidate)
+  }
 }
