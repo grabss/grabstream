@@ -1,4 +1,5 @@
 import type {
+  DisplayNameUpdatedMessage,
   PeerJoinedMessage,
   PeerLeftMessage,
   PeerUpdatedMessage,
@@ -221,7 +222,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'DISPLAY_NAME_UPDATED': {
-        // TODO
+        this.handleDisplayNameUpdatedMessage(message)
         break
       }
       case 'PASSWORD_REQUIRED': {
@@ -355,6 +356,17 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       newDisplayName: displayName
     })
     this.emit('peer:updated', peer)
+  }
+
+  private handleDisplayNameUpdatedMessage(
+    message: DisplayNameUpdatedMessage
+  ): void {
+    const { displayName } = message.payload
+
+    // TODO: update displayName in local state
+
+    logger.info('client:displayNameUpdated', { displayName })
+    this.emit('client:displayNameUpdated', { displayName })
   }
 
   private cleanup(): void {
