@@ -12,7 +12,7 @@ type EventMap = {
   'client:disconnected': [{ code: number; reason: string }]
   'client:error': [Event]
   'client:displayNameUpdated': [{ displayName: string }]
-  'room:joined': [{ roomId: string; peers: RemotePeer[] }]
+  'room:joined': [{ roomId: string; peerCount: number }]
   'room:left': [{ roomId: string }]
   'room:passwordRequired': [{ roomId: string }]
   'room:knockResponse': [

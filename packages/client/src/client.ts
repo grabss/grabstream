@@ -183,7 +183,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     ws.onmessage = (event) => this.handleMessage(event)
 
     ws.onerror = (event) => {
-      logger.error('websocket:error', event)
+      logger.error('client:error', event)
       this.emit('client:error', event)
     }
 
@@ -222,7 +222,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     if (!isServerToClientMessage(message)) {
       // biome-ignore lint/suspicious/noExplicitAny: Need to access type property of unknown message structure
       const messageType = (message as any)?.type || 'unknown'
-      logger.error('connect:invalidFormat', {
+      logger.error('message:invalidFormat', {
         messageType,
         messageKeys:
           message && typeof message === 'object' ? Object.keys(message) : []
@@ -340,11 +340,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.info('room:joined', {
       roomId,
-      peers
+      peerCount: this.peers.size
     })
     this.emit('room:joined', {
       roomId,
-      peers: Array.from(this.peers.values())
+      peerCount: this.peers.size
     })
 
     for (const _peer of peers) {
@@ -453,7 +453,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     const peer = this.peers.get(fromPeerId)
     if (!peer) {
-      logger.warn('signaling:peerNotFound', {
+      logger.warn('peer:notFound', {
         fromPeerId,
         messageType: message.type
       })
@@ -477,6 +477,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
     }
 
+    logger.debug('peer:signaling', {
+      peerId: peer.id,
+      messageType: message.type
+    })
     this.emit('peer:signaling', { peer, message })
   }
 
@@ -485,7 +489,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     const peer = this.peers.get(fromPeerId)
     if (!peer) {
-      logger.warn('peer:customMessage:peerNotFound', message.payload)
+      logger.warn('peer:notFound', message.payload)
       return
     }
 
@@ -508,6 +512,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       displayName,
       iceServers: this.iceServers,
       onStreamReceived: (streams) => {
+        logger.debug('peer:streamReceived', {
+          peerId: remotePeer.id,
+          streamCount: streams.length
+        })
         this.emit('peer:streamReceived', { peer: remotePeer, streams })
       },
       onIceCandidate: (candidate) => {

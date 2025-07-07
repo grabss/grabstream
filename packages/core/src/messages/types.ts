@@ -149,6 +149,40 @@ export type DisplayNameUpdatedMessage = {
   }
 }
 
+export type CustomRelayMessage = {
+  type: 'CUSTOM'
+  payload: {
+    fromPeerId: string
+    customType: string
+    data: unknown
+  }
+}
+
+export type ErrorMessage = {
+  type: 'ERROR'
+  payload: {
+    message: string
+  }
+}
+
+export type PasswordRequiredMessage = {
+  type: 'PASSWORD_REQUIRED'
+  payload: {
+    roomId: string
+  }
+}
+
+export type KnockResponseMessage = {
+  type: 'KNOCK_RESPONSE'
+  payload: {
+    roomId: string
+    exists: boolean
+    hasPassword: boolean
+    peerCount: number
+    isFull: boolean
+  }
+}
+
 // WebRTC Signaling
 export type OfferRelayMessage = {
   type: 'OFFER'
@@ -174,43 +208,6 @@ export type IceCandidateRelayMessage = {
     fromPeerId: string
     toPeerId: string
     candidate: RTCIceCandidate
-  }
-}
-
-// Custom message relay
-export type CustomRelayMessage = {
-  type: 'CUSTOM'
-  payload: {
-    fromPeerId: string
-    customType: string
-    data: unknown
-  }
-}
-
-// Error
-export type ErrorMessage = {
-  type: 'ERROR'
-  payload: {
-    message: string
-  }
-}
-
-// Password management
-export type PasswordRequiredMessage = {
-  type: 'PASSWORD_REQUIRED'
-  payload: {
-    roomId: string
-  }
-}
-
-export type KnockResponseMessage = {
-  type: 'KNOCK_RESPONSE'
-  payload: {
-    roomId: string
-    exists: boolean
-    hasPassword: boolean
-    peerCount: number
-    isFull: boolean
   }
 }
 
