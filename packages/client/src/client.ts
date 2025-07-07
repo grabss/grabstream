@@ -232,7 +232,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'CUSTOM': {
-        // TODO
+        logger.debug('message:custom', {
+          payload: message.payload
+        })
+        this.emit('message:custom', message.payload)
         break
       }
       case 'ERROR': {
