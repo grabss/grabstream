@@ -6,8 +6,3 @@ export type GrabstreamClientOptions = {
 }
 
 export type GrabstreamClientConfiguration = Required<GrabstreamClientOptions>
-
-export type Peer = {
-  id: string
-  displayName: string
-}

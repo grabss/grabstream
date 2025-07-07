@@ -5,7 +5,7 @@ import type {
 } from '@grabstream/core'
 import { logger } from '@grabstream/core'
 
-import type { Peer } from './types'
+import type { Peer } from './peer'
 
 type EventMap = {
   'client:connected': [{ peerId: string }]
