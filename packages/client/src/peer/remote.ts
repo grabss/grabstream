@@ -7,15 +7,29 @@ export class RemotePeer {
   private _streams: Map<string, MediaStream> = new Map()
   private _screenStream?: MediaStream
 
+  private onStreamReceived?: (streams: readonly MediaStream[]) => void
+  private onIceCandidate?: (candidate: RTCIceCandidate) => void
+
   constructor({
     id,
     displayName,
-    iceServers
-  }: { id: string; displayName: string; iceServers: RTCIceServer[] }) {
+    iceServers,
+    onStreamReceived,
+    onIceCandidate
+  }: {
+    id: string
+    displayName: string
+    iceServers: RTCIceServer[]
+    onStreamReceived?: (streams: readonly MediaStream[]) => void
+    onIceCandidate?: (candidate: RTCIceCandidate) => void
+  }) {
     this._id = id
     this._displayName = displayName
     this._connection = new RTCPeerConnection({ iceServers })
     this.setupPeerConnectionEventHandlers(this._connection)
+
+    this.onStreamReceived = onStreamReceived
+    this.onIceCandidate = onIceCandidate
   }
 
   get id(): string {
@@ -54,7 +68,6 @@ export class RemotePeer {
 
   leave(): void {
     this._connection.close()
-    // TODO: emit leave event to the server
   }
 
   async createOffer(): Promise<RTCSessionDescriptionInit> {
@@ -110,7 +123,7 @@ export class RemotePeer {
         }
       }
 
-      // TODO: emit received stream event
+      this.onStreamReceived?.(streams)
     }
 
     connection.onicecandidate = (event) => {
@@ -122,7 +135,7 @@ export class RemotePeer {
           candidate
         })
 
-        // TODO: emit this candidate to the server
+        this.onIceCandidate?.(candidate)
       }
     }
   }
