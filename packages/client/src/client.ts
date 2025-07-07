@@ -160,6 +160,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error('Peer is not initialized')
     }
 
+    if (this.peer.roomId) {
+      throw new Error(`Already in room ${this.peer.roomId}`)
+    }
+
     const message: JoinRoomMessage = {
       type: 'JOIN_ROOM',
       payload: {
