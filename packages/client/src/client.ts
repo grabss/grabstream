@@ -715,6 +715,30 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       id,
       displayName,
       iceServers: this.iceServers,
+      onConnectionStateChanged: (state) => {
+        logger.debug('peer:connectionStateChanged', {
+          peerId: remotePeer.id,
+          state
+        })
+
+        switch (state) {
+          case 'connected': {
+            this.emit('peer:connected', remotePeer)
+            break
+          }
+          case 'disconnected': {
+            this.emit('peer:disconnected', remotePeer)
+            break
+          }
+          case 'failed': {
+            this.emit('peer:error', {
+              peer: remotePeer,
+              error: new Error(`Connection failed for peer ${remotePeer.id}`)
+            })
+            break
+          }
+        }
+      },
       onStreamReceived: (streams) => {
         logger.debug('peer:streamReceived', {
           peerId: remotePeer.id,
