@@ -88,6 +88,10 @@ export class RemotePeer {
     return answer
   }
 
+  async receiveAnswer(answer: RTCSessionDescriptionInit): Promise<void> {
+    await this._connection.setRemoteDescription(answer)
+  }
+
   async addIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
     await this._connection.addIceCandidate(candidate)
   }
