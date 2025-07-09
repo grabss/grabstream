@@ -333,6 +333,20 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
+  setLocalScreenStream(stream: MediaStream): void {
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    this.peer.setScreenStream(stream)
+
+    if (this.peer.isInRoom) {
+      for (const remotePeer of this.peers.values()) {
+        remotePeer.sendStream(stream)
+      }
+    }
+  }
+
   private setupWebSocketEventHandlers(ws: WebSocket): void {
     ws.onopen = null
 
