@@ -6,6 +6,7 @@ import type {
   IceCandidateMessage,
   IceCandidateRelayMessage,
   JoinRoomMessage,
+  LeaveRoomMessage,
   OfferMessage,
   OfferRelayMessage,
   PeerJoinedMessage,
@@ -175,6 +176,25 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         displayName: options?.displayName,
         password: options?.password
       }
+    }
+    this.ws.send(JSON.stringify(message))
+  }
+
+  async leaveRoom(): Promise<void> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not connected')
+    }
+
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    if (!this.peer.roomId) {
+      throw new Error('Not in any room')
+    }
+
+    const message: LeaveRoomMessage = {
+      type: 'LEAVE_ROOM'
     }
     this.ws.send(JSON.stringify(message))
   }
