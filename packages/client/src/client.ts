@@ -16,7 +16,8 @@ import type {
   PeerUpdatedMessage,
   RoomJoinedMessage,
   RoomLeftMessage,
-  UpdateDisplayNameMessage
+  UpdateDisplayNameMessage,
+  ValidationResult
 } from '@grabstream/core'
 import {
   isServerToClientMessage,
@@ -170,7 +171,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     const trimmedRoomId = roomId.trim()
     const validation = validateRoomId(trimmedRoomId)
     if (!validation.success) {
-      throw new Error(validation.error)
+      throw new ValidationError(validation)
     }
 
     const message: KnockMessage = {
@@ -204,7 +205,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     const trimmedRoomId = roomId.trim()
     const validation = validateRoomId(trimmedRoomId)
     if (!validation.success) {
-      throw new Error(validation.error)
+      throw new ValidationError(validation)
     }
 
     const message: JoinRoomMessage = {
@@ -249,7 +250,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     const trimmedDisplayName = displayName.trim()
     const validation = validateDisplayName(trimmedDisplayName)
     if (!validation.success) {
-      throw new Error(validation.error)
+      throw new ValidationError(validation)
     }
 
     const message: UpdateDisplayNameMessage = {
@@ -837,5 +838,16 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.ws = undefined
     this.peer = undefined
     this.peers.clear()
+  }
+}
+
+export class ValidationError extends Error {
+  code: string
+  details?: Record<string, unknown>
+
+  constructor(validation: Extract<ValidationResult, { success: false }>) {
+    super(validation.error)
+    this.code = validation.code
+    this.details = validation.details
   }
 }

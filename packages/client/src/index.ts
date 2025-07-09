@@ -1,2 +1,2 @@
-export { GrabstreamClient } from './client'
+export { GrabstreamClient, ValidationError } from './client'
 export type { GrabstreamClientOptions } from './types'
