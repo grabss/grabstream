@@ -13,9 +13,14 @@ import type {
   PeerLeftMessage,
   PeerUpdatedMessage,
   RoomJoinedMessage,
-  RoomLeftMessage
+  RoomLeftMessage,
+  UpdateDisplayNameMessage
 } from '@grabstream/core'
-import { isServerToClientMessage, logger } from '@grabstream/core'
+import {
+  isServerToClientMessage,
+  logger,
+  validateDisplayName
+} from '@grabstream/core'
 
 import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
 import { GrabstreamClientEmitter } from './emitter'
@@ -195,6 +200,30 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     const message: LeaveRoomMessage = {
       type: 'LEAVE_ROOM'
+    }
+    this.ws.send(JSON.stringify(message))
+  }
+
+  async updateDisplayName(displayName: string): Promise<void> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not connected')
+    }
+
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    const trimmedDisplayName = displayName.trim()
+    const validation = validateDisplayName(trimmedDisplayName)
+    if (!validation.success) {
+      throw new Error(validation.error)
+    }
+
+    const message: UpdateDisplayNameMessage = {
+      type: 'UPDATE_DISPLAY_NAME',
+      payload: {
+        displayName: trimmedDisplayName
+      }
     }
     this.ws.send(JSON.stringify(message))
   }
