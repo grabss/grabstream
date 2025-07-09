@@ -348,6 +348,14 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
+  removeLocalStream(): void {
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    this.peer.clearStream()
+  }
+
   removeLocalScreenStream(): void {
     if (!this.peer) {
       throw new Error('Peer is not initialized')

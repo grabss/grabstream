@@ -73,6 +73,13 @@ export class LocalPeer {
     this._screenStream = stream
   }
 
+  clearStream(): void {
+    if (this._stream) {
+      this._stream.getTracks().forEach((track) => track.stop())
+      this._stream = undefined
+    }
+  }
+
   clearScreenStream(): void {
     if (this._screenStream) {
       this._screenStream.getTracks().forEach((track) => track.stop())
