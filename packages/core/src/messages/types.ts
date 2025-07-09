@@ -6,8 +6,10 @@ export type RTCIceServer = {
   credential?: string
 }
 
+export type RTCSdpType = 'answer' | 'offer' | 'pranswer' | 'rollback'
+
 export type RTCSessionDescription = {
-  type: 'offer' | 'answer'
+  type: RTCSdpType
   sdp: string
 }
 
