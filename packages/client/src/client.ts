@@ -5,6 +5,7 @@ import type {
   IceCandidateMessage,
   IceCandidateRelayMessage,
   JoinRoomMessage,
+  OfferMessage,
   OfferRelayMessage,
   PeerJoinedMessage,
   PeerLeftMessage,
@@ -347,8 +348,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       peerCount: this.peers.size
     })
 
-    for (const _peer of peers) {
-      // TODO: initiateConnectionToPeer
+    for (const remotePeer of this.peers.values()) {
+      // Initiate connections in parallel (no await)
+      this.initiateConnectionToPeer(remotePeer)
     }
   }
 
@@ -386,7 +388,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
     this.emit('peer:joined', remotePeer)
 
-    // TODO: initiateConnectionToPeer(peerId)
+    // Initiate connection to the new peer (no await)
+    this.initiateConnectionToPeer(remotePeer)
   }
 
   private handlePeerLeftMessage(message: PeerLeftMessage): void {
@@ -527,24 +530,66 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           return
         }
 
-        const message: IceCandidateMessage = {
-          type: 'ICE_CANDIDATE',
-          payload: {
+        try {
+          const message: IceCandidateMessage = {
+            type: 'ICE_CANDIDATE',
+            payload: {
+              toPeerId: id,
+              candidate
+            }
+          }
+          this.ws.send(JSON.stringify(message))
+
+          logger.debug('signaling:iceCandidateSent', {
             toPeerId: id,
             candidate
-          }
+          })
+        } catch (error) {
+          logger.error('signaling:iceCandidateFailed', {
+            toPeerId: id,
+            error
+          })
         }
-        this.ws.send(JSON.stringify(message))
-
-        logger.debug('signaling:iceCandidateSent', {
-          toPeerId: id,
-          candidate
-        })
       }
     })
 
     this.peers.set(id, remotePeer)
     return remotePeer
+  }
+
+  private async initiateConnectionToPeer(
+    remotePeer: RemotePeer
+  ): Promise<void> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      logger.warn('signaling:offerNotSent', {
+        toPeerId: remotePeer.id,
+        reason: 'WebSocket not connected'
+      })
+      return
+    }
+
+    try {
+      const offer = await remotePeer.createOffer()
+
+      const message: OfferMessage = {
+        type: 'OFFER',
+        payload: {
+          toPeerId: remotePeer.id,
+          offer
+        }
+      }
+      this.ws.send(JSON.stringify(message))
+
+      logger.debug('signaling:offerSent', {
+        toPeerId: remotePeer.id,
+        offer
+      })
+    } catch (error) {
+      logger.error('signaling:offerFailed', {
+        toPeerId: remotePeer.id,
+        error
+      })
+    }
   }
 
   private cleanup(): void {
