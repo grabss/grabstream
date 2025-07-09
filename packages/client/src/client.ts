@@ -23,6 +23,7 @@ import {
   isServerToClientMessage,
   logger,
   validateDisplayName,
+  validatePassword,
   validateRoomId
 } from '@grabstream/core'
 
@@ -168,8 +169,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error('Peer is not initialized')
     }
 
-    const trimmedRoomId = roomId.trim()
-    const validation = validateRoomId(trimmedRoomId)
+    const validation = validateRoomId(roomId)
     if (!validation.success) {
       throw new ValidationError(validation)
     }
@@ -177,7 +177,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     const message: KnockMessage = {
       type: 'KNOCK',
       payload: {
-        roomId: trimmedRoomId
+        roomId
       }
     }
     this.ws.send(JSON.stringify(message))
@@ -202,8 +202,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error(`Already in room ${this.peer.roomId}`)
     }
 
-    const trimmedRoomId = roomId.trim()
-    const validation = validateRoomId(trimmedRoomId)
+    const validation = validateRoomId(roomId)
     if (!validation.success) {
       throw new ValidationError(validation)
     }
@@ -219,10 +218,17 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
     }
 
+    if (options?.password) {
+      const validation = validatePassword(options.password)
+      if (!validation.success) {
+        throw new ValidationError(validation)
+      }
+    }
+
     const message: JoinRoomMessage = {
       type: 'JOIN_ROOM',
       payload: {
-        roomId: trimmedRoomId,
+        roomId,
         displayName: trimmedDisplayName,
         password: options?.password
       }
