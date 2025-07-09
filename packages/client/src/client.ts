@@ -6,6 +6,7 @@ import type {
   IceCandidateMessage,
   IceCandidateRelayMessage,
   JoinRoomMessage,
+  KnockMessage,
   LeaveRoomMessage,
   OfferMessage,
   OfferRelayMessage,
@@ -19,7 +20,8 @@ import type {
 import {
   isServerToClientMessage,
   logger,
-  validateDisplayName
+  validateDisplayName,
+  validateRoomId
 } from '@grabstream/core'
 
 import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
@@ -155,6 +157,30 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
   }
 
+  async knockRoom(roomId: string): Promise<void> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not connected')
+    }
+
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    const trimmedRoomId = roomId.trim()
+    const validation = validateRoomId(trimmedRoomId)
+    if (!validation.success) {
+      throw new Error(validation.error)
+    }
+
+    const message: KnockMessage = {
+      type: 'KNOCK',
+      payload: {
+        roomId: trimmedRoomId
+      }
+    }
+    this.ws.send(JSON.stringify(message))
+  }
+
   async joinRoom(
     roomId: string,
     options?: {
@@ -174,10 +200,16 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error(`Already in room ${this.peer.roomId}`)
     }
 
+    const trimmedRoomId = roomId.trim()
+    const validation = validateRoomId(trimmedRoomId)
+    if (!validation.success) {
+      throw new Error(validation.error)
+    }
+
     const message: JoinRoomMessage = {
       type: 'JOIN_ROOM',
       payload: {
-        roomId,
+        roomId: trimmedRoomId,
         displayName: options?.displayName,
         password: options?.password
       }
