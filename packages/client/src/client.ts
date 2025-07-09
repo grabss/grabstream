@@ -338,6 +338,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error('Peer is not initialized')
     }
 
+    this.clearAllRemoteScreenStreams()
     this.peer.setScreenStream(stream)
 
     if (this.peer.isInRoom) {
