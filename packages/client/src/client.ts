@@ -1,4 +1,5 @@
 import type {
+  AnswerMessage,
   AnswerRelayMessage,
   CustomRelayMessage,
   DisplayNameUpdatedMessage,
@@ -211,7 +212,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
   }
 
-  private handleMessage(event: MessageEvent): void {
+  private async handleMessage(event: MessageEvent): Promise<void> {
     let message: unknown
     try {
       message = JSON.parse(event.data)
@@ -305,7 +306,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       case 'OFFER':
       case 'ANSWER':
       case 'ICE_CANDIDATE': {
-        this.handleSignalingMessage(message)
+        await this.handleSignalingMessage(message)
         break
       }
       default: {
@@ -449,9 +450,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.emit('client:displayNameUpdated', { displayName })
   }
 
-  private handleSignalingMessage(
+  private async handleSignalingMessage(
     message: OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
-  ): void {
+  ): Promise<void> {
     const { fromPeerId, toPeerId } = message.payload
 
     const remotePeer = this.peers.get(fromPeerId)
@@ -472,12 +473,46 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       return
     }
 
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      logger.warn('signaling:messageNotProcessed', {
+        fromPeerId,
+        messageType: message.type,
+        reason: 'WebSocket not connected'
+      })
+      return
+    }
+
     switch (message.type) {
       case 'OFFER':
         logger.debug('signaling:offerReceived', {
           fromPeerId,
           offer: message.payload.offer
         })
+
+        try {
+          const answer = await remotePeer.createAnswer(message.payload.offer)
+
+          const answerMessage: AnswerMessage = {
+            type: 'ANSWER',
+            payload: {
+              toPeerId: fromPeerId,
+              answer
+            }
+          }
+          this.ws.send(JSON.stringify(answerMessage))
+
+          logger.debug('signaling:answerSent', {
+            toPeerId: fromPeerId,
+            answer
+          })
+        } catch (error) {
+          logger.error('signaling:answerFailed', {
+            toPeerId: fromPeerId,
+            error
+          })
+          return
+        }
+
         break
       case 'ANSWER':
         logger.debug('signaling:answerReceived', { fromPeerId })
