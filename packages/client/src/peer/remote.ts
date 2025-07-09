@@ -7,6 +7,7 @@ export class RemotePeer {
   private _streams: Map<string, MediaStream> = new Map()
   private _screenStream?: MediaStream
 
+  private onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
   private onStreamReceived?: (streams: readonly MediaStream[]) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
 
@@ -14,12 +15,14 @@ export class RemotePeer {
     id,
     displayName,
     iceServers,
+    onConnectionStateChanged,
     onStreamReceived,
     onIceCandidate
   }: {
     id: string
     displayName: string
     iceServers: RTCIceServer[]
+    onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
     onStreamReceived?: (streams: readonly MediaStream[]) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
   }) {
@@ -28,6 +31,7 @@ export class RemotePeer {
     this._connection = new RTCPeerConnection({ iceServers })
     this.setupPeerConnectionEventHandlers(this._connection)
 
+    this.onConnectionStateChanged = onConnectionStateChanged
     this.onStreamReceived = onStreamReceived
     this.onIceCandidate = onIceCandidate
   }
@@ -104,6 +108,7 @@ export class RemotePeer {
         peerId: this._id,
         state: connection.connectionState
       })
+      this.onConnectionStateChanged?.(connection.connectionState)
     }
 
     connection.ontrack = (event) => {
