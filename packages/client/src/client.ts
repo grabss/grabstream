@@ -347,6 +347,14 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
+  removeLocalScreenStream(): void {
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    this.peer.clearScreenStream()
+  }
+
   private setupWebSocketEventHandlers(ws: WebSocket): void {
     ws.onopen = null
 
@@ -860,6 +868,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         toPeerId: remotePeer.id,
         error
       })
+    }
+  }
+
+  private clearAllRemoteScreenStreams(): void {
+    for (const remotePeer of this.peers.values()) {
+      remotePeer.clearScreenStream()
     }
   }
 
