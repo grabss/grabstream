@@ -10,7 +10,7 @@ export type RTCSdpType = 'answer' | 'offer' | 'pranswer' | 'rollback'
 
 export type RTCSessionDescription = {
   type: RTCSdpType
-  sdp: string
+  sdp?: string
 }
 
 export type RTCIceCandidate = {
