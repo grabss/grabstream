@@ -395,8 +395,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handlePeerLeftMessage(message: PeerLeftMessage): void {
     const { peerId } = message.payload
 
-    const peer = this.peers.get(peerId)
-    if (!peer) {
+    const remotePeer = this.peers.get(peerId)
+    if (!remotePeer) {
       logger.warn('peer:notFound', { peerId })
       return
     }
@@ -405,10 +405,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.info('peer:left', {
       peerId,
-      displayName: peer.displayName,
+      displayName: remotePeer.displayName,
       peerCount: this.peers.size
     })
-    this.emit('peer:left', peer)
+    this.emit('peer:left', remotePeer)
 
     // TODO: closePeerConnection(peerId)
   }
@@ -416,22 +416,22 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handlePeerUpdatedMessage(message: PeerUpdatedMessage): void {
     const { peerId, displayName } = message.payload
 
-    const peer = this.peers.get(peerId)
-    if (!peer) {
+    const remotePeer = this.peers.get(peerId)
+    if (!remotePeer) {
       logger.warn('peer:notFound', { peerId })
       return
     }
 
-    const oldDisplayName = peer.displayName
-    peer.updateDisplayName(displayName)
-    this.peers.set(peerId, peer)
+    const oldDisplayName = remotePeer.displayName
+    remotePeer.updateDisplayName(displayName)
+    this.peers.set(peerId, remotePeer)
 
     logger.info('peer:updated', {
       peerId,
       oldDisplayName,
       newDisplayName: displayName
     })
-    this.emit('peer:updated', peer)
+    this.emit('peer:updated', remotePeer)
   }
 
   private handleDisplayNameUpdatedMessage({
@@ -452,10 +452,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   private handleSignalingMessage(
     message: OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
   ): void {
-    const { fromPeerId } = message.payload
+    const { fromPeerId, toPeerId } = message.payload
 
-    const peer = this.peers.get(fromPeerId)
-    if (!peer) {
+    const remotePeer = this.peers.get(fromPeerId)
+    if (!remotePeer) {
       logger.warn('peer:notFound', {
         fromPeerId,
         messageType: message.type
@@ -463,12 +463,22 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       return
     }
 
+    if (toPeerId !== this.peer?.id) {
+      logger.warn('signaling:messageToWrongPeer', {
+        fromPeerId,
+        toPeerId,
+        messageType: message.type
+      })
+      return
+    }
+
     switch (message.type) {
       case 'OFFER':
-        logger.debug('signaling:offerReceived', { fromPeerId })
-        // TODO: WebRTC - createAnswer, setRemoteDescription
+        logger.debug('signaling:offerReceived', {
+          fromPeerId,
+          offer: message.payload.offer
+        })
         break
-
       case 'ANSWER':
         logger.debug('signaling:answerReceived', { fromPeerId })
         // TODO: WebRTC - setRemoteDescription
@@ -481,24 +491,24 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     logger.debug('peer:signaling', {
-      peerId: peer.id,
+      peerId: remotePeer.id,
       messageType: message.type
     })
-    this.emit('peer:signaling', { peer, message })
+    this.emit('peer:signaling', { peer: remotePeer, message })
   }
 
   private handleCustomMessage(message: CustomRelayMessage): void {
     const { fromPeerId } = message.payload
 
-    const peer = this.peers.get(fromPeerId)
-    if (!peer) {
+    const remotePeer = this.peers.get(fromPeerId)
+    if (!remotePeer) {
       logger.warn('peer:notFound', message.payload)
       return
     }
 
     logger.debug('peer:customMessage', message.payload)
     this.emit('peer:customMessage', {
-      peer,
+      peer: remotePeer,
       ...message.payload
     })
   }
