@@ -208,11 +208,22 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new ValidationError(validation)
     }
 
+    const trimmedDisplayName =
+      options?.displayName !== undefined
+        ? options.displayName.trim()
+        : undefined
+    if (trimmedDisplayName) {
+      const validation = validateDisplayName(trimmedDisplayName)
+      if (!validation.success) {
+        throw new ValidationError(validation)
+      }
+    }
+
     const message: JoinRoomMessage = {
       type: 'JOIN_ROOM',
       payload: {
         roomId: trimmedRoomId,
-        displayName: options?.displayName,
+        displayName: trimmedDisplayName,
         password: options?.password
       }
     }
