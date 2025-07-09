@@ -519,8 +519,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           fromPeerId,
           answer: message.payload.answer
         })
+
         try {
           await remotePeer.receiveAnswer(message.payload.answer)
+
           logger.debug('signaling:answerProcessed', { fromPeerId })
         } catch (error) {
           logger.error('signaling:answerFailed', {
@@ -532,7 +534,22 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'ICE_CANDIDATE': {
-        logger.debug('signaling:iceCandidateReceived', { fromPeerId })
+        logger.debug('signaling:iceCandidateReceived', {
+          fromPeerId,
+          candidate: message.payload.candidate
+        })
+
+        try {
+          await remotePeer.addIceCandidate(message.payload.candidate)
+
+          logger.debug('signaling:iceCandidateProcessed', { fromPeerId })
+        } catch (error) {
+          logger.error('signaling:iceCandidateFailed', {
+            fromPeerId,
+            error
+          })
+          return
+        }
         break
       }
     }
