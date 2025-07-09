@@ -409,7 +409,14 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
     this.emit('peer:left', remotePeer)
 
-    // TODO: closePeerConnection(peerId)
+    try {
+      remotePeer.close()
+    } catch (error) {
+      logger.warn('peer:closeConnectionFailed', {
+        peerId,
+        error
+      })
+    }
   }
 
   private handlePeerUpdatedMessage(message: PeerUpdatedMessage): void {
@@ -665,7 +672,16 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
   }
 
   private async cleanupRoomState(localPeer: LocalPeer): Promise<void> {
-    // await this.closeAllPeerConnections()
+    for (const remotePeer of this.peers.values()) {
+      try {
+        remotePeer.close()
+      } catch (error) {
+        logger.warn('peer:closeConnectionFailed', {
+          peerId: remotePeer.id,
+          error
+        })
+      }
+    }
 
     localPeer.leaveRoom()
     this.peers.clear()

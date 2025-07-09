@@ -66,7 +66,7 @@ export class RemotePeer {
     this._displayName = displayName
   }
 
-  leave(): void {
+  close(): void {
     this._connection.close()
   }
 
