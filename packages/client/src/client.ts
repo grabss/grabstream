@@ -1,6 +1,7 @@
 import type {
   AnswerMessage,
   AnswerRelayMessage,
+  CustomMessage,
   CustomRelayMessage,
   DisplayNameUpdatedMessage,
   IceCandidateMessage,
@@ -255,6 +256,46 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       type: 'UPDATE_DISPLAY_NAME',
       payload: {
         displayName: trimmedDisplayName
+      }
+    }
+    this.ws.send(JSON.stringify(message))
+  }
+
+  sendCustomMessage(
+    customType: string,
+    data: unknown,
+    target?: {
+      type: 'peer' | 'room'
+      peerId?: string
+    }
+  ): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not connected')
+    }
+
+    if (!this.peer) {
+      throw new Error('Peer is not initialized')
+    }
+
+    if (!this.peer.roomId) {
+      throw new Error('Not in any room')
+    }
+
+    if (target?.type === 'peer') {
+      if (!target.peerId) {
+        throw new Error('peerId is required when targeting a specific peer')
+      }
+      if (!this.peers.has(target.peerId)) {
+        throw new Error(`Peer ${target.peerId} not found`)
+      }
+    }
+
+    const message: CustomMessage = {
+      type: 'CUSTOM',
+      payload: {
+        customType,
+        target,
+        data
       }
     }
     this.ws.send(JSON.stringify(message))
