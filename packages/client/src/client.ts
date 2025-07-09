@@ -16,8 +16,7 @@ import type {
   PeerUpdatedMessage,
   RoomJoinedMessage,
   RoomLeftMessage,
-  UpdateDisplayNameMessage,
-  ValidationResult
+  UpdateDisplayNameMessage
 } from '@grabstream/core'
 import {
   isServerToClientMessage,
@@ -29,6 +28,11 @@ import {
 
 import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
 import { GrabstreamClientEmitter } from './emitter'
+import {
+  PeerNotInitializedError,
+  ValidationError,
+  WebSocketNotConnectedError
+} from './errors'
 import { LocalPeer, RemotePeer } from './peer'
 import type {
   GrabstreamClientConfiguration,
@@ -162,11 +166,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   knockRoom(roomId: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected')
+      throw new WebSocketNotConnectedError()
     }
 
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     const validation = validateRoomId(roomId)
@@ -191,11 +195,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   ): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected')
+      throw new WebSocketNotConnectedError()
     }
 
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     if (this.peer.isInRoom) {
@@ -238,11 +242,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   leaveRoom(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected')
+      throw new WebSocketNotConnectedError()
     }
 
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     if (!this.peer.isInRoom) {
@@ -257,11 +261,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   updateDisplayName(displayName: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected')
+      throw new WebSocketNotConnectedError()
     }
 
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     const trimmedDisplayName = displayName.trim()
@@ -288,11 +292,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   ): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected')
+      throw new WebSocketNotConnectedError()
     }
 
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     if (!this.peer.isInRoom) {
@@ -321,7 +325,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   setLocalStream(stream: MediaStream): void {
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     this.peer.setStream(stream)
@@ -335,7 +339,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   setLocalScreenStream(stream: MediaStream): void {
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     this.clearAllRemoteScreenStreams()
@@ -350,7 +354,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   removeLocalStream(): void {
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     this.peer.clearStream()
@@ -358,7 +362,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
   removeLocalScreenStream(): void {
     if (!this.peer) {
-      throw new Error('Peer is not initialized')
+      throw new PeerNotInitializedError()
     }
 
     this.peer.clearScreenStream()
@@ -915,16 +919,5 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.ws = undefined
     this.peer = undefined
     this.peers.clear()
-  }
-}
-
-export class ValidationError extends Error {
-  code: string
-  details?: Record<string, unknown>
-
-  constructor(validation: Extract<ValidationResult, { success: false }>) {
-    super(validation.error)
-    this.code = validation.code
-    this.details = validation.details
   }
 }
