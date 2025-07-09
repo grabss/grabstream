@@ -522,7 +522,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
           logger.warn('signaling:iceCandidateNotSent', {
             toPeerId: id,
-            candidate
+            reason: 'WebSocket not connected'
           })
           return
         }
