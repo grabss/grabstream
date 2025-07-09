@@ -368,6 +368,38 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.peer.clearScreenStream()
   }
 
+  muteLocalAudio(): void {
+    if (!this.peer) {
+      throw new PeerNotInitializedError()
+    }
+
+    this.peer.muteAudio()
+  }
+
+  unmuteLocalAudio(): void {
+    if (!this.peer) {
+      throw new PeerNotInitializedError()
+    }
+
+    this.peer.unmuteAudio()
+  }
+
+  disableLocalVideo(): void {
+    if (!this.peer) {
+      throw new PeerNotInitializedError()
+    }
+
+    this.peer.disableVideo()
+  }
+
+  enableLocalVideo(): void {
+    if (!this.peer) {
+      throw new PeerNotInitializedError()
+    }
+
+    this.peer.enableVideo()
+  }
+
   private setupWebSocketEventHandlers(ws: WebSocket): void {
     ws.onopen = null
 
