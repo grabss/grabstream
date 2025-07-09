@@ -34,7 +34,6 @@ export type JoinRoomMessage = {
 
 export type LeaveRoomMessage = {
   type: 'LEAVE_ROOM'
-  payload?: Record<string, never>
 }
 
 export type UpdateDisplayNameMessage = {
