@@ -483,7 +483,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     switch (message.type) {
-      case 'OFFER':
+      case 'OFFER': {
         logger.debug('signaling:offerReceived', {
           fromPeerId,
           offer: message.payload.offer
@@ -512,17 +512,29 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           })
           return
         }
-
         break
-      case 'ANSWER':
-        logger.debug('signaling:answerReceived', { fromPeerId })
-        // TODO: WebRTC - setRemoteDescription
+      }
+      case 'ANSWER': {
+        logger.debug('signaling:answerReceived', {
+          fromPeerId,
+          answer: message.payload.answer
+        })
+        try {
+          await remotePeer.receiveAnswer(message.payload.answer)
+          logger.debug('signaling:answerProcessed', { fromPeerId })
+        } catch (error) {
+          logger.error('signaling:answerFailed', {
+            fromPeerId,
+            error
+          })
+          return
+        }
         break
-
-      case 'ICE_CANDIDATE':
+      }
+      case 'ICE_CANDIDATE': {
         logger.debug('signaling:iceCandidateReceived', { fromPeerId })
-        // TODO: WebRTC - addIceCandidate
         break
+      }
     }
 
     logger.debug('peer:signaling', {
