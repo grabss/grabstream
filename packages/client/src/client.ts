@@ -197,7 +197,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error('Peer is not initialized')
     }
 
-    if (this.peer.roomId) {
+    if (this.peer.isInRoom) {
       throw new Error(`Already in room ${this.peer.roomId}`)
     }
 
@@ -227,7 +227,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error('Peer is not initialized')
     }
 
-    if (!this.peer.roomId) {
+    if (!this.peer.isInRoom) {
       throw new Error('Not in any room')
     }
 
@@ -277,7 +277,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       throw new Error('Peer is not initialized')
     }
 
-    if (!this.peer.roomId) {
+    if (!this.peer.isInRoom) {
       throw new Error('Not in any room')
     }
 

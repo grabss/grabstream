@@ -22,6 +22,10 @@ export class LocalPeer {
     return this._roomId
   }
 
+  get isInRoom(): boolean {
+    return this._roomId !== undefined
+  }
+
   get stream(): MediaStream | undefined {
     return this._stream
   }
