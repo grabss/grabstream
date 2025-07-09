@@ -794,12 +794,19 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           }
         }
       },
-      onStreamReceived: (streams) => {
+      onStreamReceived: (streams, isScreenShare) => {
         logger.debug('peer:streamReceived', {
           peerId: remotePeer.id,
           streamCount: streams.length
         })
         this.emit('peer:streamReceived', { peer: remotePeer, streams })
+
+        if (isScreenShare) {
+          if (this.peer?.screenStream) {
+            this.peer.clearScreenStream()
+          }
+          this.clearAllRemoteScreenStreams(remotePeer.id)
+        }
       },
       onIceCandidate: (candidate) => {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -872,9 +879,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
-  private clearAllRemoteScreenStreams(): void {
+  private clearAllRemoteScreenStreams(ignoreRemotePeerId?: string): void {
     for (const remotePeer of this.peers.values()) {
-      remotePeer.clearScreenStream()
+      if (remotePeer.id !== ignoreRemotePeerId) {
+        remotePeer.clearScreenStream()
+      }
     }
   }
 

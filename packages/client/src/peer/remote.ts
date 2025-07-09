@@ -8,7 +8,10 @@ export class RemotePeer {
   private _screenStream?: MediaStream
 
   private onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-  private onStreamReceived?: (streams: readonly MediaStream[]) => void
+  private onStreamReceived?: (
+    streams: readonly MediaStream[],
+    isScreenShare: boolean
+  ) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
 
   constructor({
@@ -23,7 +26,10 @@ export class RemotePeer {
     displayName: string
     iceServers: RTCIceServer[]
     onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-    onStreamReceived?: (streams: readonly MediaStream[]) => void
+    onStreamReceived?: (
+      streams: readonly MediaStream[],
+      isScreenShare: boolean
+    ) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
   }) {
     this._id = id
@@ -139,7 +145,7 @@ export class RemotePeer {
         }
       }
 
-      this.onStreamReceived?.(streams)
+      this.onStreamReceived?.(streams, isScreenShare)
     }
 
     connection.onicecandidate = (event) => {
