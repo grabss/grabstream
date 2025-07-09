@@ -60,6 +60,13 @@ export class RemotePeer {
     return this._screenStream
   }
 
+  clearScreenStream(): void {
+    if (this._screenStream) {
+      this._screenStream.getTracks().forEach((track) => track.stop())
+      this._screenStream = undefined
+    }
+  }
+
   sendStream(stream: MediaStream): void {
     for (const track of stream.getTracks()) {
       this._connection.addTrack(track, stream)
