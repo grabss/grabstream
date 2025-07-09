@@ -248,14 +248,14 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'ROOM_JOINED': {
-        this.handleRoomJoinedMessage({
+        await this.handleRoomJoinedMessage({
           localPeer: this.peer,
           message
         })
         break
       }
       case 'ROOM_LEFT': {
-        this.handleRoomLeftMessage({
+        await this.handleRoomLeftMessage({
           localPeer: this.peer,
           message
         })
@@ -317,21 +317,22 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
-  private handleRoomJoinedMessage({
+  private async handleRoomJoinedMessage({
     localPeer,
     message
   }: {
     localPeer: LocalPeer
     message: RoomJoinedMessage
-  }): void {
+  }): Promise<void> {
     const { roomId, displayName, peers } = message.payload
+
+    await this.cleanupRoomState(localPeer)
 
     localPeer.joinRoom({
       roomId,
       displayName
     })
 
-    this.peers.clear()
     for (const peer of peers) {
       const remotePeer = this.createRemotePeer({
         id: peer.id,
@@ -355,22 +356,19 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
-  private handleRoomLeftMessage({
+  private async handleRoomLeftMessage({
     localPeer,
     message
   }: {
     localPeer: LocalPeer
     message: RoomLeftMessage
-  }): void {
+  }): Promise<void> {
     const { roomId } = message.payload
 
-    localPeer.leaveRoom()
-    this.peers.clear()
+    await this.cleanupRoomState(localPeer)
 
     logger.info('room:left', { roomId })
     this.emit('room:left', { roomId })
-
-    // TODO: closeAllPeerConnections
   }
 
   private handlePeerJoinedMessage(message: PeerJoinedMessage): void {
@@ -664,6 +662,13 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         error
       })
     }
+  }
+
+  private async cleanupRoomState(localPeer: LocalPeer): Promise<void> {
+    // await this.closeAllPeerConnections()
+
+    localPeer.leaveRoom()
+    this.peers.clear()
   }
 
   private cleanup(): void {
