@@ -73,6 +73,13 @@ export class LocalPeer {
     this._screenStream = stream
   }
 
+  clearScreenStream(): void {
+    if (this._screenStream) {
+      this._screenStream.getTracks().forEach((track) => track.stop())
+      this._screenStream = undefined
+    }
+  }
+
   muteAudio(): void {
     this.setAudioEnabled(false)
   }
