@@ -157,7 +157,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
   }
 
-  async knockRoom(roomId: string): Promise<void> {
+  knockRoom(roomId: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected')
     }
@@ -181,13 +181,13 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.ws.send(JSON.stringify(message))
   }
 
-  async joinRoom(
+  joinRoom(
     roomId: string,
     options?: {
       displayName?: string
       password?: string
     }
-  ): Promise<void> {
+  ): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected')
     }
@@ -217,7 +217,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.ws.send(JSON.stringify(message))
   }
 
-  async leaveRoom(): Promise<void> {
+  leaveRoom(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected')
     }
@@ -236,7 +236,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.ws.send(JSON.stringify(message))
   }
 
-  async updateDisplayName(displayName: string): Promise<void> {
+  updateDisplayName(displayName: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected')
     }
