@@ -1,4 +1,5 @@
 import { logger } from '@grabstream/core'
+import { DEFAULT_ICE_MAX_RESTARTS } from '../constants'
 
 export class RemotePeer {
   private readonly _id: string
@@ -15,6 +16,8 @@ export class RemotePeer {
   ) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
   private onDataChannelMessage?: (data: string) => void
+
+  private iceRestartCount = 0
 
   constructor({
     id,
@@ -161,6 +164,12 @@ export class RemotePeer {
       this.onConnectionStateChanged?.(connection.connectionState)
     }
 
+    connection.oniceconnectionstatechange = () => {
+      if (connection.iceConnectionState === 'failed') {
+        this.handleIceConnectionFailure()
+      }
+    }
+
     connection.ontrack = (event) => {
       const { track, streams } = event
       const isScreenShare =
@@ -221,6 +230,32 @@ export class RemotePeer {
 
     channel.onerror = (event) => {
       logger.error('peer:dataChannelError', { peerId: this._id, event })
+    }
+  }
+
+  private handleIceConnectionFailure(): void {
+    if (this.iceRestartCount >= DEFAULT_ICE_MAX_RESTARTS) {
+      logger.error('peer:iceRestartFailed', {
+        peerId: this._id,
+        attempts: this.iceRestartCount
+      })
+      return
+    }
+
+    this.iceRestartCount++
+
+    logger.warn('peer:iceRestart', {
+      peerId: this._id,
+      attempt: this.iceRestartCount
+    })
+
+    try {
+      this._connection.restartIce()
+    } catch (error) {
+      logger.error('peer:iceRestartError', {
+        peerId: this._id,
+        error
+      })
     }
   }
 }
