@@ -1,5 +1,10 @@
 import { logger } from '@grabstream/core'
 import { DEFAULT_ICE_MAX_RESTARTS } from '../constants'
+import type {
+  StreamDataChannelMessage,
+  StreamMetadata,
+  StreamType
+} from '../types'
 
 export class RemotePeer {
   private readonly _id: string
@@ -7,9 +12,10 @@ export class RemotePeer {
   private _connection: RTCPeerConnection
   private _dataChannel?: RTCDataChannel
   private _streams: Map<string, MediaStream> = new Map()
+  private _streamMetadata: Map<string, StreamMetadata> = new Map()
 
   private onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-  private onStreamReceived?: (streams: readonly MediaStream[]) => void
+  private onStreamReceived?: (type: StreamType, stream: MediaStream) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
   private onDataChannelMessage?: (data: string) => void
   private onRenegotiationNeeded?: (offer: RTCSessionDescriptionInit) => void
@@ -30,7 +36,7 @@ export class RemotePeer {
     displayName: string
     iceServers: RTCIceServer[]
     onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-    onStreamReceived?: (streams: readonly MediaStream[]) => void
+    onStreamReceived?: (type: StreamType, stream: MediaStream) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
     onDataChannelMessage?: (data: string) => void
     onRenegotiationNeeded?: (offer: RTCSessionDescriptionInit) => void
@@ -184,9 +190,8 @@ export class RemotePeer {
 
       for (const stream of streams) {
         this._streams.set(stream.id, stream)
+        this.matchStream(stream.id)
       }
-
-      this.onStreamReceived?.(streams)
     }
 
     connection.onicecandidate = (event) => {
@@ -211,11 +216,28 @@ export class RemotePeer {
     channel.onmessage = (event) => {
       logger.debug('peer:dataChannelMessage', {
         peerId: this._id,
-        dataLength:
-          typeof event.data === 'string'
-            ? event.data.length
-            : event.data.byteLength
+        data: event.data
       })
+
+      try {
+        const message: StreamDataChannelMessage = JSON.parse(event.data)
+
+        switch (message.type) {
+          case 'STREAM_METADATA': {
+            const metadata = message.data
+            this._streamMetadata.set(metadata.streamId, metadata)
+            this.matchStream(metadata.streamId)
+            return
+          }
+          case 'STREAM_REMOVED': {
+            const { streamId } = message.data
+            this._streamMetadata.delete(streamId)
+            this._streams.delete(streamId)
+            return
+          }
+        }
+      } catch {}
+
       this.onDataChannelMessage?.(event.data)
     }
 
@@ -251,6 +273,15 @@ export class RemotePeer {
         peerId: this._id,
         error
       })
+    }
+  }
+
+  private matchStream(streamId: string): void {
+    const stream = this._streams.get(streamId)
+    const metadata = this._streamMetadata.get(streamId)
+
+    if (stream && metadata) {
+      this.onStreamReceived?.(metadata.type, stream)
     }
   }
 }

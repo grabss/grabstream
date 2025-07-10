@@ -17,9 +17,7 @@ export type StreamMetadata = {
   timestamp: number
 }
 
-// ==================== DataChannel Messages ====================
-
-export type DataChannelMessage =
+export type StreamDataChannelMessage =
   | {
       type: 'STREAM_METADATA'
       data: StreamMetadata
@@ -27,8 +25,4 @@ export type DataChannelMessage =
   | {
       type: 'STREAM_REMOVED'
       data: { streamId: string }
-    }
-  | {
-      type: 'CUSTOM'
-      data: unknown
     }
