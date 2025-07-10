@@ -9,19 +9,20 @@ import type { Peer } from './peer'
 
 export class Room {
   private readonly _id: string
-  private readonly _password?: string
   private readonly _peers: Map<string, Peer>
-  private readonly _createdAt: Date
+
+  private readonly password?: string
+  private readonly createdAt: Date
 
   constructor(id: string, password?: string) {
     this.validateRoomId(id)
     this._id = id
     this._peers = new Map<string, Peer>()
-    this._createdAt = new Date()
+    this.createdAt = new Date()
 
     if (password !== undefined) {
       this.validatePassword(password)
-      this._password = password
+      this.password = password
     }
   }
 
@@ -38,7 +39,7 @@ export class Room {
   }
 
   get hasPassword(): boolean {
-    return this._password !== undefined
+    return this.password !== undefined
   }
 
   addPeer(peer: Peer): void {
@@ -91,14 +92,14 @@ export class Room {
   }
 
   verifyPassword(password: string): boolean {
-    return !this.hasPassword || this._password === password
+    return !this.hasPassword || this.password === password
   }
 
   toJSON() {
     return {
       id: this._id,
       peers: this.peers.map((peer) => peer.toJSON()),
-      createdAt: this._createdAt,
+      createdAt: this.createdAt,
       hasPassword: this.hasPassword
     }
   }

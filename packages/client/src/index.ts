@@ -1,3 +1,7 @@
-export class GrabstreamClient {
-  // TODO: Implement client initialization
-}
+export { GrabstreamClient } from './client'
+export {
+  PeerNotInitializedError,
+  ValidationError,
+  WebSocketNotConnectedError
+} from './errors'
+export type { GrabstreamClientOptions } from './types'

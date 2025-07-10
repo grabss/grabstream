@@ -15,16 +15,7 @@ describe('Message Guards', () => {
       expect(isClientToServerMessage(message)).toBe(true)
     })
 
-    it('should return true for valid LEAVE_ROOM message with payload', () => {
-      const message = {
-        type: 'LEAVE_ROOM',
-        payload: {}
-      }
-
-      expect(isClientToServerMessage(message)).toBe(true)
-    })
-
-    it('should return true for valid LEAVE_ROOM message without payload', () => {
+    it('should return true for valid LEAVE_ROOM message', () => {
       const message = {
         type: 'LEAVE_ROOM'
       }
@@ -234,7 +225,10 @@ describe('Message Guards', () => {
       if (isClientToServerMessage(message)) {
         // TypeScript should now know this is ClientToServerMessage
         expect(message.type).toBeDefined()
-        expect(message.payload).toBeDefined()
+        // Note: LEAVE_ROOM doesn't have payload, so we can't always expect it
+        if (message.type !== 'LEAVE_ROOM') {
+          expect(message.payload).toBeDefined()
+        }
 
         // This should compile without errors
         const clientMessage: ClientToServerMessage = message

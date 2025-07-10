@@ -24,7 +24,8 @@ describe('Message Types', () => {
       const candidate: RTCIceCandidate = {
         candidate: 'candidate:1 1 UDP 2013266431 192.168.1.100 54400 typ host',
         sdpMLineIndex: 0,
-        sdpMid: '0'
+        sdpMid: '0',
+        usernameFragment: null
       }
 
       expect(candidate.candidate).toContain('candidate:')
@@ -80,6 +81,7 @@ describe('Message Types', () => {
         type: 'CONNECTION_ESTABLISHED',
         payload: {
           peerId: 'peer-123',
+          displayName: 'Test User',
           iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
         }
       }
@@ -98,8 +100,7 @@ describe('Message Types', () => {
           payload: { roomId: 'test' }
         },
         {
-          type: 'LEAVE_ROOM',
-          payload: {}
+          type: 'LEAVE_ROOM'
         },
         {
           type: 'OFFER',
@@ -122,6 +123,7 @@ describe('Message Types', () => {
           type: 'CONNECTION_ESTABLISHED',
           payload: {
             peerId: 'peer-123',
+            displayName: 'Test User',
             iceServers: []
           }
         },

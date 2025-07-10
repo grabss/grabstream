@@ -6,16 +6,18 @@ export type RTCIceServer = {
   credential?: string
 }
 
+export type RTCSdpType = 'answer' | 'offer' | 'pranswer' | 'rollback'
+
 export type RTCSessionDescription = {
-  type: 'offer' | 'answer'
-  sdp: string
+  type: RTCSdpType
+  sdp?: string
 }
 
 export type RTCIceCandidate = {
   candidate: string
-  sdpMLineIndex?: number
-  sdpMid?: string
-  usernameFragment?: string
+  sdpMLineIndex: number | null
+  sdpMid: string | null
+  usernameFragment: string | null
 }
 
 // ==================== Client to Server Messages ====================
@@ -32,7 +34,6 @@ export type JoinRoomMessage = {
 
 export type LeaveRoomMessage = {
   type: 'LEAVE_ROOM'
-  payload?: Record<string, never>
 }
 
 export type UpdateDisplayNameMessage = {
@@ -94,6 +95,7 @@ export type ConnectionEstablishedMessage = {
   type: 'CONNECTION_ESTABLISHED'
   payload: {
     peerId: string
+    displayName: string
     iceServers: RTCIceServer[]
   }
 }
@@ -103,6 +105,7 @@ export type RoomJoinedMessage = {
   type: 'ROOM_JOINED'
   payload: {
     roomId: string
+    displayName: string
     peers: Array<{
       id: string
       displayName: string
@@ -147,6 +150,40 @@ export type DisplayNameUpdatedMessage = {
   }
 }
 
+export type PasswordRequiredMessage = {
+  type: 'PASSWORD_REQUIRED'
+  payload: {
+    roomId: string
+  }
+}
+
+export type KnockResponseMessage = {
+  type: 'KNOCK_RESPONSE'
+  payload: {
+    roomId: string
+    exists: boolean
+    hasPassword: boolean
+    peerCount: number
+    isFull: boolean
+  }
+}
+
+export type CustomRelayMessage = {
+  type: 'CUSTOM'
+  payload: {
+    fromPeerId: string
+    customType: string
+    data: unknown
+  }
+}
+
+export type ErrorMessage = {
+  type: 'ERROR'
+  payload: {
+    message: string
+  }
+}
+
 // WebRTC Signaling
 export type OfferRelayMessage = {
   type: 'OFFER'
@@ -175,43 +212,6 @@ export type IceCandidateRelayMessage = {
   }
 }
 
-// Custom message relay
-export type CustomRelayMessage = {
-  type: 'CUSTOM'
-  payload: {
-    fromPeerId: string
-    customType: string
-    data: unknown
-  }
-}
-
-// Error
-export type ErrorMessage = {
-  type: 'ERROR'
-  payload: {
-    message: string
-  }
-}
-
-// Password management
-export type PasswordRequiredMessage = {
-  type: 'PASSWORD_REQUIRED'
-  payload: {
-    roomId: string
-  }
-}
-
-export type KnockResponseMessage = {
-  type: 'KNOCK_RESPONSE'
-  payload: {
-    roomId: string
-    exists: boolean
-    hasPassword: boolean
-    peerCount: number
-    isFull: boolean
-  }
-}
-
 // ==================== Union Types ====================
 
 export type ClientToServerMessage =
@@ -232,10 +232,10 @@ export type ServerToClientMessage =
   | PeerLeftMessage
   | PeerUpdatedMessage
   | DisplayNameUpdatedMessage
-  | CustomRelayMessage
-  | ErrorMessage
   | PasswordRequiredMessage
   | KnockResponseMessage
+  | CustomRelayMessage
+  | ErrorMessage
   | OfferRelayMessage
   | AnswerRelayMessage
   | IceCandidateRelayMessage

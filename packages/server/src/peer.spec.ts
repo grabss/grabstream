@@ -169,6 +169,7 @@ describe('Peer', () => {
         type: 'CONNECTION_ESTABLISHED' as const,
         payload: {
           peerId: 'test',
+          displayName: 'Test User',
           iceServers: []
         }
       }
@@ -186,6 +187,7 @@ describe('Peer', () => {
         type: 'CONNECTION_ESTABLISHED' as const,
         payload: {
           peerId: 'test',
+          displayName: 'Test User',
           iceServers: []
         }
       }
@@ -205,6 +207,7 @@ describe('Peer', () => {
         type: 'CONNECTION_ESTABLISHED' as const,
         payload: {
           peerId: 'test',
+          displayName: 'Test User',
           iceServers: []
         }
       }

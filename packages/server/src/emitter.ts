@@ -9,20 +9,49 @@ type EventMap = {
   'server:error': [Error]
   'peer:connected': [Peer]
   'peer:disconnected': [Peer]
-  'peer:joined': [{ peer: Peer; room: Room }]
-  'peer:left': [{ peer: Peer; roomId: string }]
-  'peer:error': [{ peer: Peer; error: Error }]
+  'peer:joined': [
+    {
+      peer: Peer
+      room: Room
+    }
+  ]
+  'peer:left': [
+    {
+      peer: Peer
+      roomId: string
+    }
+  ]
+  'peer:error': [
+    {
+      peer: Peer
+      error: Error
+    }
+  ]
   'peer:displayNameUpdated': [
-    { peer: Peer; oldDisplayName: string; newDisplayName: string }
+    {
+      peer: Peer
+      oldDisplayName: string
+      newDisplayName: string
+    }
   ]
   'peer:timeout': [Peer]
+  'peer:limitReachedPerRoom': [
+    {
+      roomId: string
+      peerId: string
+      currentPeers: number
+      maxPeers: number
+    }
+  ]
   'room:created': [Room]
   'room:removed': [{ roomId: string }]
   'room:limitReachedPerServer': [
-    { roomId: string; peerId: string; currentRooms: number; maxRooms: number }
-  ]
-  'peer:limitReachedPerRoom': [
-    { roomId: string; peerId: string; currentPeers: number; maxPeers: number }
+    {
+      roomId: string
+      peerId: string
+      currentRooms: number
+      maxRooms: number
+    }
   ]
 }
 

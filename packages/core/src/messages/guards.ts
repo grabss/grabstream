@@ -11,7 +11,7 @@ export function isClientToServerMessage(
     return false
   }
 
-  // LEAVE_ROOM can have optional payload, others require payload
+  // LEAVE_ROOM has no payload, others require payload
   if (msg.type === 'LEAVE_ROOM') {
     return true
   }
