@@ -12,6 +12,7 @@ export class RemotePeer {
   private onStreamReceived?: (streams: readonly MediaStream[]) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
   private onDataChannelMessage?: (data: string) => void
+  private onRenegotiationNeeded?: (offer: RTCSessionDescriptionInit) => void
 
   private iceRestartCount = 0
 
@@ -22,7 +23,8 @@ export class RemotePeer {
     onConnectionStateChanged,
     onStreamReceived,
     onIceCandidate,
-    onDataChannelMessage
+    onDataChannelMessage,
+    onRenegotiationNeeded
   }: {
     id: string
     displayName: string
@@ -31,6 +33,7 @@ export class RemotePeer {
     onStreamReceived?: (streams: readonly MediaStream[]) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
     onDataChannelMessage?: (data: string) => void
+    onRenegotiationNeeded?: (offer: RTCSessionDescriptionInit) => void
   }) {
     this._id = id
     this._displayName = displayName
@@ -47,6 +50,7 @@ export class RemotePeer {
     this.onStreamReceived = onStreamReceived
     this.onIceCandidate = onIceCandidate
     this.onDataChannelMessage = onDataChannelMessage
+    this.onRenegotiationNeeded = onRenegotiationNeeded
   }
 
   get id(): string {
@@ -73,9 +77,26 @@ export class RemotePeer {
     return this._streams
   }
 
-  sendStream(stream: MediaStream): void {
+  async sendStream(stream: MediaStream): Promise<void> {
     for (const track of stream.getTracks()) {
       this._connection.addTrack(track, stream)
+    }
+
+    if (this._connection.signalingState === 'stable') {
+      try {
+        const offer = await this.createOffer()
+        this.onRenegotiationNeeded?.(offer)
+
+        logger.debug('peer:renegotiationOfferCreated', {
+          peerId: this._id,
+          offer
+        })
+      } catch (error) {
+        logger.error('peer:renegotiationFailed', {
+          peerId: this._id,
+          error
+        })
+      }
     }
   }
 

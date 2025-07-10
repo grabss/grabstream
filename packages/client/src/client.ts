@@ -308,7 +308,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     remotePeer.sendData(data)
   }
 
-  setLocalStream(stream: MediaStream): void {
+  async setLocalStream(stream: MediaStream): Promise<void> {
     if (!this.peer) {
       throw new PeerNotInitializedError()
     }
@@ -317,7 +317,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     if (this.peer.isInRoom) {
       for (const remotePeer of this.peers.values()) {
-        remotePeer.sendStream(stream)
+        await remotePeer.sendStream(stream)
       }
     }
   }
@@ -445,7 +445,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'PEER_JOINED': {
-        this.handlePeerJoinedMessage(message)
+        await this.handlePeerJoinedMessage(message)
         break
       }
       case 'PEER_LEFT': {
@@ -549,7 +549,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.emit('room:left', { roomId })
   }
 
-  private handlePeerJoinedMessage(message: PeerJoinedMessage): void {
+  private async handlePeerJoinedMessage(
+    message: PeerJoinedMessage
+  ): Promise<void> {
     const { peerId, displayName } = message.payload
 
     const remotePeer = this.createRemotePeer({
@@ -559,7 +561,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.peers.set(peerId, remotePeer)
 
     if (this.peer?.stream) {
-      remotePeer.sendStream(this.peer.stream)
+      await remotePeer.sendStream(this.peer.stream)
     }
 
     logger.info('peer:joined', {
@@ -842,6 +844,36 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           peer: remotePeer,
           data
         })
+      },
+      onRenegotiationNeeded: (offer) => {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+          logger.warn('signaling:renegotiationOfferNotSent', {
+            toPeerId: id,
+            reason: 'WebSocket not connected'
+          })
+          return
+        }
+
+        try {
+          const message: OfferMessage = {
+            type: 'OFFER',
+            payload: {
+              toPeerId: id,
+              offer
+            }
+          }
+          this.ws.send(JSON.stringify(message))
+
+          logger.debug('signaling:renegotiationOfferSent', {
+            toPeerId: id,
+            offer
+          })
+        } catch (error) {
+          logger.error('signaling:renegotiationOfferFailed', {
+            toPeerId: id,
+            error
+          })
+        }
       }
     })
 
@@ -863,7 +895,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     try {
       remotePeer.createDataChannel()
       if (this.peer?.stream) {
-        remotePeer.sendStream(this.peer.stream)
+        await remotePeer.sendStream(this.peer.stream)
       }
       const offer = await remotePeer.createOffer()
 
