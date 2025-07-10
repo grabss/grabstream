@@ -862,6 +862,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     try {
       remotePeer.createDataChannel()
+      if (this.peer?.stream) {
+        remotePeer.sendStream(this.peer.stream)
+      }
       const offer = await remotePeer.createOffer()
 
       const message: OfferMessage = {
