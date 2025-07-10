@@ -333,6 +333,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
     }
   }
+
   async removeLocalStream(streamId: string): Promise<void> {
     if (!this.peer) {
       throw new PeerNotInitializedError()
