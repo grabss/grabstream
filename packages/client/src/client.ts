@@ -581,6 +581,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
     this.peers.set(peerId, remotePeer)
 
+    if (this.peer?.stream) {
+      remotePeer.sendStream(this.peer.stream)
+    }
+
     logger.info('peer:joined', {
       peerId,
       displayName,
