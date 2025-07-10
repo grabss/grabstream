@@ -51,8 +51,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.configuration = {
       url: options.url ?? DEFAULT_SERVER_URL,
       connectionTimeoutMs:
-        options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS,
-      enableDataChannel: options.enableDataChannel ?? false
+        options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS
     }
   }
 
@@ -588,9 +587,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       peerCount: this.peers.size
     })
     this.emit('peer:joined', remotePeer)
-
-    // Initiate connection to the new peer (no await)
-    this.initiateConnectionToPeer(remotePeer)
   }
 
   private handlePeerLeftMessage(message: PeerLeftMessage): void {
@@ -891,9 +887,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     try {
-      if (this.configuration.enableDataChannel) {
-        remotePeer.createDataChannel()
-      }
+      remotePeer.createDataChannel()
       const offer = await remotePeer.createOffer()
 
       const message: OfferMessage = {
