@@ -798,12 +798,13 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           }
         }
       },
-      onStreamReceived: (streams) => {
+      onStreamReceived: (type, stream) => {
         logger.debug('peer:streamReceived', {
           peerId: remotePeer.id,
-          streamCount: streams.length
+          streamId: stream.id,
+          type
         })
-        this.emit('peer:streamReceived', { peer: remotePeer, streams })
+        this.emit('peer:streamReceived', { peer: remotePeer, type, stream })
       },
       onIceCandidate: (candidate) => {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {

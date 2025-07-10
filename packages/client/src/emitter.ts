@@ -6,6 +6,7 @@ import type {
 import { logger } from '@grabstream/core'
 
 import type { RemotePeer } from './peer'
+import type { StreamType } from './types'
 
 type EventMap = {
   'client:connected': [{ peerId: string }]
@@ -45,7 +46,8 @@ type EventMap = {
   'peer:streamReceived': [
     {
       peer: RemotePeer
-      streams: readonly MediaStream[]
+      type: StreamType
+      stream: MediaStream
     }
   ]
   'peer:customMessage': [
