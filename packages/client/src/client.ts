@@ -322,35 +322,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
   }
 
-  setLocalScreenStream(stream: MediaStream): void {
-    if (!this.peer) {
-      throw new PeerNotInitializedError()
-    }
-
-    this.clearAllRemoteScreenStreams()
-    this.peer.setScreenStream(stream)
-
-    if (this.peer.isInRoom) {
-      for (const remotePeer of this.peers.values()) {
-        remotePeer.sendStream(stream)
-      }
-    }
-  }
-
   removeLocalStream(): void {
     if (!this.peer) {
       throw new PeerNotInitializedError()
     }
 
     this.peer.clearStream()
-  }
-
-  removeLocalScreenStream(): void {
-    if (!this.peer) {
-      throw new PeerNotInitializedError()
-    }
-
-    this.peer.clearScreenStream()
   }
 
   muteLocalAudio(): void {
@@ -819,19 +796,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           }
         }
       },
-      onStreamReceived: (streams, isScreenShare) => {
+      onStreamReceived: (streams) => {
         logger.debug('peer:streamReceived', {
           peerId: remotePeer.id,
           streamCount: streams.length
         })
         this.emit('peer:streamReceived', { peer: remotePeer, streams })
-
-        if (isScreenShare) {
-          if (this.peer?.screenStream) {
-            this.peer.clearScreenStream()
-          }
-          this.clearAllRemoteScreenStreams(remotePeer.id)
-        }
       },
       onIceCandidate: (candidate) => {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -912,14 +882,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         toPeerId: remotePeer.id,
         error
       })
-    }
-  }
-
-  private clearAllRemoteScreenStreams(ignoreRemotePeerId?: string): void {
-    for (const remotePeer of this.peers.values()) {
-      if (remotePeer.id !== ignoreRemotePeerId) {
-        remotePeer.clearScreenStream()
-      }
     }
   }
 

@@ -7,13 +7,9 @@ export class RemotePeer {
   private _connection: RTCPeerConnection
   private _dataChannel?: RTCDataChannel
   private _streams: Map<string, MediaStream> = new Map()
-  private _screenStream?: MediaStream
 
   private onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-  private onStreamReceived?: (
-    streams: readonly MediaStream[],
-    isScreenShare: boolean
-  ) => void
+  private onStreamReceived?: (streams: readonly MediaStream[]) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
   private onDataChannelMessage?: (data: string) => void
 
@@ -32,10 +28,7 @@ export class RemotePeer {
     displayName: string
     iceServers: RTCIceServer[]
     onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-    onStreamReceived?: (
-      streams: readonly MediaStream[],
-      isScreenShare: boolean
-    ) => void
+    onStreamReceived?: (streams: readonly MediaStream[]) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
     onDataChannelMessage?: (data: string) => void
   }) {
@@ -78,17 +71,6 @@ export class RemotePeer {
 
   get streams(): Map<string, MediaStream> {
     return this._streams
-  }
-
-  get screenStream(): MediaStream | undefined {
-    return this._screenStream
-  }
-
-  clearScreenStream(): void {
-    if (this._screenStream) {
-      this._screenStream.getTracks().forEach((track) => track.stop())
-      this._screenStream = undefined
-    }
   }
 
   sendStream(stream: MediaStream): void {
@@ -173,27 +155,17 @@ export class RemotePeer {
     connection.ontrack = (event) => {
       const { track, streams } = event
 
-      // TODO: Replace with DataChannel metadata for reliable stream type identification
-      const isScreenShare =
-        track.label.toLowerCase().includes('screen') ||
-        track.label.toLowerCase().includes('display')
-
       logger.debug('peer:trackReceived', {
         peerId: this._id,
         streams: streams.map((s) => s.id),
-        trackKind: track.kind,
-        isScreenShare
+        trackKind: track.kind
       })
 
       for (const stream of streams) {
-        if (isScreenShare) {
-          this._screenStream = stream
-        } else {
-          this._streams.set(stream.id, stream)
-        }
+        this._streams.set(stream.id, stream)
       }
 
-      this.onStreamReceived?.(streams, isScreenShare)
+      this.onStreamReceived?.(streams)
     }
 
     connection.onicecandidate = (event) => {
