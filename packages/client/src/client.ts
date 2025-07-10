@@ -7,7 +7,6 @@ import type {
   IceCandidateMessage,
   IceCandidateRelayMessage,
   JoinRoomMessage,
-  KnockMessage,
   LeaveRoomMessage,
   OfferMessage,
   OfferRelayMessage,
@@ -163,29 +162,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
       ws.close(1000, 'Client disconnect requested')
     })
-  }
-
-  knockRoom(roomId: string): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new WebSocketNotConnectedError()
-    }
-
-    if (!this.peer) {
-      throw new PeerNotInitializedError()
-    }
-
-    const validation = validateRoomId(roomId)
-    if (!validation.success) {
-      throw new ValidationError(validation)
-    }
-
-    const message: KnockMessage = {
-      type: 'KNOCK',
-      payload: {
-        roomId
-      }
-    }
-    this.ws.send(JSON.stringify(message))
   }
 
   joinRoom(
@@ -514,11 +490,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       case 'PASSWORD_REQUIRED': {
         logger.info('room:passwordRequired', message.payload)
         this.emit('room:passwordRequired', message.payload)
-        break
-      }
-      case 'KNOCK_RESPONSE': {
-        logger.debug('room:knockResponse', message.payload)
-        this.emit('room:knockResponse', message.payload)
         break
       }
       case 'CUSTOM': {

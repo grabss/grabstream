@@ -25,15 +25,6 @@ type EventMap = {
   ]
   'room:left': [{ roomId: string }]
   'room:passwordRequired': [{ roomId: string }]
-  'room:knockResponse': [
-    {
-      roomId: string
-      exists: boolean
-      hasPassword: boolean
-      peerCount: number
-      isFull: boolean
-    }
-  ]
   'peer:joined': [RemotePeer]
   'peer:left': [RemotePeer]
   'peer:updated': [RemotePeer]

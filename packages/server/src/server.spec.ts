@@ -533,21 +533,6 @@ describe('GrabstreamServer', () => {
       )
     })
 
-    it('should handle KNOCK message', () => {
-      jest.clearAllMocks() // Clear any previous send calls
-
-      mockSocket.simulateMessage({
-        type: 'KNOCK',
-        payload: {
-          roomId: 'test-room'
-        }
-      })
-
-      expect(mockSocket.send).toHaveBeenCalledWith(
-        expect.stringContaining('"type":"KNOCK_RESPONSE"')
-      )
-    })
-
     it('should handle CUSTOM message', () => {
       // First join a room to have peers to send to
       mockSocket.simulateMessage({
