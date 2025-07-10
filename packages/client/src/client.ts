@@ -52,7 +52,8 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.configuration = {
       url: options.url ?? DEFAULT_SERVER_URL,
       connectionTimeoutMs:
-        options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS
+        options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS,
+      enableDataChannel: options.enableDataChannel ?? false
     }
   }
 
@@ -321,6 +322,15 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
     }
     this.ws.send(JSON.stringify(message))
+  }
+
+  sendDataToPeer(peerId: string, data: string): void {
+    const remotePeer = this.peers.get(peerId)
+    if (!remotePeer) {
+      throw new Error(`Peer ${peerId} not found`)
+    }
+
+    remotePeer.sendData(data)
   }
 
   setLocalStream(stream: MediaStream): void {
@@ -881,6 +891,16 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
             error
           })
         }
+      },
+      onDataChannelMessage: (data) => {
+        logger.debug('peer:dataChannelMessage', {
+          peerId: id,
+          dataLength: data.length
+        })
+        this.emit('peer:dataChannelMessage', {
+          peer: remotePeer,
+          data
+        })
       }
     })
 
@@ -900,6 +920,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     try {
+      if (this.configuration.enableDataChannel) {
+        remotePeer.createDataChannel()
+      }
       const offer = await remotePeer.createOffer()
 
       const message: OfferMessage = {

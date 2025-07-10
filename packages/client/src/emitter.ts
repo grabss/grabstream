@@ -9,10 +9,20 @@ import type { RemotePeer } from './peer'
 
 type EventMap = {
   'client:connected': [{ peerId: string }]
-  'client:disconnected': [{ code: number; reason: string }]
+  'client:disconnected': [
+    {
+      code: number
+      reason: string
+    }
+  ]
   'client:error': [Event]
   'client:displayNameUpdated': [{ displayName: string }]
-  'room:joined': [{ roomId: string; peerCount: number }]
+  'room:joined': [
+    {
+      roomId: string
+      peerCount: number
+    }
+  ]
   'room:left': [{ roomId: string }]
   'room:passwordRequired': [{ roomId: string }]
   'room:knockResponse': [
@@ -29,16 +39,36 @@ type EventMap = {
   'peer:updated': [RemotePeer]
   'peer:connected': [RemotePeer]
   'peer:disconnected': [RemotePeer]
-  'peer:error': [{ peer: RemotePeer; error: Error }]
+  'peer:error': [
+    {
+      peer: RemotePeer
+      error: Error
+    }
+  ]
   'peer:signaling': [
     {
       peer: RemotePeer
       message: OfferRelayMessage | AnswerRelayMessage | IceCandidateRelayMessage
     }
   ]
-  'peer:streamReceived': [{ peer: RemotePeer; streams: readonly MediaStream[] }]
+  'peer:streamReceived': [
+    {
+      peer: RemotePeer
+      streams: readonly MediaStream[]
+    }
+  ]
   'peer:customMessage': [
-    { peer: RemotePeer; customType: string; data: unknown }
+    {
+      peer: RemotePeer
+      customType: string
+      data: unknown
+    }
+  ]
+  'peer:dataChannelMessage': [
+    {
+      peer: RemotePeer
+      data: string
+    }
   ]
   'server:error': [{ message: string }]
 }

@@ -4,6 +4,7 @@ export class RemotePeer {
   private readonly _id: string
   private _displayName: string
   private _connection: RTCPeerConnection
+  private _dataChannel?: RTCDataChannel
   private _streams: Map<string, MediaStream> = new Map()
   private _screenStream?: MediaStream
 
@@ -13,6 +14,7 @@ export class RemotePeer {
     isScreenShare: boolean
   ) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
+  private onDataChannelMessage?: (data: string) => void
 
   constructor({
     id,
@@ -20,7 +22,8 @@ export class RemotePeer {
     iceServers,
     onConnectionStateChanged,
     onStreamReceived,
-    onIceCandidate
+    onIceCandidate,
+    onDataChannelMessage
   }: {
     id: string
     displayName: string
@@ -31,15 +34,23 @@ export class RemotePeer {
       isScreenShare: boolean
     ) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
+    onDataChannelMessage?: (data: string) => void
   }) {
     this._id = id
     this._displayName = displayName
+
     this._connection = new RTCPeerConnection({ iceServers })
+    this._connection.ondatachannel = (event) => {
+      this._dataChannel = event.channel
+      this.setupDataChannel(this._dataChannel)
+    }
+
     this.setupPeerConnectionEventHandlers(this._connection)
 
     this.onConnectionStateChanged = onConnectionStateChanged
     this.onStreamReceived = onStreamReceived
     this.onIceCandidate = onIceCandidate
+    this.onDataChannelMessage = onDataChannelMessage
   }
 
   get id(): string {
@@ -56,6 +67,10 @@ export class RemotePeer {
 
   get connectionState(): RTCPeerConnectionState {
     return this._connection?.connectionState ?? 'new'
+  }
+
+  get dataChannelState(): RTCDataChannelState | undefined {
+    return this._dataChannel?.readyState
   }
 
   get streams(): Map<string, MediaStream> {
@@ -79,12 +94,34 @@ export class RemotePeer {
     }
   }
 
+  sendData(data: string): void {
+    if (!this._dataChannel || this.dataChannelState !== 'open') {
+      throw new Error(`DataChannel is not open for peer ${this._id}`)
+    }
+
+    this._dataChannel.send(data)
+  }
+
   updateDisplayName(displayName: string): void {
     this._displayName = displayName
   }
 
   close(): void {
     this._connection.close()
+  }
+
+  createDataChannel(label = 'data', options?: RTCDataChannelInit): void {
+    if (this._dataChannel) {
+      logger.warn('peer:dataChannelAlreadyExists', { peerId: this._id })
+      return
+    }
+
+    this._dataChannel = this._connection.createDataChannel(label, {
+      ordered: true,
+      ...options
+    })
+
+    this.setupDataChannel(this._dataChannel)
   }
 
   async createOffer(): Promise<RTCSessionDescriptionInit> {
@@ -159,6 +196,31 @@ export class RemotePeer {
 
         this.onIceCandidate?.(candidate)
       }
+    }
+  }
+
+  private setupDataChannel(channel: RTCDataChannel): void {
+    channel.onopen = () => {
+      logger.debug('peer:dataChannelOpened', { peerId: this._id })
+    }
+
+    channel.onmessage = (event) => {
+      logger.debug('peer:dataChannelMessage', {
+        peerId: this._id,
+        dataLength:
+          typeof event.data === 'string'
+            ? event.data.length
+            : event.data.byteLength
+      })
+      this.onDataChannelMessage?.(event.data)
+    }
+
+    channel.onclose = () => {
+      logger.debug('peer:dataChannelClosed', { peerId: this._id })
+    }
+
+    channel.onerror = (event) => {
+      logger.error('peer:dataChannelError', { peerId: this._id, event })
     }
   }
 }
