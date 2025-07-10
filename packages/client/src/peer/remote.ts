@@ -172,6 +172,8 @@ export class RemotePeer {
 
     connection.ontrack = (event) => {
       const { track, streams } = event
+
+      // TODO: Replace with DataChannel metadata for reliable stream type identification
       const isScreenShare =
         track.label.toLowerCase().includes('screen') ||
         track.label.toLowerCase().includes('display')
