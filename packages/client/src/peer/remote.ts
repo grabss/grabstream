@@ -79,8 +79,8 @@ export class RemotePeer {
     return this._dataChannel?.readyState
   }
 
-  get streams(): Map<string, MediaStream> {
-    return this._streams
+  get streams(): MediaStream[] {
+    return Array.from(this._streams.values())
   }
 
   async sendStream({
