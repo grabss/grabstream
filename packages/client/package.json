@@ -52,6 +52,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@grabstream/core": "0.1.1"
+    "@grabstream/core": "workspace:*"
   }
 }
