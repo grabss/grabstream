@@ -139,6 +139,36 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
     })
   }
 
+  knock(roomId: string): {
+    roomId: string
+    exists: boolean
+    hasPassword: boolean
+    peerCount: number
+    isFull: boolean
+  } {
+    const room = this.rooms.get(roomId)
+
+    if (room) {
+      const maxPeers = this.configuration.limits.maxPeersPerRoom
+      const isFull = maxPeers > 0 && room.peers.length >= maxPeers
+
+      return {
+        roomId,
+        exists: true,
+        hasPassword: room.hasPassword,
+        peerCount: room.peers.length,
+        isFull
+      }
+    }
+    return {
+      roomId,
+      exists: false,
+      hasPassword: false,
+      peerCount: 0,
+      isFull: false
+    }
+  }
+
   private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
     wss.on('error', (error) => {
       logger.error('websocket:error', { error })
