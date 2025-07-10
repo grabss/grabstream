@@ -9,7 +9,7 @@ export type GrabstreamClientConfiguration = Required<GrabstreamClientOptions>
 
 // ==================== Stream Management ====================
 
-export type StreamType = 'AUDIO_VIDEO' | 'AUDIO' | 'VIDEO' | 'SCREEN'
+export type StreamType = 'AUDIO_VIDEO' | 'AUDIO' | 'SCREEN'
 
 export type StreamMetadata = {
   streamId: string

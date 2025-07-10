@@ -1,8 +1,15 @@
+import type { StreamType } from '../types'
+
+type LocalStream = {
+  type: StreamType
+  stream: MediaStream
+}
+
 export class LocalPeer {
   private readonly _id: string
   private _displayName: string
   private _roomId?: string
-  private _stream?: MediaStream
+  private _streams: Map<string, LocalStream> = new Map()
 
   constructor({ id, displayName }: { id: string; displayName: string }) {
     this._id = id
@@ -25,8 +32,8 @@ export class LocalPeer {
     return this._roomId !== undefined
   }
 
-  get stream(): MediaStream | undefined {
-    return this._stream
+  get streams(): LocalStream[] {
+    return Array.from(this._streams.values())
   }
 
   joinRoom({
@@ -54,17 +61,22 @@ export class LocalPeer {
     this._displayName = displayName
   }
 
-  setStream(stream: MediaStream): void {
-    if (this._stream) {
-      this._stream.getTracks().forEach((track) => track.stop())
+  addStream(stream: MediaStream, type: StreamType): void {
+    for (const [id, data] of this._streams.entries()) {
+      if (data.type === type) {
+        data.stream.getTracks().forEach((track) => track.stop())
+        this._streams.delete(id)
+      }
     }
-    this._stream = stream
+
+    this._streams.set(stream.id, { stream, type })
   }
 
-  clearStream(): void {
-    if (this._stream) {
-      this._stream.getTracks().forEach((track) => track.stop())
-      this._stream = undefined
+  removeStream(streamId: string): void {
+    const data = this._streams.get(streamId)
+    if (data) {
+      data.stream.getTracks().forEach((track) => track.stop())
+      this._streams.delete(streamId)
     }
   }
 
@@ -85,18 +97,22 @@ export class LocalPeer {
   }
 
   private setAudioEnabled(enabled: boolean): void {
-    if (this._stream) {
-      this._stream.getAudioTracks().forEach((track) => {
-        track.enabled = enabled
-      })
+    for (const stream of this.streams) {
+      if (stream.type === 'AUDIO' || stream.type === 'AUDIO_VIDEO') {
+        stream.stream.getAudioTracks().forEach((track) => {
+          track.enabled = enabled
+        })
+      }
     }
   }
 
   private setVideoEnabled(enabled: boolean): void {
-    if (this._stream) {
-      this._stream.getVideoTracks().forEach((track) => {
-        track.enabled = enabled
-      })
+    for (const stream of this.streams) {
+      if (stream.type === 'AUDIO_VIDEO') {
+        stream.stream.getVideoTracks().forEach((track) => {
+          track.enabled = enabled
+        })
+      }
     }
   }
 }
