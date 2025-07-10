@@ -83,9 +83,33 @@ export class RemotePeer {
     return this._streams
   }
 
-  async sendStream(stream: MediaStream): Promise<void> {
+  async sendStream({
+    type,
+    stream
+  }: {
+    type: StreamType
+    stream: MediaStream
+  }): Promise<void> {
     for (const track of stream.getTracks()) {
       this._connection.addTrack(track, stream)
+    }
+
+    try {
+      const metadata: StreamMetadata = {
+        streamId: stream.id,
+        type,
+        timestamp: Date.now()
+      }
+      const message: StreamDataChannelMessage = {
+        type: 'STREAM_METADATA',
+        data: metadata
+      }
+      this.sendData(JSON.stringify(message))
+    } catch (error) {
+      logger.error('peer:sendStreamMetadataFailed', {
+        peerId: this._id,
+        error
+      })
     }
 
     if (this._connection.signalingState === 'stable') {
@@ -122,15 +146,14 @@ export class RemotePeer {
     this._connection.close()
   }
 
-  createDataChannel(label = 'data', options?: RTCDataChannelInit): void {
+  createDataChannel(): void {
     if (this._dataChannel) {
       logger.warn('peer:dataChannelAlreadyExists', { peerId: this._id })
       return
     }
 
-    this._dataChannel = this._connection.createDataChannel(label, {
-      ordered: true,
-      ...options
+    this._dataChannel = this._connection.createDataChannel('data', {
+      ordered: true
     })
 
     this.setupDataChannel(this._dataChannel)
