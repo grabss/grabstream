@@ -130,6 +130,21 @@ export class RemotePeer {
     }
   }
 
+  async sendStreamRemoved(streamId: string): Promise<void> {
+    try {
+      const message: StreamDataChannelMessage = {
+        type: 'STREAM_REMOVED',
+        data: { streamId }
+      }
+      this.sendData(JSON.stringify(message))
+    } catch (error) {
+      logger.error('peer:sendStreamRemovedFailed', {
+        peerId: this._id,
+        error
+      })
+    }
+  }
+
   sendData(data: string): void {
     if (!this._dataChannel || this.dataChannelState !== 'open') {
       throw new Error(`DataChannel is not open for peer ${this._id}`)

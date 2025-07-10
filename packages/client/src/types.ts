@@ -26,3 +26,8 @@ export type StreamDataChannelMessage =
       type: 'STREAM_REMOVED'
       data: { streamId: string }
     }
+
+export type LocalStream = {
+  type: StreamType
+  stream: MediaStream
+}

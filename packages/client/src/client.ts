@@ -35,7 +35,9 @@ import {
 import { LocalPeer, RemotePeer } from './peer'
 import type {
   GrabstreamClientConfiguration,
-  GrabstreamClientOptions
+  GrabstreamClientOptions,
+  LocalStream,
+  StreamType
 } from './types'
 
 export class GrabstreamClient extends GrabstreamClientEmitter {
@@ -53,6 +55,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       connectionTimeoutMs:
         options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS
     }
+  }
+
+  get localStreams(): LocalStream[] {
+    return this.peer?.streams || []
   }
 
   async connect(): Promise<void> {
@@ -308,26 +314,37 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     remotePeer.sendData(data)
   }
 
-  async setLocalStream(stream: MediaStream): Promise<void> {
+  async addLocalStream({
+    type,
+    stream
+  }: {
+    type: StreamType
+    stream: MediaStream
+  }): Promise<void> {
     if (!this.peer) {
       throw new PeerNotInitializedError()
     }
 
-    this.peer.setStream(stream)
+    this.peer.addStream(stream, type)
 
     if (this.peer.isInRoom) {
       for (const remotePeer of this.peers.values()) {
-        await remotePeer.sendStream(stream)
+        await remotePeer.sendStream({ stream, type })
       }
     }
   }
-
-  removeLocalStream(): void {
+  async removeLocalStream(streamId: string): Promise<void> {
     if (!this.peer) {
       throw new PeerNotInitializedError()
     }
 
-    this.peer.clearStream()
+    this.peer.removeStream(streamId)
+
+    if (this.peer.isInRoom) {
+      for (const remotePeer of this.peers.values()) {
+        await remotePeer.sendStreamRemoved(streamId)
+      }
+    }
   }
 
   muteLocalAudio(): void {
@@ -560,8 +577,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
     this.peers.set(peerId, remotePeer)
 
-    if (this.peer?.stream) {
-      await remotePeer.sendStream(this.peer.stream)
+    for (const localStream of this.peer?.streams || []) {
+      await remotePeer.sendStream({
+        type: localStream.type,
+        stream: localStream.stream
+      })
     }
 
     logger.info('peer:joined', {
@@ -895,8 +915,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     try {
       remotePeer.createDataChannel()
-      if (this.peer?.stream) {
-        await remotePeer.sendStream(this.peer.stream)
+      for (const localStream of this.peer?.streams || []) {
+        await remotePeer.sendStream({
+          stream: localStream.stream,
+          type: localStream.type
+        })
       }
       const offer = await remotePeer.createOffer()
 

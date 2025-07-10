@@ -1,9 +1,4 @@
-import type { StreamType } from '../types'
-
-type LocalStream = {
-  type: StreamType
-  stream: MediaStream
-}
+import type { LocalStream, StreamType } from '../types'
 
 export class LocalPeer {
   private readonly _id: string
