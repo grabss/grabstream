@@ -15,8 +15,8 @@ importers:
   packages/client:
     dependencies:
       '@grabstream/core':
-        specifier: 0.1.3
-        version: 0.1.3
+        specifier: 0.1.4
+        version: 0.1.4
     devDependencies:
       '@types/node':
         specifier: ^24.0.3
@@ -61,8 +61,8 @@ importers:
   packages/server:
     dependencies:
       '@grabstream/core':
-        specifier: 0.1.3
-        version: 0.1.3
+        specifier: 0.1.4
+        version: 0.1.4
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -613,8 +613,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@grabstream/core@0.1.3':
-    resolution: {integrity: sha512-Xxsz+9E6+aHU5q05A/6Sws5GQIBlWR4JsACE1LScLAM+E5nqCDggygeMcAB+oL/qzZqRuP40XwYKXXFDZAWrXg==}
+  '@grabstream/core@0.1.4':
+    resolution: {integrity: sha512-BwwQM2/so5i0EDburBiHqE/BXGFJ2TSLeKi19VLhn5Bc39GLN30xmy6jWHU+fn88WLdloMvRC8aGKtZ+R/Btjw==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -2823,7 +2823,7 @@ snapshots:
   '@esbuild/win32-x64@0.25.5':
     optional: true
 
-  '@grabstream/core@0.1.3': {}
+  '@grabstream/core@0.1.4': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:

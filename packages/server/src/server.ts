@@ -20,16 +20,16 @@ import {
   PING_INTERVAL_MS,
   WEBSOCKET_MAX_PAYLOAD,
   WEBSOCKET_PER_MESSAGE_DEFLATE
-} from './constants'
-import { GrabstreamServerEmitter } from './emitter'
-import { Peer } from './peer'
-import { Room } from './room'
+} from './constants.js'
+import { GrabstreamServerEmitter } from './emitter.js'
+import { Peer } from './peer.js'
+import { Room } from './room.js'
 import type {
   GrabstreamServerConfiguration,
   GrabstreamServerConnectionOptions,
   GrabstreamServerLimits,
   GrabstreamServerOptions
-} from './types'
+} from './types.js'
 
 export class GrabstreamServer extends GrabstreamServerEmitter {
   private wss?: WebSocketServer
