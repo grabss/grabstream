@@ -1,8 +1,7 @@
-import type { OfferRelayMessage } from '@grabstream/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { GrabstreamClient } from './client'
-import { DEFAULT_CONNECTION_TIMEOUT_MS, DEFAULT_SERVER_URL } from './constants'
+import { DEFAULT_SERVER_URL } from './constants'
 import {
   PeerNotInitializedError,
   ValidationError,
@@ -24,7 +23,7 @@ class MockWebSocket {
 
   constructor(public url: string) {}
 
-  send(data: string): void {
+  send(_data: string): void {
     if (this.readyState !== MockWebSocket.OPEN) {
       throw new Error('WebSocket is not open')
     }
@@ -96,8 +95,6 @@ class MockRTCPeerConnection {
   localDescription: RTCSessionDescription | null = null
   remoteDescription: RTCSessionDescription | null = null
 
-  constructor() {}
-
   async createOffer(): Promise<RTCSessionDescriptionInit> {
     return { type: 'offer', sdp: 'mock-offer-sdp' }
   }
@@ -145,9 +142,9 @@ class MockRTCPeerConnection {
 }
 
 // Global mocks
-global.WebSocket = MockWebSocket as any
-global.MediaStream = MockMediaStream as any
-global.RTCPeerConnection = MockRTCPeerConnection as any
+global.WebSocket = MockWebSocket as typeof WebSocket
+global.MediaStream = MockMediaStream as typeof MediaStream
+global.RTCPeerConnection = MockRTCPeerConnection as typeof RTCPeerConnection
 
 describe('GrabstreamClient', () => {
   let client: GrabstreamClient
@@ -192,7 +189,7 @@ describe('GrabstreamClient', () => {
 
       // First connection
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       // Try to connect again
       await expect(client.connect()).rejects.toThrow(
@@ -208,7 +205,7 @@ describe('GrabstreamClient', () => {
       const client = new GrabstreamClient()
 
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       expect(mockWs.url).toBe(DEFAULT_SERVER_URL)
 
@@ -231,7 +228,7 @@ describe('GrabstreamClient', () => {
       })
 
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       // Don't simulate any response - let it timeout
       await expect(connectPromise).rejects.toThrow('Connection closed')
@@ -241,7 +238,7 @@ describe('GrabstreamClient', () => {
       const client = new GrabstreamClient()
 
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       // Simulate invalid message
       mockWs.simulateMessage({
@@ -255,7 +252,7 @@ describe('GrabstreamClient', () => {
       const client = new GrabstreamClient()
 
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       // Simulate WebSocket error
       mockWs.simulateError()
@@ -275,7 +272,7 @@ describe('GrabstreamClient', () => {
     it('should disconnect successfully', async () => {
       // First connect
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -299,7 +296,7 @@ describe('GrabstreamClient', () => {
   describe('joinRoom()', () => {
     beforeEach(async () => {
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -325,7 +322,9 @@ describe('GrabstreamClient', () => {
 
     it('should throw error if peer not initialized', () => {
       const client = new GrabstreamClient()
-      ;(client as any).ws = { readyState: WebSocket.OPEN }
+      ;(client as { ws: { readyState: number } }).ws = {
+        readyState: WebSocket.OPEN
+      }
 
       expect(() => client.joinRoom('test-room')).toThrow(
         PeerNotInitializedError
@@ -333,7 +332,13 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw error if already in room', () => {
-      ;(client as any).peer.joinRoom({
+      ;(
+        client as {
+          peer: {
+            joinRoom: (opts: { roomId: string; displayName: string }) => void
+          }
+        }
+      ).peer.joinRoom({
         roomId: 'existing-room',
         displayName: 'Test'
       })
@@ -407,7 +412,7 @@ describe('GrabstreamClient', () => {
   describe('leaveRoom()', () => {
     beforeEach(async () => {
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -431,7 +436,9 @@ describe('GrabstreamClient', () => {
 
     it('should throw error if peer not initialized', () => {
       const client = new GrabstreamClient()
-      ;(client as any).ws = { readyState: WebSocket.OPEN }
+      ;(client as { ws: { readyState: number } }).ws = {
+        readyState: WebSocket.OPEN
+      }
 
       expect(() => client.leaveRoom()).toThrow(PeerNotInitializedError)
     })
@@ -441,7 +448,13 @@ describe('GrabstreamClient', () => {
     })
 
     it('should send leave room message', () => {
-      ;(client as any).peer.joinRoom({
+      ;(
+        client as {
+          peer: {
+            joinRoom: (opts: { roomId: string; displayName: string }) => void
+          }
+        }
+      ).peer.joinRoom({
         roomId: 'test-room',
         displayName: 'Test'
       })
@@ -461,7 +474,7 @@ describe('GrabstreamClient', () => {
   describe('updateDisplayName()', () => {
     beforeEach(async () => {
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -487,7 +500,9 @@ describe('GrabstreamClient', () => {
 
     it('should throw error if peer not initialized', () => {
       const client = new GrabstreamClient()
-      ;(client as any).ws = { readyState: WebSocket.OPEN }
+      ;(client as { ws: { readyState: number } }).ws = {
+        readyState: WebSocket.OPEN
+      }
 
       expect(() => client.updateDisplayName('New Name')).toThrow(
         PeerNotInitializedError
@@ -535,7 +550,7 @@ describe('GrabstreamClient', () => {
   describe('sendCustomMessage()', () => {
     beforeEach(async () => {
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -552,7 +567,13 @@ describe('GrabstreamClient', () => {
       mockWs.readyState = MockWebSocket.OPEN
 
       // Join room
-      ;(client as any).peer.joinRoom({
+      ;(
+        client as {
+          peer: {
+            joinRoom: (opts: { roomId: string; displayName: string }) => void
+          }
+        }
+      ).peer.joinRoom({
         roomId: 'test-room',
         displayName: 'Test'
       })
@@ -567,7 +588,9 @@ describe('GrabstreamClient', () => {
 
     it('should throw error if peer not initialized', () => {
       const client = new GrabstreamClient()
-      ;(client as any).ws = { readyState: WebSocket.OPEN }
+      ;(client as { ws: { readyState: number } }).ws = {
+        readyState: WebSocket.OPEN
+      }
 
       expect(() => client.sendCustomMessage('test', {})).toThrow(
         PeerNotInitializedError
@@ -575,7 +598,7 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw error if not in room', () => {
-      ;(client as any).peer.leaveRoom()
+      ;(client as { peer: { leaveRoom: () => void } }).peer.leaveRoom()
 
       expect(() => client.sendCustomMessage('test', {})).toThrow(
         'Not in any room'
@@ -602,7 +625,10 @@ describe('GrabstreamClient', () => {
     it('should send custom message to specific peer', () => {
       // Add mock peer
       const mockPeer = { id: 'target-peer' }
-      ;(client as any).peers.set('target-peer', mockPeer)
+      ;(client as { peers: Map<string, unknown> }).peers.set(
+        'target-peer',
+        mockPeer
+      )
 
       const sendSpy = vi.spyOn(mockWs, 'send')
 
@@ -656,7 +682,7 @@ describe('GrabstreamClient', () => {
   describe('sendDataToPeer()', () => {
     beforeEach(async () => {
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -681,7 +707,10 @@ describe('GrabstreamClient', () => {
 
     it('should send data to peer', () => {
       const mockPeer = { sendData: vi.fn() }
-      ;(client as any).peers.set('target-peer', mockPeer)
+      ;(client as { peers: Map<string, unknown> }).peers.set(
+        'target-peer',
+        mockPeer
+      )
 
       client.sendDataToPeer('target-peer', 'test data')
 
@@ -692,7 +721,7 @@ describe('GrabstreamClient', () => {
   describe('stream management', () => {
     beforeEach(async () => {
       const connectPromise = client.connect()
-      mockWs = (client as any).ws
+      mockWs = (client as { ws: MockWebSocket }).ws
 
       mockWs.simulateMessage({
         type: 'CONNECTION_ESTABLISHED',
@@ -717,18 +746,25 @@ describe('GrabstreamClient', () => {
         await expect(
           client.addLocalStream({
             type: 'AUDIO_VIDEO',
-            stream: mockStream as any
+            stream: mockStream as MediaStream
           })
         ).rejects.toThrow(PeerNotInitializedError)
       })
 
       it('should add stream to local peer', async () => {
         const mockStream = new MockMediaStream()
-        const addStreamSpy = vi.spyOn((client as any).peer, 'addStream')
+        const addStreamSpy = vi.spyOn(
+          (
+            client as {
+              peer: { addStream: (stream: unknown, type: string) => void }
+            }
+          ).peer,
+          'addStream'
+        )
 
         await client.addLocalStream({
           type: 'AUDIO_VIDEO',
-          stream: mockStream as any
+          stream: mockStream as MediaStream
         })
 
         expect(addStreamSpy).toHaveBeenCalledWith(mockStream, 'AUDIO_VIDEO')
@@ -745,7 +781,10 @@ describe('GrabstreamClient', () => {
       })
 
       it('should remove stream from local peer', async () => {
-        const removeStreamSpy = vi.spyOn((client as any).peer, 'removeStream')
+        const removeStreamSpy = vi.spyOn(
+          (client as { peer: { removeStream: (id: string) => void } }).peer,
+          'removeStream'
+        )
 
         await client.removeLocalStream('stream-id')
 
@@ -755,7 +794,10 @@ describe('GrabstreamClient', () => {
 
     describe('audio/video controls', () => {
       it('should mute local audio', () => {
-        const muteAudioSpy = vi.spyOn((client as any).peer, 'muteAudio')
+        const muteAudioSpy = vi.spyOn(
+          (client as { peer: { muteAudio: () => void } }).peer,
+          'muteAudio'
+        )
 
         client.muteLocalAudio()
 
@@ -763,7 +805,10 @@ describe('GrabstreamClient', () => {
       })
 
       it('should unmute local audio', () => {
-        const unmuteAudioSpy = vi.spyOn((client as any).peer, 'unmuteAudio')
+        const unmuteAudioSpy = vi.spyOn(
+          (client as { peer: { unmuteAudio: () => void } }).peer,
+          'unmuteAudio'
+        )
 
         client.unmuteLocalAudio()
 
@@ -771,7 +816,10 @@ describe('GrabstreamClient', () => {
       })
 
       it('should disable local video', () => {
-        const disableVideoSpy = vi.spyOn((client as any).peer, 'disableVideo')
+        const disableVideoSpy = vi.spyOn(
+          (client as { peer: { disableVideo: () => void } }).peer,
+          'disableVideo'
+        )
 
         client.disableLocalVideo()
 
@@ -779,7 +827,10 @@ describe('GrabstreamClient', () => {
       })
 
       it('should enable local video', () => {
-        const enableVideoSpy = vi.spyOn((client as any).peer, 'enableVideo')
+        const enableVideoSpy = vi.spyOn(
+          (client as { peer: { enableVideo: () => void } }).peer,
+          'enableVideo'
+        )
 
         client.enableLocalVideo()
 
