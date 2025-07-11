@@ -1,5 +1,5 @@
 {
-  "name": "grabstream-playground",
+  "name": "@grabstream/playground-client",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -15,8 +15,7 @@
     "lint:ci": "biome ci ."
   },
   "dependencies": {
-    "@grabstream/client": "workspace:^",
-    "@grabstream/server": "workspace:^"
+    "@grabstream/client": "workspace:^"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.13",
