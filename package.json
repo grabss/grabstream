@@ -6,15 +6,9 @@
   "packageManager": "pnpm@10.12.1",
   "scripts": {
     "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix",
-    "dev": "pnpm -C playground dev"
+    "lint:fix": "pnpm -r lint:fix"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
