@@ -6,9 +6,9 @@ import {
   ROOM_ID_PATTERN,
   VALIDATION_ERROR_CODES,
   type ValidationErrorCode
-} from './constants'
+} from './constants.js'
 
-export * from './constants'
+export * from './constants.js'
 
 export type ValidationResult =
   | { success: true }
