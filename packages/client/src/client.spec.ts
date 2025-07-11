@@ -65,8 +65,8 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw error if already connected', async () => {
-      // Mock WebSocket as already connected
-      client['ws'] = { readyState: WebSocket.OPEN } as WebSocket
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(client as any).ws = { readyState: WebSocket.OPEN } as WebSocket
 
       await expect(client.connect()).rejects.toThrow(
         'GrabstreamClient is already connected'
@@ -107,8 +107,8 @@ describe('GrabstreamClient', () => {
 
       await connectPromise
 
-      // Clear peer
-      client['peer'] = undefined
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(client as any).peer = undefined
 
       expect(() => {
         client.joinRoom('test-room')
@@ -188,7 +188,8 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw PeerNotInitializedError when adding stream without peer', async () => {
-      client['peer'] = undefined
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(client as any).peer = undefined
 
       await expect(
         client.addLocalStream({
@@ -226,7 +227,8 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw PeerNotInitializedError for audio control without peer', () => {
-      client['peer'] = undefined
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(client as any).peer = undefined
 
       expect(() => {
         client.muteLocalAudio()
@@ -319,9 +321,12 @@ describe('GrabstreamClient', () => {
       // Simulate disconnect
       mockWebSocket.simulateClose(1000, 'Normal closure')
 
-      expect(client['ws']).toBeUndefined()
-      expect(client['peer']).toBeUndefined()
-      expect(client['peers'].size).toBe(0)
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private properties
+      expect((client as any).ws).toBeUndefined()
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private properties
+      expect((client as any).peer).toBeUndefined()
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private properties
+      expect((client as any).peers.size).toBe(0)
     })
   })
 })

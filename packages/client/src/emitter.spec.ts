@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GrabstreamClientEmitter } from './emitter'
 
 class TestEmitter extends GrabstreamClientEmitter {
+  // biome-ignore lint/suspicious/noExplicitAny: Test helper needs flexible event typing
   public testEmit<K extends keyof any>(event: K, ...args: any[]): void {
     this.emit(event, ...args)
   }
@@ -90,6 +91,7 @@ describe('GrabstreamClientEmitter', () => {
       const callback = vi.fn()
 
       expect(() => {
+        // biome-ignore lint/suspicious/noExplicitAny: Testing with invalid event type
         emitter.off('nonexistent:event' as any, callback)
       }).not.toThrow()
     })

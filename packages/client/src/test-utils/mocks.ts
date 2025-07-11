@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: Test mock setup requires any */
 import { vi } from 'vitest'
 
 export class MockWebSocket {
@@ -77,7 +78,7 @@ export class MockRTCPeerConnection {
   public close = vi.fn()
   public restartIce = vi.fn()
 
-  constructor(config?: RTCConfiguration) {
+  constructor(_config?: RTCConfiguration) {
     this.createOffer.mockResolvedValue(
       new RTCSessionDescription({ type: 'offer', sdp: 'mock-offer' })
     )

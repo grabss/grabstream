@@ -25,7 +25,9 @@ describe('RemotePeer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    // biome-ignore lint/suspicious/noExplicitAny: Mock global setup requires any
     global.RTCPeerConnection = MockRTCPeerConnection as any
+    // biome-ignore lint/suspicious/noExplicitAny: Mock global setup requires any
     global.RTCDataChannel = MockRTCDataChannel as any
 
     mockConnection = new MockRTCPeerConnection()
