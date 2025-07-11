@@ -25,6 +25,12 @@ describe('RemotePeer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    // Setup WebRTC mocks
+    // biome-ignore lint/suspicious/noExplicitAny: Required for global mock setup
+    global.RTCPeerConnection = MockRTCPeerConnection as any
+    // biome-ignore lint/suspicious/noExplicitAny: Required for global mock setup
+    global.RTCDataChannel = MockRTCDataChannel as any
+
     mockConnection = new MockRTCPeerConnection()
     mockDataChannel = new MockRTCDataChannel()
     mockStream = new MockMediaStream('test-stream')
@@ -36,6 +42,9 @@ describe('RemotePeer', () => {
       iceServers: [{ urls: 'stun:stun.example.com' }],
       ...mockCallbacks
     })
+
+    // The peer's connection is now a MockRTCPeerConnection instance
+    mockConnection = peer.connection as MockRTCPeerConnection
   })
 
   describe('constructor', () => {
@@ -98,6 +107,8 @@ describe('RemotePeer', () => {
     beforeEach(() => {
       peer.createDataChannel()
       mockConnection.createDataChannel.mockReturnValue(mockDataChannel)
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(peer as any).dataChannel = mockDataChannel
     })
 
     it('should throw error when data channel is not open', () => {
@@ -162,6 +173,8 @@ describe('RemotePeer', () => {
       peer.createDataChannel()
       mockConnection.createDataChannel.mockReturnValue(mockDataChannel)
       mockDataChannel.readyState = 'open'
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(peer as any).dataChannel = mockDataChannel
     })
 
     it('should send stream', async () => {
@@ -311,12 +324,14 @@ describe('RemotePeer', () => {
 
   describe('error handling', () => {
     it('should handle data channel send errors gracefully', () => {
+      // Without setting up data channel, it should throw
       expect(() => {
         peer.sendData('test data')
-      }).toThrow()
+      }).toThrow('DataChannel is not open for peer test-peer')
     })
 
     it('should handle stream metadata send errors gracefully', async () => {
+      // Without setting up data channel, it should log error but not throw
       await expect(
         peer.sendStream({
           type: 'AUDIO_VIDEO',

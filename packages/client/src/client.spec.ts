@@ -11,15 +11,35 @@ describe('GrabstreamClient', () => {
   let client: GrabstreamClient
   let mockWebSocket: MockWebSocket
 
+  // Helper function for connecting client
+  async function connectClient(): Promise<void> {
+    const connectPromise = client.connect()
+
+    // Wait for next tick to ensure onmessage handler is set
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const establishedMessage = {
+      type: 'CONNECTION_ESTABLISHED',
+      payload: {
+        peerId: 'test-peer-id',
+        displayName: 'Test User',
+        iceServers: []
+      }
+    }
+    const messageData = JSON.stringify(establishedMessage)
+    if (!messageData || messageData === 'undefined') {
+      throw new Error('Invalid message data')
+    }
+    mockWebSocket.simulateMessage(messageData)
+
+    await connectPromise
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
 
     // Setup WebSocket mock
     mockWebSocket = new MockWebSocket('ws://localhost:8080')
-    // Start with CONNECTING state, then open when needed
-    mockWebSocket.simulateConnecting()
     global.WebSocket = vi.fn().mockImplementation(() => {
-      mockWebSocket.simulateOpen()
       return mockWebSocket
     })
 
@@ -50,23 +70,7 @@ describe('GrabstreamClient', () => {
 
   describe('connect', () => {
     it('should connect successfully', async () => {
-      const connectPromise = client.connect()
-
-      // Simulate connection established message
-      const establishedMessage = {
-        type: 'CONNECTION_ESTABLISHED',
-        payload: {
-          peerId: 'test-peer-id',
-          displayName: 'Test User',
-          iceServers: [{ urls: 'stun:stun.example.com' }]
-        }
-      }
-
-      setTimeout(() => {
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await expect(connectPromise).resolves.not.toThrow()
+      await expect(connectClient()).resolves.not.toThrow()
     })
 
     it('should throw error if already connected', async () => {
@@ -96,26 +100,7 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw PeerNotInitializedError if peer not initialized', async () => {
-      // Connect first
-      const connectPromise = client.connect()
-
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
-        }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await connectPromise
-
-      // Ensure WebSocket state is properly set
-      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
-      ;(client as any).ws.readyState = WebSocket.OPEN
+      await connectClient()
 
       // biome-ignore lint/suspicious/noExplicitAny: Testing private property
       ;(client as any).peer = undefined
@@ -126,26 +111,7 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw ValidationError for invalid room ID', async () => {
-      // Connect first
-      const connectPromise = client.connect()
-
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
-        }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await connectPromise
-
-      // Ensure WebSocket state is properly set
-      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
-      ;(client as any).ws.readyState = WebSocket.OPEN
+      await connectClient()
 
       expect(() => {
         client.joinRoom('')
@@ -158,23 +124,7 @@ describe('GrabstreamClient', () => {
 
     beforeEach(async () => {
       mockStream = new MockMediaStream('test-stream')
-
-      // Setup connected client
-      const connectPromise = client.connect()
-
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
-        }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await connectPromise
+      await connectClient()
     })
 
     it('should add local stream', async () => {
@@ -216,22 +166,7 @@ describe('GrabstreamClient', () => {
 
   describe('audio/video control', () => {
     beforeEach(async () => {
-      // Setup connected client
-      const connectPromise = client.connect()
-
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
-        }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await connectPromise
+      await connectClient()
     })
 
     it('should mute local audio', () => {
@@ -255,21 +190,7 @@ describe('GrabstreamClient', () => {
       const connectCallback = vi.fn()
       client.on('client:connected', connectCallback)
 
-      const connectPromise = client.connect()
-
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
-        }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await connectPromise
+      await connectClient()
 
       expect(connectCallback).toHaveBeenCalledWith({ peerId: 'test-peer-id' })
     })
@@ -278,35 +199,16 @@ describe('GrabstreamClient', () => {
       const errorCallback = vi.fn()
       client.on('server:error', errorCallback)
 
-      const connectPromise = client.connect()
+      await connectClient()
 
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
+      // Send error message
+      const errorMessage = {
+        type: 'ERROR',
+        payload: {
+          message: 'Test error message'
         }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-
-        // Then send error message
-        setTimeout(() => {
-          const errorMessage = {
-            type: 'ERROR',
-            payload: {
-              message: 'Test error message'
-            }
-          }
-          mockWebSocket.simulateMessage(JSON.stringify(errorMessage))
-        }, 10)
-      }, 10)
-
-      await connectPromise
-
-      // Wait for error message
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      }
+      mockWebSocket.simulateMessage(JSON.stringify(errorMessage))
 
       expect(errorCallback).toHaveBeenCalledWith({
         message: 'Test error message'
@@ -316,21 +218,7 @@ describe('GrabstreamClient', () => {
 
   describe('cleanup', () => {
     it('should cleanup properly on disconnect', async () => {
-      const connectPromise = client.connect()
-
-      setTimeout(() => {
-        const establishedMessage = {
-          type: 'CONNECTION_ESTABLISHED',
-          payload: {
-            peerId: 'test-peer-id',
-            displayName: 'Test User',
-            iceServers: []
-          }
-        }
-        mockWebSocket.simulateMessage(JSON.stringify(establishedMessage))
-      }, 10)
-
-      await connectPromise
+      await connectClient()
 
       // Simulate disconnect
       mockWebSocket.simulateClose(1000, 'Normal closure')
