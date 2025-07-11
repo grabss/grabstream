@@ -1,5 +1,7 @@
+import type { OfferRelayMessage } from '@grabstream/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GrabstreamClientEmitter } from './emitter'
+import type { RemotePeer } from './peer'
 
 // Test implementation of abstract class
 class TestEmitter extends GrabstreamClientEmitter {
@@ -15,7 +17,7 @@ class TestEmitter extends GrabstreamClientEmitter {
 const mockPeer = {
   id: 'test-peer',
   displayName: 'Test Peer'
-} as any
+} as RemotePeer
 
 describe('GrabstreamClientEmitter', () => {
   let emitter: TestEmitter
@@ -247,7 +249,7 @@ describe('GrabstreamClientEmitter', () => {
       emitter.on('peer:dataChannelMessage', dataChannelCallback)
 
       const mockStream = {} as MediaStream
-      const mockMessage = { type: 'OFFER', payload: {} } as any
+      const mockMessage = { type: 'OFFER', payload: {} } as OfferRelayMessage
 
       emitter.testEmit('peer:streamReceived', {
         peer: mockPeer,
