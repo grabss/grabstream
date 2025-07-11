@@ -14,7 +14,7 @@
   "files.trimTrailingWhitespace": true,
   "npm.packageManager": "pnpm",
   "[html]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "vscode.html-language-features"
   },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
