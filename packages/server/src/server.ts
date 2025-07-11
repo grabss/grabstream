@@ -87,6 +87,18 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
     })
 
     const wss = this.wss
+
+    // For existing HTTP server, initialize immediately without waiting for listening event
+    if (this.configuration.connectionOptions.server) {
+      this.setupWebSocketServerEventHandlers(wss)
+      this.startPingInterval()
+
+      logger.info('server:started')
+      this.emit('server:started')
+      return Promise.resolve()
+    }
+
+    // For new server creation, use existing Promise-based initialization
     return new Promise((resolve, reject) => {
       const onListening = () => {
         wss.off('error', onError)
