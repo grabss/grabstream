@@ -93,6 +93,13 @@ importers:
         version: 5.8.3
 
   playground:
+    dependencies:
+      '@grabstream/client':
+        specifier: workspace:^
+        version: link:../packages/client
+      '@grabstream/server':
+        specifier: workspace:^
+        version: link:../packages/server
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^6.0.0
