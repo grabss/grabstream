@@ -3,7 +3,6 @@ import type {
   CustomMessage,
   IceCandidateMessage,
   JoinRoomMessage,
-  KnockMessage,
   OfferMessage,
   UpdateDisplayNameMessage
 } from '@grabstream/core'
@@ -21,16 +20,16 @@ import {
   PING_INTERVAL_MS,
   WEBSOCKET_MAX_PAYLOAD,
   WEBSOCKET_PER_MESSAGE_DEFLATE
-} from './constants'
-import { GrabstreamServerEmitter } from './emitter'
-import { Peer } from './peer'
-import { Room } from './room'
+} from './constants.js'
+import { GrabstreamServerEmitter } from './emitter.js'
+import { Peer } from './peer.js'
+import { Room } from './room.js'
 import type {
   GrabstreamServerConfiguration,
   GrabstreamServerConnectionOptions,
   GrabstreamServerLimits,
   GrabstreamServerOptions
-} from './types'
+} from './types.js'
 
 export class GrabstreamServer extends GrabstreamServerEmitter {
   private wss?: WebSocketServer
@@ -138,6 +137,36 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
         }
       })
     })
+  }
+
+  knock(roomId: string): {
+    roomId: string
+    exists: boolean
+    hasPassword: boolean
+    peerCount: number
+    isFull: boolean
+  } {
+    const room = this.rooms.get(roomId)
+
+    if (room) {
+      const maxPeers = this.configuration.limits.maxPeersPerRoom
+      const isFull = maxPeers > 0 && room.peers.length >= maxPeers
+
+      return {
+        roomId,
+        exists: true,
+        hasPassword: room.hasPassword,
+        peerCount: room.peers.length,
+        isFull
+      }
+    }
+    return {
+      roomId,
+      exists: false,
+      hasPassword: false,
+      peerCount: 0,
+      isFull: false
+    }
   }
 
   private setupWebSocketServerEventHandlers(wss: WebSocketServer): void {
@@ -250,10 +279,6 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       }
       case 'UPDATE_DISPLAY_NAME': {
         this.handleUpdateDisplayNameMessage({ peer, message })
-        break
-      }
-      case 'KNOCK': {
-        this.handleKnockMessage({ peer, message })
         break
       }
       case 'CUSTOM': {
@@ -498,54 +523,6 @@ export class GrabstreamServer extends GrabstreamServerEmitter {
       peer,
       oldDisplayName,
       newDisplayName: displayName
-    })
-  }
-
-  private handleKnockMessage({
-    peer,
-    message
-  }: {
-    peer: Peer
-    message: KnockMessage
-  }): void {
-    const { roomId } = message.payload
-    const room = this.rooms.get(roomId)
-
-    if (!room) {
-      peer.send({
-        type: 'KNOCK_RESPONSE',
-        payload: {
-          roomId,
-          exists: false,
-          hasPassword: false,
-          peerCount: 0,
-          isFull: false
-        }
-      })
-      return
-    }
-
-    const maxPeers = this.configuration.limits.maxPeersPerRoom
-    const isFull = maxPeers > 0 && room.peers.length >= maxPeers
-
-    peer.send({
-      type: 'KNOCK_RESPONSE',
-      payload: {
-        roomId,
-        exists: true,
-        hasPassword: room.hasPassword,
-        peerCount: room.peers.length,
-        isFull
-      }
-    })
-
-    logger.debug('room:knocked', {
-      peerId: peer.id,
-      roomId,
-      exists: true,
-      hasPassword: room.hasPassword,
-      peerCount: room.peers.length,
-      isFull
     })
   }
 

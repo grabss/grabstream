@@ -1,5 +1,10 @@
 import { logger } from '@grabstream/core'
 import { DEFAULT_ICE_MAX_RESTARTS } from '../constants'
+import type {
+  StreamDataChannelMessage,
+  StreamMetadata,
+  StreamType
+} from '../types'
 
 export class RemotePeer {
   private readonly _id: string
@@ -7,15 +12,13 @@ export class RemotePeer {
   private _connection: RTCPeerConnection
   private _dataChannel?: RTCDataChannel
   private _streams: Map<string, MediaStream> = new Map()
-  private _screenStream?: MediaStream
+  private _streamMetadata: Map<string, StreamMetadata> = new Map()
 
   private onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-  private onStreamReceived?: (
-    streams: readonly MediaStream[],
-    isScreenShare: boolean
-  ) => void
+  private onStreamReceived?: (type: StreamType, stream: MediaStream) => void
   private onIceCandidate?: (candidate: RTCIceCandidate) => void
   private onDataChannelMessage?: (data: string) => void
+  private onRenegotiationNeeded?: (offer: RTCSessionDescriptionInit) => void
 
   private iceRestartCount = 0
 
@@ -26,18 +29,17 @@ export class RemotePeer {
     onConnectionStateChanged,
     onStreamReceived,
     onIceCandidate,
-    onDataChannelMessage
+    onDataChannelMessage,
+    onRenegotiationNeeded
   }: {
     id: string
     displayName: string
     iceServers: RTCIceServer[]
     onConnectionStateChanged?: (state: RTCPeerConnectionState) => void
-    onStreamReceived?: (
-      streams: readonly MediaStream[],
-      isScreenShare: boolean
-    ) => void
+    onStreamReceived?: (type: StreamType, stream: MediaStream) => void
     onIceCandidate?: (candidate: RTCIceCandidate) => void
     onDataChannelMessage?: (data: string) => void
+    onRenegotiationNeeded?: (offer: RTCSessionDescriptionInit) => void
   }) {
     this._id = id
     this._displayName = displayName
@@ -54,6 +56,7 @@ export class RemotePeer {
     this.onStreamReceived = onStreamReceived
     this.onIceCandidate = onIceCandidate
     this.onDataChannelMessage = onDataChannelMessage
+    this.onRenegotiationNeeded = onRenegotiationNeeded
   }
 
   get id(): string {
@@ -76,24 +79,69 @@ export class RemotePeer {
     return this._dataChannel?.readyState
   }
 
-  get streams(): Map<string, MediaStream> {
-    return this._streams
+  get streams(): MediaStream[] {
+    return Array.from(this._streams.values())
   }
 
-  get screenStream(): MediaStream | undefined {
-    return this._screenStream
-  }
+  async sendStream({
+    type,
+    stream
+  }: {
+    type: StreamType
+    stream: MediaStream
+  }): Promise<void> {
+    for (const track of stream.getTracks()) {
+      this._connection.addTrack(track, stream)
+    }
 
-  clearScreenStream(): void {
-    if (this._screenStream) {
-      this._screenStream.getTracks().forEach((track) => track.stop())
-      this._screenStream = undefined
+    try {
+      const metadata: StreamMetadata = {
+        streamId: stream.id,
+        type,
+        timestamp: Date.now()
+      }
+      const message: StreamDataChannelMessage = {
+        type: 'STREAM_METADATA',
+        data: metadata
+      }
+      this.sendData(JSON.stringify(message))
+    } catch (error) {
+      logger.error('peer:sendStreamMetadataFailed', {
+        peerId: this._id,
+        error
+      })
+    }
+
+    if (this._connection.signalingState === 'stable') {
+      try {
+        const offer = await this.createOffer()
+        this.onRenegotiationNeeded?.(offer)
+
+        logger.debug('peer:renegotiationOfferCreated', {
+          peerId: this._id,
+          offer
+        })
+      } catch (error) {
+        logger.error('peer:renegotiationFailed', {
+          peerId: this._id,
+          error
+        })
+      }
     }
   }
 
-  sendStream(stream: MediaStream): void {
-    for (const track of stream.getTracks()) {
-      this._connection.addTrack(track, stream)
+  async sendStreamRemoved(streamId: string): Promise<void> {
+    try {
+      const message: StreamDataChannelMessage = {
+        type: 'STREAM_REMOVED',
+        data: { streamId }
+      }
+      this.sendData(JSON.stringify(message))
+    } catch (error) {
+      logger.error('peer:sendStreamRemovedFailed', {
+        peerId: this._id,
+        error
+      })
     }
   }
 
@@ -113,15 +161,14 @@ export class RemotePeer {
     this._connection.close()
   }
 
-  createDataChannel(label = 'data', options?: RTCDataChannelInit): void {
+  createDataChannel(): void {
     if (this._dataChannel) {
       logger.warn('peer:dataChannelAlreadyExists', { peerId: this._id })
       return
     }
 
-    this._dataChannel = this._connection.createDataChannel(label, {
-      ordered: true,
-      ...options
+    this._dataChannel = this._connection.createDataChannel('data', {
+      ordered: true
     })
 
     this.setupDataChannel(this._dataChannel)
@@ -172,26 +219,17 @@ export class RemotePeer {
 
     connection.ontrack = (event) => {
       const { track, streams } = event
-      const isScreenShare =
-        track.label.toLowerCase().includes('screen') ||
-        track.label.toLowerCase().includes('display')
 
       logger.debug('peer:trackReceived', {
         peerId: this._id,
         streams: streams.map((s) => s.id),
-        trackKind: track.kind,
-        isScreenShare
+        trackKind: track.kind
       })
 
       for (const stream of streams) {
-        if (isScreenShare) {
-          this._screenStream = stream
-        } else {
-          this._streams.set(stream.id, stream)
-        }
+        this._streams.set(stream.id, stream)
+        this.matchStream(stream.id)
       }
-
-      this.onStreamReceived?.(streams, isScreenShare)
     }
 
     connection.onicecandidate = (event) => {
@@ -216,11 +254,28 @@ export class RemotePeer {
     channel.onmessage = (event) => {
       logger.debug('peer:dataChannelMessage', {
         peerId: this._id,
-        dataLength:
-          typeof event.data === 'string'
-            ? event.data.length
-            : event.data.byteLength
+        data: event.data
       })
+
+      try {
+        const message: StreamDataChannelMessage = JSON.parse(event.data)
+
+        switch (message.type) {
+          case 'STREAM_METADATA': {
+            const metadata = message.data
+            this._streamMetadata.set(metadata.streamId, metadata)
+            this.matchStream(metadata.streamId)
+            return
+          }
+          case 'STREAM_REMOVED': {
+            const { streamId } = message.data
+            this._streamMetadata.delete(streamId)
+            this._streams.delete(streamId)
+            return
+          }
+        }
+      } catch {}
+
       this.onDataChannelMessage?.(event.data)
     }
 
@@ -256,6 +311,15 @@ export class RemotePeer {
         peerId: this._id,
         error
       })
+    }
+  }
+
+  private matchStream(streamId: string): void {
+    const stream = this._streams.get(streamId)
+    const metadata = this._streamMetadata.get(streamId)
+
+    if (stream && metadata) {
+      this.onStreamReceived?.(metadata.type, stream)
     }
   }
 }

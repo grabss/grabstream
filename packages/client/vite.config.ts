@@ -6,7 +6,9 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       outDir: 'dist',
-      include: ['src/**/*']
+      include: ['src/**/*'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+      rollupTypes: true
     })
   ],
   build: {
@@ -15,7 +17,19 @@ export default defineConfig({
       formats: ['es'],
       fileName: 'index'
     },
+    rollupOptions: {
+      external: ['@grabstream/core', /^node:/],
+      output: {
+        preserveModules: false,
+        exports: 'named',
+        globals: {
+          '@grabstream/core': 'GrabstreamCore'
+        }
+      }
+    },
     sourcemap: true,
-    minify: false
+    minify: true,
+    target: 'es2020',
+    reportCompressedSize: false
   }
 })

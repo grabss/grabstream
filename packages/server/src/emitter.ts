@@ -1,9 +1,9 @@
 import { logger } from '@grabstream/core'
 
-import type { Peer } from './peer'
-import type { Room } from './room'
+import type { Peer } from './peer.js'
+import type { Room } from './room.js'
 
-type EventMap = {
+export type EventMap = {
   'server:started': []
   'server:stopped': []
   'server:error': [Error]

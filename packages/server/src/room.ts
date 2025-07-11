@@ -5,7 +5,7 @@ import {
   validateRoomId
 } from '@grabstream/core'
 
-import type { Peer } from './peer'
+import type { Peer } from './peer.js'
 
 export class Room {
   private readonly _id: string

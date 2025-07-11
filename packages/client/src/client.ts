@@ -7,7 +7,6 @@ import type {
   IceCandidateMessage,
   IceCandidateRelayMessage,
   JoinRoomMessage,
-  KnockMessage,
   LeaveRoomMessage,
   OfferMessage,
   OfferRelayMessage,
@@ -36,7 +35,9 @@ import {
 import { LocalPeer, RemotePeer } from './peer'
 import type {
   GrabstreamClientConfiguration,
-  GrabstreamClientOptions
+  GrabstreamClientOptions,
+  LocalStream,
+  StreamType
 } from './types'
 
 export class GrabstreamClient extends GrabstreamClientEmitter {
@@ -52,9 +53,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.configuration = {
       url: options.url ?? DEFAULT_SERVER_URL,
       connectionTimeoutMs:
-        options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS,
-      enableDataChannel: options.enableDataChannel ?? false
+        options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS
     }
+  }
+
+  get localStreams(): LocalStream[] {
+    return this.peer?.streams || []
   }
 
   async connect(): Promise<void> {
@@ -163,29 +167,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
       ws.close(1000, 'Client disconnect requested')
     })
-  }
-
-  knockRoom(roomId: string): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new WebSocketNotConnectedError()
-    }
-
-    if (!this.peer) {
-      throw new PeerNotInitializedError()
-    }
-
-    const validation = validateRoomId(roomId)
-    if (!validation.success) {
-      throw new ValidationError(validation)
-    }
-
-    const message: KnockMessage = {
-      type: 'KNOCK',
-      payload: {
-        roomId
-      }
-    }
-    this.ws.send(JSON.stringify(message))
   }
 
   joinRoom(
@@ -333,49 +314,38 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     remotePeer.sendData(data)
   }
 
-  setLocalStream(stream: MediaStream): void {
+  async addLocalStream({
+    type,
+    stream
+  }: {
+    type: StreamType
+    stream: MediaStream
+  }): Promise<void> {
     if (!this.peer) {
       throw new PeerNotInitializedError()
     }
 
-    this.peer.setStream(stream)
+    this.peer.addStream(stream, type)
 
     if (this.peer.isInRoom) {
       for (const remotePeer of this.peers.values()) {
-        remotePeer.sendStream(stream)
+        await remotePeer.sendStream({ stream, type })
       }
     }
   }
 
-  setLocalScreenStream(stream: MediaStream): void {
+  async removeLocalStream(streamId: string): Promise<void> {
     if (!this.peer) {
       throw new PeerNotInitializedError()
     }
 
-    this.clearAllRemoteScreenStreams()
-    this.peer.setScreenStream(stream)
+    this.peer.removeStream(streamId)
 
     if (this.peer.isInRoom) {
       for (const remotePeer of this.peers.values()) {
-        remotePeer.sendStream(stream)
+        await remotePeer.sendStreamRemoved(streamId)
       }
     }
-  }
-
-  removeLocalStream(): void {
-    if (!this.peer) {
-      throw new PeerNotInitializedError()
-    }
-
-    this.peer.clearStream()
-  }
-
-  removeLocalScreenStream(): void {
-    if (!this.peer) {
-      throw new PeerNotInitializedError()
-    }
-
-    this.peer.clearScreenStream()
   }
 
   muteLocalAudio(): void {
@@ -493,7 +463,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         break
       }
       case 'PEER_JOINED': {
-        this.handlePeerJoinedMessage(message)
+        await this.handlePeerJoinedMessage(message)
         break
       }
       case 'PEER_LEFT': {
@@ -514,11 +484,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       case 'PASSWORD_REQUIRED': {
         logger.info('room:passwordRequired', message.payload)
         this.emit('room:passwordRequired', message.payload)
-        break
-      }
-      case 'KNOCK_RESPONSE': {
-        logger.debug('room:knockResponse', message.payload)
-        this.emit('room:knockResponse', message.payload)
         break
       }
       case 'CUSTOM': {
@@ -602,7 +567,9 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     this.emit('room:left', { roomId })
   }
 
-  private handlePeerJoinedMessage(message: PeerJoinedMessage): void {
+  private async handlePeerJoinedMessage(
+    message: PeerJoinedMessage
+  ): Promise<void> {
     const { peerId, displayName } = message.payload
 
     const remotePeer = this.createRemotePeer({
@@ -611,15 +578,19 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     })
     this.peers.set(peerId, remotePeer)
 
+    for (const localStream of this.peer?.streams || []) {
+      await remotePeer.sendStream({
+        type: localStream.type,
+        stream: localStream.stream
+      })
+    }
+
     logger.info('peer:joined', {
       peerId,
       displayName,
       peerCount: this.peers.size
     })
     this.emit('peer:joined', remotePeer)
-
-    // Initiate connection to the new peer (no await)
-    this.initiateConnectionToPeer(remotePeer)
   }
 
   private handlePeerLeftMessage(message: PeerLeftMessage): void {
@@ -848,19 +819,13 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           }
         }
       },
-      onStreamReceived: (streams, isScreenShare) => {
+      onStreamReceived: (type, stream) => {
         logger.debug('peer:streamReceived', {
           peerId: remotePeer.id,
-          streamCount: streams.length
+          streamId: stream.id,
+          type
         })
-        this.emit('peer:streamReceived', { peer: remotePeer, streams })
-
-        if (isScreenShare) {
-          if (this.peer?.screenStream) {
-            this.peer.clearScreenStream()
-          }
-          this.clearAllRemoteScreenStreams(remotePeer.id)
-        }
+        this.emit('peer:streamReceived', { peer: remotePeer, type, stream })
       },
       onIceCandidate: (candidate) => {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -901,6 +866,36 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
           peer: remotePeer,
           data
         })
+      },
+      onRenegotiationNeeded: (offer) => {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+          logger.warn('signaling:renegotiationOfferNotSent', {
+            toPeerId: id,
+            reason: 'WebSocket not connected'
+          })
+          return
+        }
+
+        try {
+          const message: OfferMessage = {
+            type: 'OFFER',
+            payload: {
+              toPeerId: id,
+              offer
+            }
+          }
+          this.ws.send(JSON.stringify(message))
+
+          logger.debug('signaling:renegotiationOfferSent', {
+            toPeerId: id,
+            offer
+          })
+        } catch (error) {
+          logger.error('signaling:renegotiationOfferFailed', {
+            toPeerId: id,
+            error
+          })
+        }
       }
     })
 
@@ -920,8 +915,12 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     }
 
     try {
-      if (this.configuration.enableDataChannel) {
-        remotePeer.createDataChannel()
+      remotePeer.createDataChannel()
+      for (const localStream of this.peer?.streams || []) {
+        await remotePeer.sendStream({
+          stream: localStream.stream,
+          type: localStream.type
+        })
       }
       const offer = await remotePeer.createOffer()
 
@@ -943,14 +942,6 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
         toPeerId: remotePeer.id,
         error
       })
-    }
-  }
-
-  private clearAllRemoteScreenStreams(ignoreRemotePeerId?: string): void {
-    for (const remotePeer of this.peers.values()) {
-      if (remotePeer.id !== ignoreRemotePeerId) {
-        remotePeer.clearScreenStream()
-      }
     }
   }
 

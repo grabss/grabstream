@@ -23,7 +23,6 @@ export function isClientToServerMessage(
   return [
     'JOIN_ROOM',
     'UPDATE_DISPLAY_NAME',
-    'KNOCK',
     'CUSTOM',
     'OFFER',
     'ANSWER',
@@ -52,7 +51,6 @@ export function isServerToClientMessage(
     'CUSTOM',
     'ERROR',
     'PASSWORD_REQUIRED',
-    'KNOCK_RESPONSE',
     'OFFER',
     'ANSWER',
     'ICE_CANDIDATE'
