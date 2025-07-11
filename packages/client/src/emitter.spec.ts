@@ -1,6 +1,6 @@
 import type { OfferRelayMessage } from '@grabstream/core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { GrabstreamClientEmitter } from './emitter'
+import { type EventMap, GrabstreamClientEmitter } from './emitter'
 import type { RemotePeer } from './peer'
 
 // Test implementation of abstract class

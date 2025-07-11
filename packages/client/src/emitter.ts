@@ -8,7 +8,7 @@ import { logger } from '@grabstream/core'
 import type { RemotePeer } from './peer'
 import type { StreamType } from './types'
 
-type EventMap = {
+export type EventMap = {
   'client:connected': [{ peerId: string }]
   'client:disconnected': [
     {
