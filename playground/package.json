@@ -1,0 +1,15 @@
+{
+  "name": "@grabstream/playground",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
+    "dev:client": "pnpm --filter @grabstream/playground-client dev",
+    "dev:server": "pnpm --filter @grabstream/playground-server dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "packageManager": "pnpm@10.12.1"
+}
