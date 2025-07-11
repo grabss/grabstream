@@ -57,6 +57,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@grabstream/core": "0.1.2"
+    "@grabstream/core": "0.1.3"
   }
 }
