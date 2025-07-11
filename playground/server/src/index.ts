@@ -17,14 +17,7 @@ const grabstreamServer = new GrabstreamServer({
 
 app.use(express.json())
 
-try {
-  await grabstreamServer.start()
-  console.log('Grabstream WebSocket server started')
-
-  httpServer.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`)
-  })
-} catch (error) {
-  console.error('Failed to start server:', error)
-  process.exit(1)
-}
+await grabstreamServer.start()
+httpServer.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`)
+})
