@@ -32,6 +32,10 @@ export class MockWebSocket {
     }
   }
 
+  public simulateConnecting(): void {
+    this.readyState = MockWebSocket.CONNECTING
+  }
+
   public simulateMessage(data: string): void {
     if (this.onmessage) {
       this.onmessage(new MessageEvent('message', { data }))
@@ -275,6 +279,8 @@ export function setupGlobalMocks(): void {
   global.RTCDataChannel = MockRTCDataChannel as any
   global.MediaStream = MockMediaStream as any
   global.MediaStreamTrack = MockMediaStreamTrack as any
+  global.RTCSessionDescription = MockRTCSessionDescription as any
+  global.RTCIceCandidate = MockRTCIceCandidate as any
 }
 
 export function setupWebSocketMock(): void {
@@ -289,4 +295,31 @@ export function setupRTCMocks(): void {
 export function setupMediaStreamMocks(): void {
   global.MediaStream = MockMediaStream as any
   global.MediaStreamTrack = MockMediaStreamTrack as any
+}
+
+export class MockRTCSessionDescription {
+  public type: RTCSessionDescriptionType
+  public sdp: string
+
+  constructor(init?: RTCSessionDescriptionInit) {
+    this.type = init?.type || 'offer'
+    this.sdp = init?.sdp || ''
+  }
+}
+
+export class MockRTCIceCandidate {
+  public candidate: string
+  public sdpMLineIndex: number | null
+  public sdpMid: string | null
+
+  constructor(init?: RTCIceCandidateInit) {
+    this.candidate = init?.candidate || ''
+    this.sdpMLineIndex = init?.sdpMLineIndex || null
+    this.sdpMid = init?.sdpMid || null
+  }
+}
+
+export function setupRTCSessionDescriptionMock(): void {
+  global.RTCSessionDescription = MockRTCSessionDescription as any
+  global.RTCIceCandidate = MockRTCIceCandidate as any
 }

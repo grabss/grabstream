@@ -16,7 +16,12 @@ describe('GrabstreamClient', () => {
 
     // Setup WebSocket mock
     mockWebSocket = new MockWebSocket('ws://localhost:8080')
-    global.WebSocket = vi.fn().mockImplementation(() => mockWebSocket)
+    // Start with CONNECTING state, then open when needed
+    mockWebSocket.simulateConnecting()
+    global.WebSocket = vi.fn().mockImplementation(() => {
+      mockWebSocket.simulateOpen()
+      return mockWebSocket
+    })
 
     client = new GrabstreamClient()
   })
@@ -65,8 +70,9 @@ describe('GrabstreamClient', () => {
     })
 
     it('should throw error if already connected', async () => {
+      // Set up a WebSocket that is not closed
       // biome-ignore lint/suspicious/noExplicitAny: Testing private property
-      ;(client as any).ws = { readyState: WebSocket.OPEN } as WebSocket
+      ;(client as any).ws = { readyState: WebSocket.CONNECTING } as WebSocket
 
       await expect(client.connect()).rejects.toThrow(
         'GrabstreamClient is already connected'
@@ -107,6 +113,10 @@ describe('GrabstreamClient', () => {
 
       await connectPromise
 
+      // Ensure WebSocket state is properly set
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(client as any).ws.readyState = WebSocket.OPEN
+
       // biome-ignore lint/suspicious/noExplicitAny: Testing private property
       ;(client as any).peer = undefined
 
@@ -132,6 +142,10 @@ describe('GrabstreamClient', () => {
       }, 10)
 
       await connectPromise
+
+      // Ensure WebSocket state is properly set
+      // biome-ignore lint/suspicious/noExplicitAny: Testing private property
+      ;(client as any).ws.readyState = WebSocket.OPEN
 
       expect(() => {
         client.joinRoom('')
