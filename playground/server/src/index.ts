@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = express()
   const httpServer = createServer(app)
   const grabstreamServer = new GrabstreamServer({
-    // server: httpServer,
+    server: httpServer,
     limits: {
       maxPeersPerRoom: 4,
       maxRoomsPerServer: 0
