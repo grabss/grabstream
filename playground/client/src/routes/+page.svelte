@@ -84,7 +84,12 @@ $effect(() => {
     width: 100%;
     max-width: 300px;
     padding: 5px 10px;
-    border-bottom: 1px solid var(--color-primary);
+    border-bottom: 1px solid var(--color-muted);
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
 
     &::placeholder {
       color: var(--color-muted);
