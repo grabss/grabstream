@@ -9,6 +9,9 @@ let { children } = $props()
 </svelte:head>
 
 <div class="layout">
+  <header class="p-md">
+    <h1 class="fs-md sm:fs-lg fw-bold text-primary">grabstream</h1>
+  </header>
   <main>
     {@render children()}
   </main>
@@ -33,16 +36,23 @@ let { children } = $props()
     overflow: hidden;
   }
 
-  main {
-    flex: 1;
-    overflow: auto;
+  header, footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+  }
+
+  header {
+    top: 0;
   }
 
   footer {
-    position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    opacity: 0.6;
+  }
+
+  main {
+    flex: 1;
+    overflow: auto;
+    z-index: calc(infinity);
   }
 </style>
