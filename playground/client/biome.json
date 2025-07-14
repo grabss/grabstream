@@ -2,23 +2,18 @@
   "$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["../../biome.json"],
   "files": {
-    "includes": ["!.svelte-kit"]
+    "includes": ["**/*.{svelte}", "!.svelte-kit"]
   },
-  "overrides": [
-    {
-      "includes": ["**/*.{svelte}"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useConst": "off",
-            "useImportType": "off"
-          },
-          "correctness": {
-            "noUnusedVariables": "off",
-            "noUnusedImports": "off"
-          }
-        }
+  "linter": {
+    "rules": {
+      "style": {
+        "useConst": "off",
+        "useImportType": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "off",
+        "noUnusedImports": "off"
       }
     }
-  ]
+  }
 }
