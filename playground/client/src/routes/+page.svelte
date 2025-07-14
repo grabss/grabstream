@@ -13,17 +13,6 @@ type KnockResult = {
 let roomId = $state('')
 let knockResult = $state<KnockResult | null>(null)
 
-const joinRoom = () => {
-  const trimmedRoomId = roomId.trim()
-  const result = validateRoomId(trimmedRoomId)
-
-  if (result.success) {
-    goto(`/${trimmedRoomId}`)
-  } else {
-    alert(result.error)
-  }
-}
-
 const knock = async () => {
   knockResult = null
 
@@ -37,6 +26,17 @@ const knock = async () => {
 
   if (result.roomId === roomId.trim()) {
     knockResult = result
+  }
+}
+
+const joinRoom = () => {
+  const trimmedRoomId = roomId.trim()
+  const result = validateRoomId(trimmedRoomId)
+
+  if (result.success) {
+    goto(`/${trimmedRoomId}`)
+  } else {
+    alert(result.error)
   }
 }
 </script>
