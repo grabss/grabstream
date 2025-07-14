@@ -1,5 +1,6 @@
 {
   "name": "@grabstream/monorepo",
+  "description": "A minimal, extensible WebRTC P2P library.",
   "license": "MIT",
   "author": "grabss Inc.",
   "private": true,

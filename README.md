@@ -2,7 +2,7 @@
 
 # grabstream
 
-*A minimal, extensible WebRTC P2P library*
+*A minimal, extensible WebRTC P2P library.*
 
 </div>
 
