@@ -1,12 +1,12 @@
 <script lang="ts">
-import { validateRoomId } from '@grabstream/core'
 import { goto } from '$app/navigation'
+import { validateRoomId } from '@grabstream/core'
 
 type KnockResult = {
   roomId: string
-  exists: boolean,
-  hasPassword: boolean,
-  peerCount: number,
+  exists: boolean
+  hasPassword: boolean
+  peerCount: number
   isFull: boolean
 }
 
@@ -21,7 +21,9 @@ const knock = async () => {
     return
   }
 
-  const response = await fetch(`http://localhost:8080/rooms/${trimmedRoomId}/knock`)
+  const response = await fetch(
+    `http://localhost:8080/rooms/${trimmedRoomId}/knock`
+  )
   const result = await response.json()
 
   if (result.roomId === roomId.trim()) {

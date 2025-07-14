@@ -3,5 +3,22 @@
   "extends": ["../../biome.json"],
   "files": {
     "includes": ["!.svelte-kit"]
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.{svelte}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConst": "off",
+            "useImportType": "off"
+          },
+          "correctness": {
+            "noUnusedVariables": "off",
+            "noUnusedImports": "off"
+          }
+        }
+      }
+    }
+  ]
 }
