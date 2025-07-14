@@ -1,5 +1,6 @@
 import { createServer } from 'node:http'
 import { GrabstreamServer } from '@grabstream/server'
+import cors from 'cors'
 import express from 'express'
 
 const PORT = process.env.PORT || 8080
@@ -16,7 +17,14 @@ async function bootstrap() {
     requireRoomPassword: false
   })
 
+  app.use(cors())
   app.use(express.json())
+  app.get('/rooms/:id/knock', async (req, res) => {
+    const roomId = req.params.id
+    const result = grabstreamServer.knock(roomId)
+
+    res.send(result)
+  })
 
   await grabstreamServer.start()
   httpServer.listen(PORT, () => {
