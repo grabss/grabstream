@@ -45,7 +45,7 @@ const joinRoom = () => {
 
 <section class="h-100 d-flex items-center justify-center">
   <div class="border rounded-md">
-    <h1 class="text-lg font-semibold">Enter Rooms</h1>
+    <h1 class="text-lg font-semibold">Enter Room</h1>
     <input
       type="text"
       id="roomId"
