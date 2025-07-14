@@ -965,7 +965,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
       }
     }
 
-    localPeer.leaveRoom()
+    if (localPeer.isInRoom) localPeer.leaveRoom()
     this.peers.clear()
   }
 
