@@ -14,3 +14,16 @@ body {
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-md);
 }
+
+a,
+button,
+.interactive {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
