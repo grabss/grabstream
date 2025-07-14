@@ -22,6 +22,25 @@ async function bootstrap() {
   httpServer.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)
   })
+
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`\nReceived ${signal}, shutting down gracefully...`)
+
+    try {
+      httpServer.close(() => {
+        console.log('Server closed')
+      })
+
+      await grabstreamServer.stop()
+      process.exit(0)
+    } catch (error) {
+      console.error('Error during shutdown:', error)
+      process.exit(1)
+    }
+  }
+
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 }
 
 bootstrap()
