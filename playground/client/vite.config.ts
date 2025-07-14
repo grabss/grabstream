@@ -1,9 +1,18 @@
+import path from 'node:path'
 import { sveltekit } from '@sveltejs/kit/vite'
 import autoprefixer from 'autoprefixer'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
   css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `
+          @use 'grabcss/scss/mediaquery' as mediaquery;
+          @use '${path.resolve(__dirname, 'src/styles/variables')}' as variables;
+        `
+      }
+    },
     postcss: {
       plugins: [autoprefixer()]
     }

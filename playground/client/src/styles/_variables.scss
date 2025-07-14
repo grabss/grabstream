@@ -1,0 +1,11 @@
+@use 'sass:map';
+
+@use 'grabcss/scss/variables' as variables with ($define-colors: ('primary': #00a596,
+    'secondary': #ffffff,
+    'background': #1f2937,
+    'border': #374151,
+    'heading': #f3f4f6,
+    'body': #e5e7eb,
+    'muted': #9ca3af));
+
+@forward 'grabcss/scss/variables';
