@@ -1,7 +1,16 @@
 <script lang="ts">
 import '$styles/app.scss'
 
-let { children } = $props()
+let { children, data } = $props()
+const { grabstreamClient } = data
+
+$effect(() => {
+  ;(async () => {
+    if (!grabstreamClient.isConnected) {
+      await grabstreamClient.connect()
+    }
+  })()
+})
 </script>
 
 <svelte:head>

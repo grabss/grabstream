@@ -12,10 +12,6 @@ export const load: LayoutLoad = async () => {
     })
   }
 
-  if (!grabstreamClient.isConnected) {
-    await grabstreamClient.connect()
-  }
-
   return {
     grabstreamClient
   }

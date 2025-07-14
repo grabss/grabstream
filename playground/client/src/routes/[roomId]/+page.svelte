@@ -6,6 +6,9 @@ const { grabstreamClient } = data
 
 $effect(() => {
   ;(async () => {
+    if (!grabstreamClient.isConnected) {
+      await grabstreamClient.connect()
+    }
     await grabstreamClient.joinRoom(page.params.roomId)
   })()
 
