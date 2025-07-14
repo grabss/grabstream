@@ -63,9 +63,9 @@ $effect(() => {
 })
 </script>
 
-<section class="h-100 d-flex items-center justify-center">
-  <div class="border rounded-md">
-    <h1 class="text-lg font-semibold">Enter Room</h1>
+<section class="h-100 d-flex flex-column items-center justify-center">
+  <h1 class="fs-xl fw-bold">Join a Room</h1>
+  <div class="mt-lg d-flex">
     <input
       type="text"
       id="roomId"
@@ -74,7 +74,22 @@ $effect(() => {
       bind:value={roomId}
       oninput={knock}
     />
-    <button onclick={joinRoom}>Join Room</button>
-    <div>{JSON.stringify(knockResult)}</div>
+    <button onclick={joinRoom}>Join</button>
   </div>
+  <!-- <div>{JSON.stringify(knockResult)}</div> -->
 </section>
+
+<style lang="scss">
+  input {
+    width: 100%;
+    border-bottom: 1px solid var(--color-primary);
+
+    &::placeholder {
+      color: var(--color-muted);
+    }
+
+    @include mediaquery.mq(md) {
+      width: 300px;
+    }
+  }
+</style>

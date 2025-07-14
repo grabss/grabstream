@@ -3,7 +3,10 @@
 </header>
 
 <style lang="scss">
-  // TODO: Add styles for header
-  // header {
-  // }
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
 </style>
