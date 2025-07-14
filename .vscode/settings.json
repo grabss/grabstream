@@ -27,8 +27,5 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[svelte]": {
-    "editor.defaultFormatter": "svelte.svelte-vscode"
   }
 }
