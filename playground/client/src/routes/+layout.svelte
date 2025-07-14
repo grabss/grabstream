@@ -37,4 +37,12 @@ let { children } = $props()
     flex: 1;
     overflow: auto;
   }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0.6;
+  }
 </style>
