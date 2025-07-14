@@ -8,4 +8,22 @@ let { children } = $props()
   <title>grabstream Playground - A minimal, extensible WebRTC P2P library</title>
 </svelte:head>
 
-{@render children()}
+<div class="layout">
+  <main>
+    {@render children()}
+  </main>
+</div>
+
+<style lang="scss">
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  main {
+    flex: 1;
+    overflow: auto;
+  }
+</style>

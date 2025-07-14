@@ -43,8 +43,18 @@ const joinRoom = () => {
 }
 </script>
 
-<h1>Enter Room</h1>
-<input type="text" placeholder="Room ID" bind:value={roomId} oninput={knock} />
-<button onclick={joinRoom}>Join Room</button>
-<div>{JSON.stringify(knockResult)}</div>
-
+<section class="h-100 d-flex items-center justify-center">
+  <div class="border rounded-md">
+    <h1 class="text-lg font-semibold">Enter Rooms</h1>
+    <input
+      type="text"
+      id="roomId"
+      name="roomId"
+      placeholder="Room ID"
+      bind:value={roomId}
+      oninput={knock}
+    />
+    <button onclick={joinRoom}>Join Room</button>
+    <div>{JSON.stringify(knockResult)}</div>
+  </div>
+</section>
