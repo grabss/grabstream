@@ -17,7 +17,7 @@ const knock = async () => {
   knockResult = null
 
   const trimmedRoomId = roomId.trim()
-  if (!trimmedRoomId) {
+  if (!validateRoomId(trimmedRoomId).success) {
     return
   }
 
