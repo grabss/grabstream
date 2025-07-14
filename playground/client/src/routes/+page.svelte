@@ -2,7 +2,16 @@
 import { validateRoomId } from '@grabstream/core'
 import { goto } from '$app/navigation'
 
+type KnockResult = {
+  roomId: string
+  exists: boolean,
+  hasPassword: boolean,
+  peerCount: number,
+  isFull: boolean
+}
+
 let roomId = $state('')
+let knockResult = $state<KnockResult | null>(null)
 
 const joinRoom = () => {
   const trimmedRoomId = roomId.trim()
@@ -14,9 +23,26 @@ const joinRoom = () => {
     alert(result.error)
   }
 }
+
+const knock = async () => {
+  knockResult = null
+
+  const trimmedRoomId = roomId.trim()
+  if (!trimmedRoomId) {
+    return
+  }
+
+  const response = await fetch(`http://localhost:8080/rooms/${trimmedRoomId}/knock`)
+  const result = await response.json()
+
+  if (result.roomId === roomId.trim()) {
+    knockResult = result
+  }
+}
 </script>
 
 <h1>Enter Room</h1>
-<input type="text" bind:value={roomId} placeholder="Room ID" />
+<input type="text" placeholder="Room ID" bind:value={roomId} oninput={knock} />
 <button onclick={joinRoom}>Join Room</button>
+<div>{JSON.stringify(knockResult)}</div>
 
