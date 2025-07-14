@@ -61,6 +61,10 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     return !!this.ws && this.ws.readyState === WebSocket.OPEN
   }
 
+  get isJoined(): boolean {
+    return !!this.peer && this.peer.isInRoom
+  }
+
   get localStreams(): LocalStream[] {
     return this.peer?.streams || []
   }
