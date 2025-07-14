@@ -97,6 +97,9 @@ importers:
       '@grabstream/client':
         specifier: workspace:^
         version: link:../../packages/client
+      '@grabstream/core':
+        specifier: workspace:^
+        version: link:../../packages/core
     devDependencies:
       '@sveltejs/adapter-node':
         specifier: ^5.2.13

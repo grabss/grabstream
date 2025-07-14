@@ -15,7 +15,8 @@
     "lint:ci": "biome ci ."
   },
   "dependencies": {
-    "@grabstream/client": "workspace:^"
+    "@grabstream/client": "workspace:^",
+    "@grabstream/core": "workspace:^"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.13",
