@@ -1,18 +1,13 @@
 <script lang="ts">
 import '$styles/app.scss'
+
 import TheFooter from '$lib/components/TheFooter.svelte'
 import TheHeader from '$lib/components/TheHeader.svelte'
+import TheLoading from '$lib/components/TheLoading.svelte'
 
-let { children, data } = $props()
-const { grabstreamClient } = data
+import { appState } from '$lib/states'
 
-$effect(() => {
-  ;(async () => {
-    if (!grabstreamClient.isConnected) {
-      await grabstreamClient.connect()
-    }
-  })()
-})
+let { children } = $props()
 </script>
 
 <svelte:head>
@@ -26,6 +21,10 @@ $effect(() => {
   </main>
   <TheFooter/>
 </div>
+
+{#if appState.isLoading}
+  <TheLoading />
+{/if}
 
 <style lang="scss">
   .layout {
