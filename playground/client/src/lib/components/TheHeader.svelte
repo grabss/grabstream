@@ -3,7 +3,7 @@
 </header>
 
 <style lang="scss">
-  header {
-    // TODO: Add styles for header
-  }
+  // TODO: Add styles for header
+  // header {
+  // }
 </style>
