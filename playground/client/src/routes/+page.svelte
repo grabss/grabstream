@@ -33,7 +33,7 @@ const joinRoom = () => {
 }
 </script>
 
-<section class="h-100 mx-md d-flex flex-column items-center justify-center">
+<section class="mx-md d-flex flex-column items-center justify-center">
   <h1 class="fs-xl fw-bold">Join a Room</h1>
   <div class="w-100 my-lg d-flex justify-center items-center g-sm">
     <input
@@ -56,6 +56,10 @@ const joinRoom = () => {
 </section>
 
 <style lang="scss">
+  section {
+    min-height: 100%;
+  }
+
   input {
     max-width: 300px;
 

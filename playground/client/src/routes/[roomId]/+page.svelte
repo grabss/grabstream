@@ -44,7 +44,7 @@ $effect(() => {
 })
 </script>
 
-<section class="h-100 mx-md d-flex flex-column items-center justify-center">
+<section class="mx-md d-flex flex-column items-center justify-center">
   {#if status === 'IDLE'}
     <button onclick={joinRoom}>Join Room</button>
   {:else if status === 'JOINING'}
@@ -56,3 +56,9 @@ $effect(() => {
     <a href="/">Go back</a>
   {/if}
 </section>
+
+<style lang="scss">
+  section {
+    min-height: 100%;
+  }
+</style>
