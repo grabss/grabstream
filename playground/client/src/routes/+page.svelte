@@ -1,6 +1,8 @@
 <script lang="ts">
 import { goto } from '$app/navigation'
 import CommonButton from '$lib/components/CommonButton.svelte'
+import CommonInput from '$lib/components/CommonInput.svelte'
+
 import { validateRoomId } from '@grabstream/core'
 
 let roomId = $state('')
@@ -36,14 +38,15 @@ const joinRoom = () => {
 <section class="mx-md d-flex flex-column items-center justify-center">
   <h1 class="fs-xl fw-bold">Join a Room</h1>
   <div class="w-100 my-lg d-flex justify-center items-center g-sm">
-    <input
-      type="text"
-      id="roomId"
-      name="roomId"
-      placeholder="Room ID"
-      class="w-100 py-2xs px-xs fs-sm md:fs-md border-bottom border-muted"
-      bind:value={roomId}
-    />
+    <div class="input-wrapper">
+      <CommonInput
+        type="text"
+        id="roomId"
+        name="roomId"
+        placeholder="Room ID"
+        bind:value={roomId}
+      />
+    </div>
     <div class="d-flex g-xs">
       <div class="btn-wrapper">
         <CommonButton onclick={joinRoom} size="sm" variant="primary">Join</CommonButton>
@@ -60,22 +63,9 @@ const joinRoom = () => {
     min-height: 100%;
   }
 
-  input {
+  .input-wrapper {
+    width: 100%;
     max-width: 300px;
-
-    &:focus {
-      outline: none;
-      border-color: var(--color-primary);
-    }
-
-    &::placeholder {
-      color: var(--color-muted);
-    }
-
-    &:-webkit-autofill {
-      box-shadow: 0 0 0px 1000px var(--color-background) inset;
-      -webkit-text-fill-color: var(--color-body) !important;
-    }
   }
 
   .btn-wrapper {
