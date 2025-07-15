@@ -15,11 +15,13 @@
     "lint:ci": "biome ci ."
   },
   "dependencies": {
+    "@felte/validator-yup": "^1.1.4",
     "@grabstream/client": "workspace:^",
     "@grabstream/core": "workspace:^",
     "autoprefixer": "^10.4.21",
     "grabcss": "^0.7.0",
-    "sass-embedded": "^1.89.2"
+    "sass-embedded": "^1.89.2",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.13",
