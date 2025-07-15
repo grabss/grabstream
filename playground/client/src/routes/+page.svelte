@@ -1,44 +1,34 @@
 <script lang="ts">
 import { goto } from '$app/navigation'
+import CommonButton from '$lib/components/CommonButton.svelte'
 import { validateRoomId } from '@grabstream/core'
 
-type KnockResult = {
-  roomId: string
-  exists: boolean
-  hasPassword: boolean
-  peerCount: number
-  isFull: boolean
-}
-
 let roomId = $state('')
-let knockResult = $state<KnockResult | null>(null)
 
 const knock = async () => {
-  knockResult = null
-
   const trimmedRoomId = roomId.trim()
-  if (!validateRoomId(trimmedRoomId).success) {
+  const validateResult = validateRoomId(trimmedRoomId)
+
+  if (!validateResult.success) {
+    alert(validateResult.error)
     return
   }
 
   const response = await fetch(
     `http://localhost:8080/rooms/${trimmedRoomId}/knock`
   )
-  const result = await response.json()
-
-  if (result.roomId === roomId.trim()) {
-    knockResult = result
-  }
+  const knockResult = await response.json()
+  alert(`Knock result\n${JSON.stringify(knockResult, null, 2)}`)
 }
 
 const joinRoom = () => {
   const trimmedRoomId = roomId.trim()
-  const result = validateRoomId(trimmedRoomId)
+  const validateResult = validateRoomId(trimmedRoomId)
 
-  if (result.success) {
+  if (validateResult.success) {
     goto(`/${trimmedRoomId}`)
   } else {
-    alert(result.error)
+    alert(validateResult.error)
   }
 }
 </script>
@@ -52,30 +42,12 @@ const joinRoom = () => {
       name="roomId"
       placeholder="Room ID"
       bind:value={roomId}
-      oninput={knock}
     />
-    <button class="px-sm py-2xs border rounded-md" onclick={joinRoom}>Join</button>
+    <div class="d-flex g-xs">
+      <CommonButton onclick={joinRoom} size="sm" variant="primary">Join</CommonButton>
+      <CommonButton size="sm" onclick={knock}>Knock</CommonButton>
+    </div>
   </div>
-  <table class="fs-xs md:fs-sm">
-    <thead>
-      <tr>
-        <th>Room ID</th>
-        <th>Exists</th>
-        <th>Has Password</th>
-        <th>Peer Count</th>
-        <th>Is Full</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{knockResult?.roomId ?? '-'}</td>
-        <td>{knockResult?.exists ?? '-'}</td>
-        <td>{knockResult?.hasPassword ?? '-'}</td>
-        <td>{knockResult?.peerCount ?? '-'}</td>
-        <td>{knockResult?.isFull ?? '-'}</td>
-      </tr>
-    </tbody>
-  </table>
 </section>
 
 <style lang="scss">
@@ -97,20 +69,6 @@ const joinRoom = () => {
     &:-webkit-autofill {
       box-shadow: 0 0 0px 1000px var(--color-background) inset;
       -webkit-text-fill-color: var(--color-body) !important;
-    }
-  }
-
-  table {
-    width: 100%;
-    max-width: 600px;
-
-    th, td {
-      padding: 5px;
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    th {
-      font-weight: bold;
     }
   }
 </style>

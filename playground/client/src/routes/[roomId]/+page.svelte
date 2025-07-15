@@ -3,7 +3,7 @@ import { page } from '$app/state'
 import { GrabstreamClient } from '@grabstream/client'
 
 const grabstreamClient = new GrabstreamClient({
-  url: 'http://localhost:8080',
+  url: 'http://localhost:8080'
 })
 
 $effect(() => {
