@@ -31,5 +31,6 @@ $effect(() => {
     <h1>Joined Room: {page.params.roomId}</h1>
   {:catch error}
     <h1 class="fs-lg fw-bold text-muted">Error: {error.message}</h1>
+    <a href="/">Go back</a>
   {/await}
 </section>
