@@ -104,8 +104,8 @@ importers:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.6)
       grabcss:
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       sass-embedded:
         specifier: ^1.89.2
         version: 1.89.2
@@ -1693,8 +1693,8 @@ packages:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
     engines: {node: '>= 0.4'}
 
-  grabcss@0.6.0:
-    resolution: {integrity: sha512-6nS7G1CbqNMDH3/r0RDUSYc/2iUP3wfTkFUNINr0lkMwBij5VsJlR0ihXJi7H2N8Q30bQ38BZutR6ASaOnvOyQ==}
+  grabcss@0.7.0:
+    resolution: {integrity: sha512-yrHIyxsE1LGlKeNL/I8sRwKTkTdb1hpa9IVGPQfprUOR0B6AM0PHGYYyd3zAmMDpLNK3Er/3xyAefj47EgkELQ==}
     engines: {node: '>=20.0.0'}
 
   graceful-fs@4.2.11:
@@ -4609,7 +4609,7 @@ snapshots:
 
   gopd@1.2.0: {}
 
-  grabcss@0.6.0: {}
+  grabcss@0.7.0: {}
 
   graceful-fs@4.2.11: {}
 

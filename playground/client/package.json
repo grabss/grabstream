@@ -18,7 +18,7 @@
     "@grabstream/client": "workspace:^",
     "@grabstream/core": "workspace:^",
     "autoprefixer": "^10.4.21",
-    "grabcss": "^0.6.0",
+    "grabcss": "^0.7.0",
     "sass-embedded": "^1.89.2"
   },
   "devDependencies": {
