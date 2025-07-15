@@ -24,13 +24,11 @@ type AllowedInputType = Extract<
 type Props = {
   type?: AllowedInputType
   size?: 'sm' | 'md'
-  invalid?: boolean
 } & Omit<HTMLInputAttributes, 'size'>
 
 let {
   type = 'text',
   size = 'md',
-  invalid = false,
   class: className = '',
   value = $bindable(''),
   ...restProps
@@ -39,7 +37,7 @@ let {
 
 <input
   {type}
-  class={[className, 'input', `input-${size}`, { invalid }]}
+  class={[className, 'input', `input-${size}`]}
   {...restProps}
   bind:value
 />
@@ -73,11 +71,6 @@ let {
     &:focus {
       outline: none;
       border-color: var(--color-primary);
-    }
-
-    &.invalid {
-      color: var(--color-danger);
-      border-color: var(--color-danger);
     }
   }
 </style>
