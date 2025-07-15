@@ -1,7 +1,6 @@
 <script lang="ts">
 import { goto } from '$app/navigation'
 import { validateRoomId } from '@grabstream/core'
-import { appState } from '$lib/states'
 
 type KnockResult = {
   roomId: string
@@ -11,11 +10,8 @@ type KnockResult = {
   isFull: boolean
 }
 
-let { data } = $props()
 let roomId = $state('')
 let knockResult = $state<KnockResult | null>(null)
-
-const { grabstreamClient } = data
 
 const knock = async () => {
   knockResult = null
@@ -45,22 +41,6 @@ const joinRoom = () => {
     alert(result.error)
   }
 }
-
-$effect(() => {
-  ;(async () => {
-    if (!grabstreamClient.isConnected) {
-      appState.isLoading = true
-      try {
-        await grabstreamClient.connect()
-      } catch (error) {
-        console.error(error)
-        alert('Failed to connect to grabstream server.')
-      } finally {
-        appState.isLoading = false
-      }
-    }
-  })()
-})
 </script>
 
 <section class="h-100 mx-md d-flex flex-column items-center justify-center">
