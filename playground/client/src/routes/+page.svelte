@@ -9,10 +9,10 @@ let roomId = $state('')
 
 const knock = async () => {
   const trimmedRoomId = roomId.trim()
-  const validateResult = validateRoomId(trimmedRoomId)
+  const validationResult = validateRoomId(trimmedRoomId)
 
-  if (!validateResult.success) {
-    alert(validateResult.error)
+  if (!validationResult.success) {
+    alert(validationResult.error)
     return
   }
 
@@ -25,12 +25,12 @@ const knock = async () => {
 
 const joinRoom = () => {
   const trimmedRoomId = roomId.trim()
-  const validateResult = validateRoomId(trimmedRoomId)
+  const validationResult = validateRoomId(trimmedRoomId)
 
-  if (validateResult.success) {
+  if (validationResult.success) {
     goto(`/${trimmedRoomId}`)
   } else {
-    alert(validateResult.error)
+    alert(validationResult.error)
   }
 }
 </script>

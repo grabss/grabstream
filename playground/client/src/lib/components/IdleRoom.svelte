@@ -1,5 +1,6 @@
 <script lang="ts">
 type Props = {
+  roomId: string
   onJoin: (values: {
     displayName: string
     password?: string
@@ -8,10 +9,11 @@ type Props = {
 }
 
 let { onJoin }: Props = $props()
+let displayName = $state('')
 
 const join = () => {
   onJoin({
-    displayName: 'Guest',
+    displayName,
     mediaStream: new MediaStream()
   })
 }
