@@ -1,6 +1,7 @@
 <script lang="ts">
 import { page } from '$app/state'
 import CommonLoading from '$lib/components/CommonLoading.svelte'
+import IdleRoom from '$lib/components/IdleRoom.svelte'
 import { GrabstreamClient } from '@grabstream/client'
 
 let status = $state<'IDLE' | 'JOINING' | 'JOINED' | 'ERROR'>('IDLE')
@@ -10,7 +11,11 @@ const grabstreamClient = new GrabstreamClient({
   url: 'http://localhost:8080'
 })
 
-const joinRoom = async () => {
+const joinRoom = async (values: {
+  displayName: string
+  password?: string
+  mediaStream: MediaStream
+}) => {
   status = 'JOINING'
   error = null
 
@@ -25,7 +30,10 @@ const joinRoom = async () => {
   }
 
   try {
-    await grabstreamClient.joinRoom(page.params.roomId)
+    await grabstreamClient.joinRoom(page.params.roomId, {
+      displayName: values.displayName,
+      password: values.password
+    })
   } catch (e) {
     status = 'ERROR'
     error = e instanceof Error ? e.message : String(e)
@@ -46,7 +54,7 @@ $effect(() => {
 
 <section class="mx-md d-flex flex-column items-center justify-center">
   {#if status === 'IDLE'}
-    <button onclick={joinRoom}>Join Room</button>
+    <IdleRoom onJoin={joinRoom} />
   {:else if status === 'JOINING'}
     <CommonLoading />
   {:else if status === 'JOINED'}
