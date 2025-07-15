@@ -1,19 +1,39 @@
 <script lang="ts">
 import { page } from '$app/state'
+import CommonLoading from '$lib/components/CommonLoading.svelte'
 import { GrabstreamClient } from '@grabstream/client'
-import CommonLoading from '$lib/components/CommonLoading.svelte';
+
+let status = $state<'IDLE' | 'JOINING' | 'JOINED' | 'ERROR'>('IDLE')
+let error = $state<string | null>(null)
 
 const grabstreamClient = new GrabstreamClient({
   url: 'http://localhost:8080'
 })
 
 const joinRoom = async () => {
-  await new Promise(resolve => setTimeout(resolve, 3000))
-  if (!grabstreamClient.isConnected) {
-    await grabstreamClient.connect()
+  status = 'JOINING'
+  error = null
+
+  try {
+    if (!grabstreamClient.isConnected) {
+      await grabstreamClient.connect()
+    }
+  } catch (e) {
+    status = 'ERROR'
+    error = e instanceof Error ? e.message : String(e)
+    return
   }
-  await grabstreamClient.joinRoom(page.params.roomId)
+
+  try {
+    await grabstreamClient.joinRoom(page.params.roomId)
+  } catch (e) {
+    status = 'ERROR'
+    error = e instanceof Error ? e.message : String(e)
+    return
+  }
+
   // TODO: joinedRoom or Error handling
+  status = 'JOINED'
 }
 
 $effect(() => {
@@ -25,12 +45,14 @@ $effect(() => {
 </script>
 
 <section class="h-100 mx-md d-flex flex-column items-center justify-center">
-  {#await joinRoom()}
+  {#if status === 'IDLE'}
+    <button onclick={joinRoom}>Join Room</button>
+  {:else if status === 'JOINING'}
     <CommonLoading />
-  {:then}
-    <h1>Joined Room: {page.params.roomId}</h1>
-  {:catch error}
-    <h1 class="fs-lg fw-bold text-muted">Error: {error.message}</h1>
+  {:else if status === 'JOINED'}
+    <p>Joined Room: {page.params.roomId}</p>
+  {:else if status === 'ERROR'}
+    <h1 class="fs-lg fw-bold text-muted">Error: {error}</h1>
     <a href="/">Go back</a>
-  {/await}
+  {/if}
 </section>
