@@ -76,7 +76,8 @@ let {
     }
 
     &.invalid {
-      border-color: var(--color-warning);
+      color: var(--color-danger);
+      border-color: var(--color-danger);
     }
   }
 </style>
