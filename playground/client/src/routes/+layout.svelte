@@ -3,9 +3,6 @@ import '$styles/app.scss'
 
 import TheFooter from '$lib/components/TheFooter.svelte'
 import TheHeader from '$lib/components/TheHeader.svelte'
-import TheLoading from '$lib/components/TheLoading.svelte'
-
-import { appState } from '$lib/states'
 
 let { children } = $props()
 </script>
@@ -21,10 +18,6 @@ let { children } = $props()
   </main>
   <TheFooter/>
 </div>
-
-{#if appState.isLoading}
-  <TheLoading />
-{/if}
 
 <style lang="scss">
   .layout {

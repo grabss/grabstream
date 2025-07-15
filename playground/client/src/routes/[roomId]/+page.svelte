@@ -1,21 +1,19 @@
 <script lang="ts">
 import { page } from '$app/state'
+import { GrabstreamClient } from '@grabstream/client'
 
-import { appState } from '$lib/states'
-
-let { data } = $props()
-const { grabstreamClient } = data
+const grabstreamClient = new GrabstreamClient({
+  url: 'http://localhost:8080',
+})
 
 $effect(() => {
   ;(async () => {
-    appState.isLoading = true
     if (!grabstreamClient.isConnected) {
       try {
         await grabstreamClient.connect()
       } catch (error) {
         console.error(error)
         alert('Failed to connect to grabstream server.')
-        appState.isLoading = false
         return
       }
     }
@@ -25,8 +23,6 @@ $effect(() => {
     } catch (error) {
       console.error(error)
       alert('Failed to join the room.')
-    } finally {
-      appState.isLoading = false
     }
   })()
 
@@ -34,6 +30,7 @@ $effect(() => {
     if (grabstreamClient.isJoined) {
       grabstreamClient.leaveRoom()
     }
+    grabstreamClient.disconnect()
   }
 })
 </script>
