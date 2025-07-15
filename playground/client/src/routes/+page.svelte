@@ -49,7 +49,7 @@ const joinRoom = () => {
     </div>
     <div class="d-flex g-xs">
       <div class="btn-wrapper">
-        <CommonButton onclick={joinRoom} size="sm" variant="primary">Join</CommonButton>
+        <CommonButton size="sm" variant="primary" onclick={joinRoom}>Join</CommonButton>
       </div>
       <div class="btn-wrapper">
         <CommonButton size="sm" onclick={knock}>Knock</CommonButton>
