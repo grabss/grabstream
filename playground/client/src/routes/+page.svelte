@@ -41,21 +41,23 @@ const joinRoom = () => {
       id="roomId"
       name="roomId"
       placeholder="Room ID"
+      class="w-100 py-2xs px-xs fs-sm md:fs-md border-bottom border-muted"
       bind:value={roomId}
     />
     <div class="d-flex g-xs">
-      <CommonButton onclick={joinRoom} size="sm" variant="primary">Join</CommonButton>
-      <CommonButton size="sm" onclick={knock}>Knock</CommonButton>
+      <div class="btn-wrapper">
+        <CommonButton onclick={joinRoom} size="sm" variant="primary">Join</CommonButton>
+      </div>
+      <div class="btn-wrapper">
+        <CommonButton size="sm" onclick={knock}>Knock</CommonButton>
+      </div>
     </div>
   </div>
 </section>
 
 <style lang="scss">
   input {
-    width: 100%;
     max-width: 300px;
-    padding: 5px 10px;
-    border-bottom: 1px solid var(--color-muted);
 
     &:focus {
       outline: none;
@@ -70,5 +72,10 @@ const joinRoom = () => {
       box-shadow: 0 0 0px 1000px var(--color-background) inset;
       -webkit-text-fill-color: var(--color-body) !important;
     }
+  }
+
+  .btn-wrapper {
+    width: 65px;
+    flex-shrink: 0;
   }
 </style>
