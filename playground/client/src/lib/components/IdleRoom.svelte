@@ -2,6 +2,7 @@
 import CommonButton from '$lib/components/CommonButton.svelte'
 import CommonInput from '$lib/components/CommonInput.svelte'
 import { validateDisplayName } from '@grabstream/core'
+import { onDestroy, onMount } from 'svelte'
 import type { Action } from 'svelte/action'
 
 type Props = {
@@ -35,6 +36,7 @@ let videoOptions = $derived(
         )
     }))
 )
+
 let audioOptions = $derived(
   mediaDevices
     .filter((device) => device.kind === 'audioinput')
@@ -50,6 +52,8 @@ let audioOptions = $derived(
         )
     }))
 )
+
+let isJoining = false
 
 const srcObject: Action<HTMLVideoElement, () => MediaStream | undefined> = (
   node,
@@ -97,28 +101,24 @@ const join = () => {
     password: password || undefined,
     mediaStream: mediaStream
   })
+  isJoining = true
 }
 
-$effect(() => {
-  let localStream: MediaStream | undefined
+onMount(async () => {
+  try {
+    mediaDevices = await navigator.mediaDevices.enumerateDevices()
+    mediaStream = await getMediaStream()
+  } catch (error) {
+    alert(
+      `Failed to get media stream: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+})
 
-  ;(async () => {
-    try {
-      mediaDevices = await navigator.mediaDevices.enumerateDevices()
-      localStream = await getMediaStream()
-      mediaStream = localStream
-    } catch (error) {
-      alert(
-        `Failed to get media stream: ${error instanceof Error ? error.message : String(error)}`
-      )
-    }
-  })()
-
-  return () => {
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop())
-      localStream = undefined
-    }
+onDestroy(() => {
+  if (!isJoining && mediaStream) {
+    mediaStream.getTracks().forEach((track) => track.stop())
+    mediaStream = undefined
   }
 })
 </script>
