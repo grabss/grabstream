@@ -28,12 +28,8 @@ let videoOptions = $derived(
       id: device.deviceId,
       label: device.label || `Unknown Video Device (${device.deviceId})`,
       selected: mediaStream
-        ?.getTracks()
-        .some(
-          (track) =>
-            track.kind === 'video' &&
-            track.getSettings().deviceId === device.deviceId
-        )
+        ?.getVideoTracks()
+        .some((track) => track.getSettings().deviceId === device.deviceId)
     }))
 )
 
@@ -44,12 +40,8 @@ let audioOptions = $derived(
       id: device.deviceId,
       label: device.label || `Unknown Audio Device (${device.deviceId})`,
       selected: mediaStream
-        ?.getTracks()
-        .some(
-          (track) =>
-            track.kind === 'audio' &&
-            track.getSettings().deviceId === device.deviceId
-        )
+        ?.getAudioTracks()
+        .some((track) => track.getSettings().deviceId === device.deviceId)
     }))
 )
 
@@ -85,6 +77,26 @@ const getMediaStream = async ({
       height: { ideal: 480 }
     }
   })
+}
+
+const onChangeDevice = async ({
+  type,
+  value
+}: {
+  type: 'AUDIO' | 'VIDEO'
+  value: string
+}) => {
+  if (type === 'VIDEO') {
+    mediaStream = await getMediaStream({
+      videoId: value,
+      audioId: mediaStream?.getAudioTracks()[0]?.getSettings().deviceId
+    })
+  } else if (type === 'AUDIO') {
+    mediaStream = await getMediaStream({
+      audioId: value,
+      videoId: mediaStream?.getVideoTracks()[0]?.getSettings().deviceId
+    })
+  }
 }
 
 const join = () => {
@@ -134,12 +146,24 @@ onDestroy(() => {
       use:srcObject={() => mediaStream}
     ></video>
     <div class="d-flex flex-column g-xs md:g-sm">
-      <select name="videoId" id="videoId">
+      <select
+        name="video"
+        id="video"
+        onchange={(e) => {
+          const value = (e.target as HTMLSelectElement).value
+          onChangeDevice({ type: 'VIDEO', value })
+        }}>
         {#each videoOptions as { id, label, selected }}
           <option value={id} {selected}>{label}</option>
         {/each}
       </select>
-      <select name="audioId" id="audioId">
+      <select
+        name="audio"
+        id="audio"
+        onchange={(e) => {
+          const value = (e.target as HTMLSelectElement).value
+          onChangeDevice({ type: 'AUDIO', value })
+        }}>
         {#each audioOptions as { id, label, selected }}
           <option value={id} {selected}>{label}</option>
         {/each}
