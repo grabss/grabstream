@@ -547,11 +547,11 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
 
     logger.info('room:joined', {
       roomId,
-      peerCount: this.peers.size
+      peerCount: this.peers.size + 1
     })
     this.emit('room:joined', {
       roomId,
-      peerCount: this.peers.size
+      peerCount: this.peers.size + 1
     })
 
     for (const remotePeer of this.peers.values()) {
@@ -596,7 +596,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     logger.info('peer:joined', {
       peerId,
       displayName,
-      peerCount: this.peers.size
+      peerCount: this.peers.size + 1
     })
     this.emit('peer:joined', remotePeer)
   }
@@ -615,7 +615,7 @@ export class GrabstreamClient extends GrabstreamClientEmitter {
     logger.info('peer:left', {
       peerId,
       displayName: remotePeer.displayName,
-      peerCount: this.peers.size
+      peerCount: this.peers.size + 1
     })
     this.emit('peer:left', remotePeer)
 
