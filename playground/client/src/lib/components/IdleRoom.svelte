@@ -11,7 +11,7 @@ type Props = {
   onJoin: (values: {
     displayName: string
     password?: string
-    mediaStream?: MediaStream
+    mediaStream: MediaStream
   }) => void
 }
 
@@ -109,10 +109,15 @@ const join = () => {
     return
   }
 
+  if (!mediaStream) {
+    alert('Please allow access to your camera and microphone.')
+    return
+  }
+
   onJoin({
     displayName: trimmedDisplayName,
     password: password || undefined,
-    mediaStream: mediaStream
+    mediaStream
   })
   isJoining = true
 }
@@ -176,6 +181,7 @@ onDestroy(() => {
     id="displayName"
     name="displayName"
     placeholder="Display Name"
+    autofocus
     bind:value={displayName}
   />
   <div class="btn-wrapper">

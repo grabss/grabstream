@@ -18,7 +18,7 @@ const grabstreamClient = new GrabstreamClient({
 const joinRoom = async (values: {
   displayName: string
   password?: string
-  mediaStream?: MediaStream
+  mediaStream: MediaStream
 }) => {
   status = 'JOINING'
   error = null
@@ -33,6 +33,20 @@ const joinRoom = async (values: {
     return
   }
 
+  grabstreamClient.on('room:joined', async () => {
+    status = 'JOINED'
+  })
+
+  grabstreamClient.on('server:error', (e) => {
+    status = 'ERROR'
+    error = e.message
+  })
+
+  await grabstreamClient.addLocalStream({
+    type: 'AUDIO_VIDEO',
+    stream: values.mediaStream
+  })
+
   try {
     await grabstreamClient.joinRoom(roomId, {
       displayName: values.displayName,
@@ -43,9 +57,6 @@ const joinRoom = async (values: {
     error = e instanceof Error ? e.message : String(e)
     return
   }
-
-  // TODO: joinedRoom or Error handling
-  status = 'JOINED'
 }
 
 $effect(() => {
@@ -58,6 +69,11 @@ $effect(() => {
   return () => {
     if (grabstreamClient.isJoined) grabstreamClient.leaveRoom()
     if (grabstreamClient.isConnected) grabstreamClient.disconnect()
+    if (grabstreamClient.localStreams) {
+      grabstreamClient.localStreams.forEach((localStream) => {
+        localStream.stream.getTracks().forEach((track) => track.stop())
+      })
+    }
   }
 })
 </script>
