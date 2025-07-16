@@ -51,19 +51,15 @@ let audioOptions = $derived(
     }))
 )
 
-const join = () => {
-  const trimmedDisplayName = displayName.trim()
-  const validateDisplayNameResult = validateDisplayName(trimmedDisplayName)
-
-  if (!validateDisplayNameResult.success) {
-    alert(validateDisplayNameResult.error)
-    return
-  }
-
-  onJoin({
-    displayName: trimmedDisplayName,
-    password: password || undefined,
-    mediaStream: mediaStream
+const srcObject: Action<HTMLVideoElement, () => MediaStream | undefined> = (
+  node,
+  streamEffect
+) => {
+  $effect(() => {
+    node.srcObject = streamEffect() ?? null
+    return () => {
+      node.srcObject = null
+    }
   })
 }
 
@@ -87,15 +83,19 @@ const getMediaStream = async ({
   })
 }
 
-const srcObject: Action<HTMLVideoElement, () => MediaStream | undefined> = (
-  node,
-  streamEffect
-) => {
-  $effect(() => {
-    node.srcObject = streamEffect() ?? null
-    return () => {
-      node.srcObject = null
-    }
+const join = () => {
+  const trimmedDisplayName = displayName.trim()
+  const validateDisplayNameResult = validateDisplayName(trimmedDisplayName)
+
+  if (!validateDisplayNameResult.success) {
+    alert(validateDisplayNameResult.error)
+    return
+  }
+
+  onJoin({
+    displayName: trimmedDisplayName,
+    password: password || undefined,
+    mediaStream: mediaStream
   })
 }
 
@@ -126,33 +126,33 @@ $effect(() => {
 <div class="idle-room">
   <p class="fs-2xl mb-md">Room ID: {roomId}</p>
   <!-- TODO: password -->
-   <div class="d-flex">
-      <video
+  <div class="d-flex flex-column md:flex-row g-md mb-md">
+    <video
       autoplay
       muted
       playsinline
       use:srcObject={() => mediaStream}
-      ></video>
-      <div>
-        <select name="videoId" id="videoId">
-          {#each videoOptions as { id, label, selected }}
-            <option value={id} {selected}>{label}</option>
-          {/each}
-        </select>
-        <select name="audioId" id="audioId">
-          {#each audioOptions as { id, label, selected }}
-            <option value={id} {selected}>{label}</option>
-          {/each}
-        </select>
-      </div>
-   </div>
-   <CommonInput
-      type="text"
-      id="displayName"
-      name="displayName"
-      placeholder="Display Name"
-      bind:value={displayName}
-    />
+    ></video>
+    <div class="d-flex flex-column g-xs md:g-sm">
+      <select name="videoId" id="videoId">
+        {#each videoOptions as { id, label, selected }}
+          <option value={id} {selected}>{label}</option>
+        {/each}
+      </select>
+      <select name="audioId" id="audioId">
+        {#each audioOptions as { id, label, selected }}
+          <option value={id} {selected}>{label}</option>
+        {/each}
+      </select>
+    </div>
+  </div>
+  <CommonInput
+    type="text"
+    id="displayName"
+    name="displayName"
+    placeholder="Display Name"
+    bind:value={displayName}
+  />
   <div class="btn-wrapper">
     <CommonButton variant="primary" onclick={join}>Join</CommonButton>
   </div>
@@ -163,8 +163,11 @@ $effect(() => {
     width: 100%;
     max-width: 800px;
     padding: 10px 20px;
+    background-color: var(--color-background);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1),
+                0px 8px 16px rgba(0, 0, 0, 0.1);
 
     video {
       width: 100%;
