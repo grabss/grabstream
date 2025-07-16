@@ -18,7 +18,7 @@ const grabstreamClient = new GrabstreamClient({
 const joinRoom = async (values: {
   displayName: string
   password?: string
-  mediaStream: MediaStream
+  mediaStream?: MediaStream
 }) => {
   status = 'JOINING'
   error = null
