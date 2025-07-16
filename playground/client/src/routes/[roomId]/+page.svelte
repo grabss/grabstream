@@ -3,11 +3,13 @@ import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import CommonLoading from '$lib/components/CommonLoading.svelte'
 import IdleRoom from '$lib/components/IdleRoom.svelte'
+import JoinedRoom from '$lib/components/JoinedRoom.svelte'
 import { GrabstreamClient } from '@grabstream/client'
 import { validateRoomId } from '@grabstream/core'
 
 let status = $state<'IDLE' | 'JOINING' | 'JOINED' | 'ERROR'>('IDLE')
 let error = $state<string | null>(null)
+let displayName = $state('')
 
 const roomId = page.params.roomId.trim()
 
@@ -42,6 +44,7 @@ const joinRoom = async (values: {
     error = e.message
   })
 
+  displayName = values.displayName
   await grabstreamClient.addLocalStream({
     type: 'AUDIO_VIDEO',
     stream: values.mediaStream
@@ -84,7 +87,7 @@ $effect(() => {
   {:else if status === 'JOINING'}
     <CommonLoading />
   {:else if status === 'JOINED'}
-    <p>Joined Room: {roomId}</p>
+    <JoinedRoom {displayName} {grabstreamClient} />
   {:else if status === 'ERROR'}
     <h1 class="fs-lg fw-bold text-muted">Error: {error}</h1>
     <a href="/">Go back</a>
