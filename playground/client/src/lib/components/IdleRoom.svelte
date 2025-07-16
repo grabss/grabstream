@@ -114,6 +114,14 @@ $effect(() => {
     padding: 10px 20px;
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
+
+    video {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      transform: scaleX(-1);
+      border-radius: var(--border-radius-md);
+    }
   }
 
   .btn-wrapper {
