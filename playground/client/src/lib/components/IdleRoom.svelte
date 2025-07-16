@@ -139,7 +139,7 @@ onDestroy(() => {
 <div class="idle-room">
   <p class="fs-2xl mb-md">Room ID: {roomId}</p>
   <!-- TODO: password -->
-  <div class="d-flex flex-column md:flex-row g-md mb-md">
+  <div class="d-flex flex-column-reverse md:flex-row g-md mb-md">
     <video
       autoplay
       muted
