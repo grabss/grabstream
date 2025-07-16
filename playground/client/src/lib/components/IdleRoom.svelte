@@ -14,9 +14,24 @@ type Props = {
 }
 
 let { roomId, onJoin }: Props = $props()
+
 let displayName = $state('')
 let password = $state('')
 let mediaStream = $state<MediaStream>()
+let mediaDevices = $state<MediaDeviceInfo[]>([])
+
+let videoOptions = $derived(
+  mediaDevices.filter((device) => device.deviceId !== 'default' && device.kind === 'videoinput').map((device) => ({
+    id: device.deviceId,
+    label: device.label || `Unknown Video Device (${device.deviceId})`
+  }))
+)
+let audioOptions = $derived(
+  mediaDevices.filter((device) => device.deviceId !== 'default' && device.kind === 'audioinput').map((device) => ({
+    id: device.deviceId,
+    label: device.label || `Unknown Audio Device (${device.deviceId})`
+  }))
+)
 
 const join = () => {
   const trimmedDisplayName = displayName.trim()
@@ -68,6 +83,8 @@ $effect(() => {
 
   ;(async () => {
     try {
+      mediaDevices = await navigator.mediaDevices.enumerateDevices()
+      console.log(mediaDevices)
       localStream = await getMediaStream()
       mediaStream = localStream
     } catch (error) {
@@ -89,12 +106,26 @@ $effect(() => {
 <div class="idle-room">
   <p class="fs-2xl mb-md">Room ID: {roomId}</p>
   <!-- TODO: password -->
-   <video
-     autoplay
-     muted
-     playsinline
-     use:srcObject={() => mediaStream}
-    ></video>
+   <div class="d-flex">
+      <video
+      autoplay
+      muted
+      playsinline
+      use:srcObject={() => mediaStream}
+      ></video>
+      <div>
+        <select name="videoId" id="videoId">
+          {#each videoOptions as { id, label }}
+            <option value={id}>{label}</option>
+          {/each}
+        </select>
+        <select name="audioId" id="audioId">
+          {#each audioOptions as { id, label }}
+            <option value={id}>{label}</option>
+          {/each}
+        </select>
+      </div>
+   </div>
    <CommonInput
       type="text"
       id="displayName"
