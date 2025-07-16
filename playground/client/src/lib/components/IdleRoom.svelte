@@ -21,16 +21,34 @@ let mediaStream = $state<MediaStream>()
 let mediaDevices = $state<MediaDeviceInfo[]>([])
 
 let videoOptions = $derived(
-  mediaDevices.filter((device) => device.deviceId !== 'default' && device.kind === 'videoinput').map((device) => ({
-    id: device.deviceId,
-    label: device.label || `Unknown Video Device (${device.deviceId})`
-  }))
+  mediaDevices
+    .filter((device) => device.kind === 'videoinput')
+    .map((device) => ({
+      id: device.deviceId,
+      label: device.label || `Unknown Video Device (${device.deviceId})`,
+      selected: mediaStream
+        ?.getTracks()
+        .some(
+          (track) =>
+            track.kind === 'video' &&
+            track.getSettings().deviceId === device.deviceId
+        )
+    }))
 )
 let audioOptions = $derived(
-  mediaDevices.filter((device) => device.deviceId !== 'default' && device.kind === 'audioinput').map((device) => ({
-    id: device.deviceId,
-    label: device.label || `Unknown Audio Device (${device.deviceId})`
-  }))
+  mediaDevices
+    .filter((device) => device.kind === 'audioinput')
+    .map((device) => ({
+      id: device.deviceId,
+      label: device.label || `Unknown Audio Device (${device.deviceId})`,
+      selected: mediaStream
+        ?.getTracks()
+        .some(
+          (track) =>
+            track.kind === 'audio' &&
+            track.getSettings().deviceId === device.deviceId
+        )
+    }))
 )
 
 const join = () => {
@@ -69,7 +87,10 @@ const getMediaStream = async ({
   })
 }
 
-const srcObject: Action<HTMLVideoElement, () => MediaStream | undefined> = (node, streamEffect) => {
+const srcObject: Action<HTMLVideoElement, () => MediaStream | undefined> = (
+  node,
+  streamEffect
+) => {
   $effect(() => {
     node.srcObject = streamEffect() ?? null
     return () => {
@@ -84,7 +105,6 @@ $effect(() => {
   ;(async () => {
     try {
       mediaDevices = await navigator.mediaDevices.enumerateDevices()
-      console.log(mediaDevices)
       localStream = await getMediaStream()
       mediaStream = localStream
     } catch (error) {
@@ -115,13 +135,13 @@ $effect(() => {
       ></video>
       <div>
         <select name="videoId" id="videoId">
-          {#each videoOptions as { id, label }}
-            <option value={id}>{label}</option>
+          {#each videoOptions as { id, label, selected }}
+            <option value={id} {selected}>{label}</option>
           {/each}
         </select>
         <select name="audioId" id="audioId">
-          {#each audioOptions as { id, label }}
-            <option value={id}>{label}</option>
+          {#each audioOptions as { id, label, selected }}
+            <option value={id} {selected}>{label}</option>
           {/each}
         </select>
       </div>
