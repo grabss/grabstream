@@ -1,6 +1,7 @@
 <script lang="ts">
 import CommonButton from '$lib/components/CommonButton.svelte'
 import CommonInput from '$lib/components/CommonInput.svelte'
+import CommonSelect from '$lib/components/CommonSelect.svelte'
 import { validateDisplayName } from '@grabstream/core'
 import { onDestroy, onMount } from 'svelte'
 import type { Action } from 'svelte/action'
@@ -146,7 +147,7 @@ onDestroy(() => {
       use:srcObject={() => mediaStream}
     ></video>
     <div class="d-flex flex-column g-xs md:g-sm">
-      <select
+      <CommonSelect
         name="video"
         id="video"
         onchange={(e) => {
@@ -156,8 +157,8 @@ onDestroy(() => {
         {#each videoOptions as { id, label, selected }}
           <option value={id} {selected}>{label}</option>
         {/each}
-      </select>
-      <select
+      </CommonSelect>
+      <CommonSelect
         name="audio"
         id="audio"
         onchange={(e) => {
@@ -167,7 +168,7 @@ onDestroy(() => {
         {#each audioOptions as { id, label, selected }}
           <option value={id} {selected}>{label}</option>
         {/each}
-      </select>
+      </CommonSelect>
     </div>
   </div>
   <CommonInput
